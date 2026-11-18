@@ -47,145 +47,192 @@ services/agent/app/
 └── observability/       # LangFuse
 ```
 
-## Sub-agents
-### Input and Output Data Shape for Sub-agents
-#### 1. Records worker input
+## Communiation Schema
+### Agent and Backend
 ```
-{
-  "task_id": "t1",
-  "worker": "records",
-  "question": "Who does the submitted TIN belong to: the business name or the owner? Is 'Sunshine Cafe' registered as an entity or as a DBA in NY or Nassau County?",
-  "focus_fields": ["tin_match", "irs_name_control", "legal_name", "dba_name", "entity_status", "kyc_status"],
-  "hypotheses": [
-    {"hypothesis_id": "h1", "text": "Sole proprietor using a trade name"},
-    {"hypothesis_id": "h2", "text": "DBA of a registered LLC"},
-    {"hypothesis_id": "h3", "text": "Wrong or fake TIN"}
-  ],
-  "context": {
-    "case_id": "case_0012",
-    "ec_flags": ["EC-1", "EC-2", "EC-4"],
-    "submitted_legal_name": "Sunshine Cafe",
-    "entity_type": "sole_prop",
-    "formation_state": "NY",
-    "address": "12 Main St, Great Neck, NY 11021",
-    "tin_ref": "tin_ref_8841",
-    "tin_last4": "4417",
-    "owners": [{"owner_id": "o1", "name": "Mark Hemlock", "role": "owner", "kyc_ref": "kyc_77"}],
-    "documents": [],
-    "website": null
-  },
-  "prior_findings": [],
-  "follow_up_of": null,
-  "max_tool_calls": 6
-}
+class CaseStatus(str, Enum):
+    PENDING_REVIEW = "pending_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class FlagReason(str, Enum):
+    NAME_SIMILAR_MATCH = "NAME_SIMILAR_MATCH"
+    DBA_UNVERIFIED = "DBA_UNVERIFIED"
+    TIN_MISMATCH = "TIN_MISMATCH"
+    PRODUCT_CATEGORY_REVIEW = "PRODUCT_CATEGORY_REVIEW"
+
+
+class Owner(BaseModel):
+    ref: str
+    name: str
+    role: str
+
+
+class Application(BaseModel):
+    legal_name: str
+    dba: str | None = None
+    ein: str = Field(pattern=r"^\d{2}-\d{7}$")
+    state: str = Field(min_length=2, max_length=2)
+    state_entity_id: str
+    entity_type: str
+    formation_date: date
+    owners: list[Owner]
+
+
+class CheckResult(BaseModel):
+    result: str
+    matched_name: str | None = None
+
+
+class Checks(BaseModel):
+    sos_name: CheckResult
+    dba: CheckResult
+    tin: CheckResult
+
+
+class Document(BaseModel):
+    id: str
+    type: str
+    # Using dict[str, Any] here so different document types can have different extracted schemas
+    extracted: dict[str, Any]
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class BankVerification(BaseModel):
+    id: str
+    account_holder: str
+    status: Literal["verified", "unverified", "pending", "failed"]
+    verified_at: date
+
+
+class WebSnapshot(BaseModel):
+    id: str
+    url: HttpUrl
+    captured_at: date
+    text: str
+
+
+class OwnerKYC(BaseModel):
+    id: str
+    owner_ref: str
+    result: Literal["pass", "fail", "pending"]
+
+# ==========================================
+# Top-Level Sub-Agent Schema
+# ==========================================
+
+class CaseReview(BaseModel):
+    case_id: str
+    status: CaseStatus
+    flag_reasons: list[FlagReason]
+    application: Application
+    checks: Checks
+    documents: list[Document]
+    bank_verification: BankVerification | None = None
+    web_snapshot: list[WebSnapshot] = Field(default_factory=list)
+    owner_kyc: list[OwnerKYC] = Field(default_factory=list)
 ```
 
-#### 2. Evidence worker input
+#### Lead and Sub-agents
 ```
-{
-  "task_id": "t2",
-  "worker": "evidence",
-  "question": "What legal name, owner, EIN and address do the merchant's documents and website show? Do they name 'Sunshine Cafe' as a trade name of Mark Hemlock?",
-  "focus_fields": ["legal_name", "dba_name", "owner_name", "ein_masked", "operating_address", "bank_account_holder", "website_legal_name", "document_issue_date"],
-  "hypotheses": [
-    {"hypothesis_id": "h1", "text": "Sole proprietor using a trade name"},
-    {"hypothesis_id": "h2", "text": "DBA of a registered LLC"}
-  ],
-  "context": {
-    "case_id": "case_0012",
-    "ec_flags": ["EC-1", "EC-2", "EC-4"],
-    "submitted_legal_name": "Sunshine Cafe",
-    "entity_type": "sole_prop",
-    "formation_state": "NY",
-    "address": "12 Main St, Great Neck, NY 11021",
-    "tin_ref": "redacted",
-    "tin_last4": "4417",
-    "owners": [{"owner_id": "o1", "name": "Mark Hemlock", "role": "owner", "kyc_ref": null}],
-    "documents": [
-      {"doc_id": "d1", "doc_type": "ein_letter_147c", "file_ref": "docs/case_0012_147c.pdf", "uploaded_at": "2026-11-14T10:00:00"},
-      {"doc_id": "d2", "doc_type": "dba_certificate", "file_ref": "docs/case_0012_dba.pdf", "uploaded_at": "2026-11-14T10:01:00"},
-      {"doc_id": "d3", "doc_type": "voided_check", "file_ref": "docs/case_0012_check.pdf", "uploaded_at": "2026-11-14T10:02:00"}
-    ],
-    "website": "https://sunshinecafe.example"
-  },
-  "prior_findings": [],
-  "follow_up_of": null,
-  "max_tool_calls": 6
-}
-```
+# ==========================================
+# Shared & Nested Models
+# ==========================================
 
-#### 3. Records worker result
-```
-{
-  "task_id": "t2",
-  "worker": "evidence",
-  "question": "What legal name, owner, EIN and address do the merchant's documents and website show? Do they name 'Sunshine Cafe' as a trade name of Mark Hemlock?",
-  "focus_fields": ["legal_name", "dba_name", "owner_name", "ein_masked", "operating_address", "bank_account_holder", "website_legal_name", "document_issue_date"],
-  "hypotheses": [
-    {"hypothesis_id": "h1", "text": "Sole proprietor using a trade name"},
-    {"hypothesis_id": "h2", "text": "DBA of a registered LLC"}
-  ],
-  "context": {
-    "case_id": "case_0012",
-    "ec_flags": ["EC-1", "EC-2", "EC-4"],
-    "submitted_legal_name": "Sunshine Cafe",
-    "entity_type": "sole_prop",
-    "formation_state": "NY",
-    "address": "12 Main St, Great Neck, NY 11021",
-    "tin_ref": "redacted",
-    "tin_last4": "4417",
-    "owners": [{"owner_id": "o1", "name": "Mark Hemlock", "role": "owner", "kyc_ref": null}],
-    "documents": [
-      {"doc_id": "d1", "doc_type": "ein_letter_147c", "file_ref": "docs/case_0012_147c.pdf", "uploaded_at": "2026-11-14T10:00:00"},
-      {"doc_id": "d2", "doc_type": "dba_certificate", "file_ref": "docs/case_0012_dba.pdf", "uploaded_at": "2026-11-14T10:01:00"},
-      {"doc_id": "d3", "doc_type": "voided_check", "file_ref": "docs/case_0012_check.pdf", "uploaded_at": "2026-11-14T10:02:00"}
-    ],
-    "website": "https://sunshinecafe.example"
-  },
-  "prior_findings": [],
-  "follow_up_of": null,
-  "max_tool_calls": 6
-}
-```
+class Hypothesis(BaseModel):
+    hypothesis_id: str
+    text: str
 
-#### 4. Evidence worker input
-```
-{
-  "task_id": "t1", "case_id": "case_0012", "worker": "records",
-  "status": "completed",
-  "findings": [
-    {"finding_id": "f_rec_1", "subject": "business", "field": "tin_match", "value": "3",
-     "source_id": "src_irs_1", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_irs_1", "locator": "tin_match:req_551",
-                  "excerpt": "code 3: name/TIN combination does not match ('Sunshine Cafe')"},
-     "note": "Checked against the business name"},
-    {"finding_id": "f_rec_2", "subject": "business", "field": "tin_match", "value": "6",
-     "source_id": "src_irs_2", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_irs_2", "locator": "tin_match:req_552",
-                  "excerpt": "code 6: matched on SSN with name 'Mark Hemlock'"},
-     "note": "Checked against the owner's name"},
-    {"finding_id": "f_rec_3", "subject": "business", "field": "irs_name_control", "value": "HEML",
-     "source_id": "src_irs_2", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_irs_2", "locator": "tin_match:req_552", "excerpt": "name control HEML"}},
-    {"finding_id": "f_rec_4", "subject": "owner:o1", "field": "kyc_status", "value": "verified",
-     "source_id": "src_kyc_1", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_kyc_1", "locator": "kyc_77", "excerpt": "name and address verified"}}
-  ],
-  "sources": [
-    {"source_id": "src_irs_1", "source_type": "irs_tin_match", "authority": "official",
-     "locator": "tin_match:req_551", "retrieved_at": "2026-11-17T09:00:00"},
-    {"source_id": "src_irs_2", "source_type": "irs_tin_match", "authority": "official",
-     "locator": "tin_match:req_552", "retrieved_at": "2026-11-17T09:00:05"},
-    {"source_id": "src_kyc_1", "source_type": "kyc_vendor", "authority": "third_party",
-     "locator": "kyc_77", "retrieved_at": "2026-11-17T09:00:09"}
-  ],
-  "hypothesis_signals": [
-    {"hypothesis_id": "h1", "direction": "supports", "finding_ids": ["f_rec_2", "f_rec_4"]},
-    {"hypothesis_id": "h3", "direction": "contradicts", "finding_ids": ["f_rec_2"]}
-  ],
-  "not_found": ["legal_name", "dba_name"],
-  "unresolved": ["No NY entity or Nassau County DBA found for 'Sunshine Cafe' or for owner Mark Hemlock"],
-  "tool_calls_used": 5,
-  "error": null
-}
+
+class Owner(BaseModel):
+    owner_id: str
+    name: str
+    role: str
+    kyc_ref: Optional[str] = None
+
+
+class Document(BaseModel):
+    doc_id: str
+    doc_type: str
+    file_ref: str
+    uploaded_at: datetime
+
+
+class CaseContext(BaseModel):
+    case_id: str
+    ec_flags: list[str]
+    submitted_legal_name: str
+    entity_type: str
+    formation_state: str
+    address: str
+    tin_ref: str
+    tin_last4: str
+    owners: list[Owner]
+    documents: list[Document] = Field(default_factory=list)
+    website: Optional[str] = None
+
+
+class Citation(BaseModel):
+    source_id: str
+    locator: str
+    excerpt: str
+
+
+class Finding(BaseModel):
+    finding_id: str
+    subject: str
+    field: str
+    value: Any
+    source_id: str
+    extraction_method: str
+    confidence: Literal["low", "medium", "high"] | str
+    citation: Citation
+    note: Optional[str] = None
+
+
+class Source(BaseModel):
+    source_id: str
+    source_type: str
+    authority: Literal["official", "third_party", "merchant"] | str
+    locator: str
+    retrieved_at: datetime
+
+
+class HypothesisSignal(BaseModel):
+    hypothesis_id: str
+    direction: Literal["supports", "contradicts", "neutral"] | str
+    finding_ids: list[str]
+
+
+# ==========================================
+# Top-Level Sub-Agent Schemas
+# ==========================================
+
+class WorkerInput(BaseModel):
+    """Schema for JSON blocks 1, 2, and 3."""
+    task_id: str
+    worker: Literal["records", "evidence"] | str
+    question: str
+    focus_fields: list[str]
+    hypotheses: list[Hypothesis]
+    context: CaseContext
+    prior_findings: list[Finding] = Field(default_factory=list)
+    follow_up_of: Optional[str] = None
+    max_tool_calls: int
+
+
+class WorkerResult(BaseModel):
+    """Schema for JSON block 4."""
+    task_id: str
+    case_id: str
+    worker: Literal["records", "evidence"] | str
+    status: Literal["completed", "failed", "partial"] | str
+    findings: list[Finding]
+    sources: list[Source]
+    hypothesis_signals: list[HypothesisSignal]
+    not_found: list[str] = Field(default_factory=list)
+    unresolved: list[str] = Field(default_factory=list)
+    tool_calls_used: int
+    error: Optional[str] = None
 ```
