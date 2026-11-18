@@ -1,6 +1,51 @@
 # affirm-agent
 
+## Repository layout
 
+```text
+affirm-agent/
+├── README.md                     # Overview, how to run, folder guide
+├── docker-compose.yml            # Runs all services together
+├── .env.example                  # Lists every environment variable, no real values
+├── .gitignore                    # .env, node_modules, pycache
+├── docs/
+│   ├── proposal/                 # Project proposal
+│   └── workflow-handoffs.md      # Workflow steps, owners and handoffs
+├── contracts/                    # Shared data formats (Pydantic); each producer maintains its own
+│   ├── kyb_contracts/
+│   │   ├── case_input.py         # CaseInput
+│   │   ├── worker_io.py          # WorkerTask, FollowUp, RecordsFinding, EvidenceFinding
+│   │   ├── memo.py               # Memo, CheckResult, evidence_index
+│   │   └── decision.py           # DecisionInput, DecisionRecord
+│   └── examples/                 # One valid JSON example per format
+├── services/
+│   ├── gateway/                  # FastAPI; verifies the JWT and routes by path
+│   ├── auth/                     # Login, JWT, roles (auth_db)
+│   ├── case/                     # Cases, decisions, audit log (case_db); seed script
+│   └── agent/                    # LangGraph workflow and its API; see below
+├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway
+├── db/init.sql                   # Creates the three databases and their accounts
+├── data/golden/
+│   ├── ec1/                      # EC-1 cases, one folder per case
+│   ├── ec2/                      # EC-2 cases
+│   ├── ec4/                      # EC-4 cases
+│   └── combo/                    # Cases that combine edge cases
+├── eval/                         # Evaluation runner, single-agent baseline, results
+└── scripts/validate_golden.py    # Checks that each golden case’s files agree with each other
+```
+
+### `services/agent/app/`
+
+```text
+services/agent/app/
+├── main.py              # FastAPI entry point
+├── api/                 # POST /reviews, GET /reviews/{id}, POST /reviews/{id}/decision
+├── graph/               # State, orchestration, lead nodes, reconcile, checks
+├── workers/             # Records worker, evidence worker
+├── tools/               # sos_search, dba_lookup, tin_match, etc., plus the world.json loader
+├── clients/             # HTTP client for calling the case service
+└── observability/       # LangFuse
+```
 
 ## Sub-agents
 ### Input and Output Data Shape for Sub-agents

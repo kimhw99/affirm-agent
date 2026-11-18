@@ -1,0 +1,7 @@
+# Real values live in .env; commit .env.example instead
+.env
+node_modules/
+__pycache__/
+
+# macOS Finder metadata
+.DS_Store
