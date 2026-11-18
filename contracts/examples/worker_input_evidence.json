@@ -1,0 +1,30 @@
+{
+  "task_id": "t2",
+  "worker": "evidence",
+  "question": "What legal name, owner, EIN and address do the merchant's documents and website show? Do they name 'Sunshine Cafe' as a trade name of Mark Hemlock?",
+  "focus_fields": ["legal_name", "dba_name", "owner_name", "ein_masked", "operating_address", "bank_account_holder", "website_legal_name", "document_issue_date"],
+  "hypotheses": [
+    {"hypothesis_id": "h1", "text": "Sole proprietor using a trade name"},
+    {"hypothesis_id": "h2", "text": "DBA of a registered LLC"}
+  ],
+  "context": {
+    "case_id": "case_0012",
+    "ec_flags": ["EC-1", "EC-2", "EC-4"],
+    "submitted_legal_name": "Sunshine Cafe",
+    "entity_type": "sole_prop",
+    "formation_state": "NY",
+    "address": "12 Main St, Great Neck, NY 11021",
+    "tin_ref": "redacted",
+    "tin_last4": "4417",
+    "owners": [{"owner_id": "o1", "name": "Mark Hemlock", "role": "owner", "kyc_ref": null}],
+    "documents": [
+      {"doc_id": "d1", "doc_type": "ein_letter_147c", "file_ref": "docs/case_0012_147c.pdf", "uploaded_at": "2026-11-14T10:00:00"},
+      {"doc_id": "d2", "doc_type": "dba_certificate", "file_ref": "docs/case_0012_dba.pdf", "uploaded_at": "2026-11-14T10:01:00"},
+      {"doc_id": "d3", "doc_type": "voided_check", "file_ref": "docs/case_0012_check.pdf", "uploaded_at": "2026-11-14T10:02:00"}
+    ],
+    "website": "https://sunshinecafe.example"
+  },
+  "prior_findings": [],
+  "follow_up_of": null,
+  "max_tool_calls": 6
+}
