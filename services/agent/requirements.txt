@@ -1,0 +1,13 @@
+# Agent service (LangGraph lead + Records/Evidence workers)
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.7
+langgraph>=0.2
+langchain-core>=0.3
+langchain-openai>=0.2
+langfuse>=2.0
+httpx>=0.27
+rapidfuzz>=3.0
+
+# Tests
+pytest>=8.0

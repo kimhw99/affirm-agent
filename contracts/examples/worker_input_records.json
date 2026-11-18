@@ -1,0 +1,27 @@
+{
+  "task_id": "t1",
+  "worker": "records",
+  "question": "Who does the submitted TIN belong to: the business name or the owner? Is 'Sunshine Cafe' registered as an entity or as a DBA in NY or Nassau County?",
+  "focus_fields": ["tin_match", "irs_name_control", "legal_name", "dba_name", "entity_status", "kyc_status"],
+  "hypotheses": [
+    {"hypothesis_id": "h1", "text": "Sole proprietor using a trade name"},
+    {"hypothesis_id": "h2", "text": "DBA of a registered LLC"},
+    {"hypothesis_id": "h3", "text": "Wrong or fake TIN"}
+  ],
+  "context": {
+    "case_id": "case_0012",
+    "ec_flags": ["EC-1", "EC-2", "EC-4"],
+    "submitted_legal_name": "Sunshine Cafe",
+    "entity_type": "sole_prop",
+    "formation_state": "NY",
+    "address": "12 Main St, Great Neck, NY 11021",
+    "tin_ref": "tin_ref_8841",
+    "tin_last4": "4417",
+    "owners": [{"owner_id": "o1", "name": "Mark Hemlock", "role": "owner", "kyc_ref": "kyc_77"}],
+    "documents": [],
+    "website": null
+  },
+  "prior_findings": [],
+  "follow_up_of": null,
+  "max_tool_calls": 6
+}
