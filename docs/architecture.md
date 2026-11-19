@@ -127,6 +127,8 @@ sequenceDiagram
     GW-->>UI: done
 ```
 
+The memo, `evidence_index` and `check_result` in that response make up a `CheckedMemo` (`contracts/kyb_contracts/memo.py`).
+
 The review status (`running`, `awaiting_decision`, `done`, `failed`) belongs to the agent service. It is different from the case status (`pending_review`, `approved`, `docs_requested`, `escalated`, `denied`), which the case service stores and only step 11 changes.
 
 ## 4. Data contracts
@@ -140,7 +142,7 @@ Every format that crosses a service or step boundary lives in the shared package
 | `case_secrets.py` | `CaseSecrets` (a golden case's `secrets.json`): the full TIN and SSNs | Golden cases → case service only |
 | `decision.py` | `DecisionInput`, `DecisionRecord`, `AGREES_WITH`, `STATUS_AFTER` | Review app → agent API → case service; evaluation reads the records |
 | `worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult` | Lead ↔ workers |
-| `memo.py` | `Memo`, `CheckResult`, `evidence_index` (to add) | Agent service → review app |
+| `memo.py` | `Memo`, `CheckResult`, the `evidence_index` entries, and `CheckedMemo`, which holds the three; `Recommendation` | Lead (the memo) and Checks (the rest) → review app; the case service saves the recommendation in `DecisionRecord` |
 
 Whoever produces a format owns it, and the parts that use it review every change in a pull request. `docs/workflow-handoffs.md` (section 2) lists every format and its fields, and `contracts/case_input_guide.md` explains each `CaseInput` field.
 
