@@ -26,11 +26,11 @@ Items marked **(to confirm)** are proposals the team still needs to agree on.
       │ open_flags + normalized (no open flags → straight to step 8)
       ▼
 3  Lead: plan (LLM)                         H
-      │ WorkerTask × 2
+      │ WorkerInput × 2
       ▼
 4  Records worker  ┐ in parallel            E
 5  Evidence worker ┘                        E
-      │ RecordsFinding + EvidenceFinding
+      │ WorkerResult × 2 (Records, Evidence)
       ▼
 6  Reconcile (code)                         H
       │ ReconcileTable
@@ -59,23 +59,22 @@ Rule: whoever produces the data owns its format; whoever uses it reviews the for
 | Format | Main fields | Producer (owns the format) | Consumers (review it) | Defined in |
 |---|---|---|---|---|
 | `CaseInput` | case_id, status, flag_reasons, application, checks, documents, bank_verification, web_snapshot, owner_kyc | XL | H, E | `contracts/kyb_contracts/case_input.py` |
-| `WorkerTask` | worker, goal, questions, candidate_causes, budget | H | E | Proposed here; `worker_io.py` (to add) |
-| `RecordsFinding` | entity_candidates, selected_entity, dbas, name_history, tin_results, answers, unresolved, evidence | E | H | Proposed here; `worker_io.py` (to add) |
-| `EvidenceFinding` | evidence_items, consistency, suspicious, answers, unresolved | E | H | Proposed here; `worker_io.py` (to add) |
+| `WorkerInput` (aliases `WorkerTask`, and `FollowUp` when `follow_up_of` is set) | task_id, worker, question, focus_fields, hypotheses, context (`CaseContext`: the application, checks and evidence IDs from `CaseInput`), prior_findings, follow_up_of, max_tool_calls, record_id_start | H | E | `contracts/kyb_contracts/worker_io.py` |
+| `WorkerResult` | task_id, case_id, worker, status, findings, sources (each `source_id` is an evidence ID), hypothesis_signals, not_found, unresolved, answer, tool_calls_used, error | E | H | `contracts/kyb_contracts/worker_io.py` |
 | `ReconcileTable` | Per field: records_value, evidence_value, status, evidence_ids | H | H | Proposed here |
-| `FollowUp` | to, question_id, question, reason, shared_facts, budget | H | E | Proposed here; `worker_io.py` (to add) |
 | `Memo` | flags (status, root_cause, evidence), auto_resolved, out_of_scope, ruled_out, recommendation, document_request, notes_for_analyst | H | XL | Proposed here; `memo.py` (to add) |
 | `evidence_index` | For each cited ID: source, type, excerpt, as_of | H (built by code in step 9) | XL | Proposed here; `memo.py` (to add) |
 | `CheckResult` | passed, failures | H | XL | Proposed here; `memo.py` (to add) |
 | `DecisionInput` / `DecisionRecord` | decision, note, analyst_id, agent_recommendation, overridden, decided_at | XL | H (evaluation) | `contracts/kyb_contracts/decision.py` |
 
-Formats marked *proposed here* aren't in `contracts/` yet. Their field lists come from the Nov 17 walkthrough in section 7 and may differ from their owners' drafts; an earlier draft of the worker models, for example, used `WorkerInput` and `WorkerResult`. Once a format is in `contracts/`, the code there is the source of truth, and this table should point to it.
+Formats marked *proposed here* aren't in `contracts/` yet. Their field lists come from the Nov 17 walkthrough in section 7 and may differ from their owners' drafts. Once a format is in `contracts/`, the code there is the source of truth, and this table should point to it. The worker formats are now in `worker_io.py`; section 7 still shows the earlier proposal (`WorkerTask`, `RecordsFinding`, `EvidenceFinding`).
 
 **Evidence IDs:**
 
-- R = official records (results of the Records worker's tools), D = merchant documents, B = bank verification, W = website snapshot, K = owner KYC.
-- D, B, W and K IDs already exist in `CaseInput` (XL). R IDs are created at run time by the Records worker's tools (E).
-- The lead writes evidence IDs only, never excerpts. In step 9, Checks (code) looks each ID up in `CaseInput` and `RecordsFinding` and builds `evidence_index` (source, type, excerpt, date); an ID that can't be found is a citation error. The UI uses it to display citations (XL). This keeps excerpts out of the LLM, so they can't be reworded, and keeps merchant text out of the lead's context. **(Changed while working through the example; to confirm.)**
+- R = official records (results of the Records worker's tools), D = merchant documents, B = bank verification, W = website snapshot, K = owner KYC (third-party, read by the Records worker).
+- D, B, W and K IDs already exist in `CaseInput` (XL). R IDs are created at run time by the Records worker's tools (E), numbered from the task's `record_id_start` so they never repeat within a review.
+- In a `WorkerResult`, each source's `source_id` is its evidence ID. The Records worker may cite only R and K, the Evidence worker only D, B and W; `worker_io.py` rejects anything else.
+- The lead writes evidence IDs only, never excerpts. In step 9, Checks (code) looks each ID up in `CaseInput` and the workers' `WorkerResult.sources` and builds `evidence_index` (source, type, excerpt, date); an ID that can't be found is a citation error. The UI uses it to display citations (XL). This keeps excerpts out of the LLM, so they can't be reworded, and keeps merchant text out of the lead's context. **(Changed while working through the example; to confirm.)**
 
 ## 3. Each step in detail
 
@@ -87,7 +86,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Input | Golden case files written by the team (YAML or JSON) |
 | Output | `CaseInput` JSON served through `GET /cases/{id}` |
 | Owner | XL; H and E review the format |
-| Handoffs | To H: the fields intake needs. To E: the documents, bank_verification, web_snapshot and owner_kyc fields the Evidence worker reads. From the team: the content of the golden cases |
+| Handoffs | To H: the fields intake needs. To E: the documents, bank_verification and web_snapshot fields the Evidence worker reads, and the owner_kyc fields the Records worker reads. From the team: the content of the golden cases |
 | Done when | 3 sample cases pass validation; H and E confirm the fields are enough |
 
 ### Step 2. Intake (code)
@@ -107,33 +106,33 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 |---|---|
 | Tasks | List possible causes from open_flags and the case summary; write a goal and specific questions for each worker (questions to answer, not steps to follow); set each worker's tool-call budget (for example, 10 calls) |
 | Input | Case summary (no website or document text), open_flags, normalized |
-| Output | Two `WorkerTask` objects |
+| Output | Two `WorkerInput` objects |
 | Owner | H |
-| Handoffs | To E: the `WorkerTask` format, which must match the workers' input |
+| Handoffs | To E: `WorkerInput` (`worker_io.py`), which the lead builds from `CaseInput` |
 | Done when | All structured outputs pass validation; no website or document text appears in the tasks |
 
 ### Step 4. Records worker (ReAct loop)
 
 | Item | Details |
 |---|---|
-| Tasks | Decide which tools to call within the budget: sos_search, sos_get_entity, sos_filing_history, dba_lookup, commercial_db_search, tin_match, normalize_name, name_control. Pin down the legal entity, find which entity owns the DBA, any name changes, and why the TIN doesn't match; answer the lead's questions |
-| Input | `WorkerTask`; identifiers (applied name, DBA, state entity number, state, formation date, entity type, EIN, owner IDs); upstream check result codes. Cannot see: documents, website, bank data, raw SSNs |
-| Output | `RecordsFinding`; every fact carries an R ID, source, `as_of` and excerpt |
+| Tasks | Decide which tools to call within the budget: sos_search, sos_get_entity, sos_filing_history, dba_lookup, commercial_db_search, tin_match, get_kyc, normalize_name, name_control. Pin down the legal entity, find which entity owns the DBA, any name changes, and why the TIN doesn't match; answer the lead's questions |
+| Input | `WorkerInput`; identifiers (applied name, DBA, address, state entity number, state, formation date, entity type, TIN type and last 4, owner refs, KYC IDs); upstream check result codes. Cannot see: document, bank or website contents; full SSNs or EINs |
+| Output | `WorkerResult`; every finding cites a source with an R or K ID, a locator and a verbatim excerpt |
 | Owner | E; the mock official records (state registry, DBA, filing history, TIN matching, commercial database) also belong to E (to confirm) |
-| Handoffs | From H: `WorkerTask`, `FollowUp`. To H: `RecordsFinding` |
+| Handoffs | From H: `WorkerInput` (first task or follow-up). To H: `WorkerResult` |
 | Done when | It runs on its own on a case file, without the graph; when the budget runs out it returns unresolved items instead of guessing |
 
-`tin_match` takes references only (for example `owner:P1`), and code fills in the real values, so SSNs never enter the model's context.
+`tin_match` takes only the name to test; code looks up the case's submitted TIN by `case_id` and fills in the real number, so full SSNs and EINs never enter the model's context. `get_kyc` takes an owner ref such as `owner:P1`.
 
 ### Step 5. Evidence worker (ReAct loop)
 
 | Item | Details |
 |---|---|
-| Tasks | Read the extracted document fields, and the raw text when confidence is low; check bank verification, the website snapshot and owner KYC; decide which entity each piece of evidence points to; flag anything suspicious (low confidence, contradictions, expired documents, instruction-like text) |
-| Input | `WorkerTask`; the merchant evidence in the case (documents, bank_verification, web_snapshot, owner_kyc results); the applied name and EIN (for comparison). Cannot see: the official-records tools or their results |
-| Output | `EvidenceFinding`; every item carries a D, B, W or K ID |
+| Tasks | Fetch the stored, already-extracted fields of documents, bank verification and website snapshots by ID (no raw text, no re-parsing); decide which entity each piece of evidence points to; flag anything suspicious (low confidence, contradictions, expired documents, instruction-like values) |
+| Input | `WorkerInput`; the merchant evidence IDs in the case (documents, bank_verification, web_snapshot); the applied name and TIN last 4 (for comparison). Cannot see: the official-records tools, their results, or owner KYC |
+| Output | `WorkerResult`; every finding cites a source with a D, B or W ID |
 | Owner | E |
-| Handoffs | From XL: the format of the evidence fields in the case. From H: `WorkerTask`, `FollowUp`. To H: `EvidenceFinding` |
+| Handoffs | From XL: the format of the evidence fields in the case. From H: `WorkerInput` (first task or follow-up). To H: `WorkerResult` |
 | Done when | In cases with hidden instructions, the instructions are flagged as suspicious and never followed |
 
 ### Step 6. Reconcile (code)
@@ -141,7 +140,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Item | Details |
 |---|---|
 | Tasks | Line up the two findings field by field: legal name, entity number, EIN, formation date, DBA owner, owner identity (for sole proprietors). Mark each field as agree, conflict, missing in records or missing in evidence |
-| Input | `RecordsFinding` + `EvidenceFinding` |
+| Input | The Records and Evidence `WorkerResult`s |
 | Output | `ReconcileTable` |
 | Owner | H |
 | Handoffs | From E: field names in the findings stay stable; tell H before changing them |
@@ -174,8 +173,8 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 
 | Item | Details |
 |---|---|
-| Tasks | First, build `evidence_index`: look up every ID the memo cites in `CaseInput` and `RecordsFinding` and take its source, type, excerpt and date; an ID that can't be found is a citation error (to confirm). Then check the hard rules, only for flags the lead marked resolved: clearing needs both an official record and independent evidence; an EIN that belongs to an unrelated company must be escalated; a new company whose EIN is `Not Issued` can't have its TIN flag cleared; no SSN may appear in the memo. On failure, send the memo back to the lead once; if it still fails, flag it for the analyst |
-| Input | `Memo`, `CaseInput`, `RecordsFinding` |
+| Tasks | First, build `evidence_index`: look up every ID the memo cites in `CaseInput` and the workers' `WorkerResult.sources` and take its source, type, excerpt and date; an ID that can't be found is a citation error (to confirm). Then check the hard rules, only for flags the lead marked resolved: clearing needs both an official or third-party record (R or K) and merchant evidence (D, B or W); an EIN that belongs to an unrelated company must be escalated; a new company whose EIN is `Not Issued` can't have its TIN flag cleared; no full SSN or EIN may appear in the memo. On failure, send the memo back to the lead once; if it still fails, flag it for the analyst |
+| Input | `Memo`, `CaseInput`, both `WorkerResult`s |
 | Output | `CheckResult`, plus the memo with `evidence_index` attached |
 | Owner | H (this is the guardrails layer) |
 | Handoffs | To XL: `CheckResult` and `evidence_index`; the UI shows "checks passed" or a warning, and uses `evidence_index` to display citations |
@@ -220,8 +219,8 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Deliverable | From | To | Due |
 |---|---|---|---|
 | `CaseInput` format + 3 sample cases | XL | H, E | 11/18 morning |
-| `WorkerTask` and `FollowUp` formats | H | E | 11/18 morning |
-| `RecordsFinding` and `EvidenceFinding` formats | E | H | 11/18 morning |
+| `WorkerInput` format (also used for follow-ups) | H | E | 11/18 morning |
+| `WorkerResult` format | E | H | 11/18 morning |
 | `Memo`, `CheckResult` and `evidence_index` formats | H | XL | 11/18 morning |
 | Agent service API and status values | XL + H | Everyone | 11/18 morning |
 | JWT claims and list of roles | XL | Everyone | 11/18 |
@@ -248,13 +247,13 @@ Progress on each deliverable is tracked in Jira (subtasks under BEAC-3, BEAC-4 a
 10. `NAME_UNVERIFIED` vs `ENTITY_NOT_FOUND`: the proposed rule is that a `checks.sos_name` result of Unverified with a `matched_name` means `NAME_UNVERIFIED`, and without one means `ENTITY_NOT_FOUND` (see `contracts/case_input_guide.md`, 6.2). OK?
 11. `TIN_NOT_FOUND` vs `TIN_NOT_ISSUED`: real IRS TIN matching has no separate "not found" result. How do the two labels differ in our cases?
 12. After `docs_requested`, does the case go back to `pending_review`, or is a new case opened?
-13. Worker formats: settle on one version (`WorkerTask`, `RecordsFinding` and `EvidenceFinding` in this doc, or the earlier `WorkerInput` and `WorkerResult` draft) and add it to `contracts/kyb_contracts/worker_io.py`.
+13. Worker formats: `contracts/kyb_contracts/worker_io.py` now defines `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult`, built on `CaseInput`'s IDs. H to review `WorkerInput`; section 7 still uses the earlier proposal and needs rewriting to match.
 
 ## 7. Walkthrough example: one case from step 1 to step 11
 
 > Every company, person and number below is made up. The EIN starts with `00`, which real EINs never do. The case involves both EC-1 (DBA vs legal name) and EC-2 (the EIN doesn't match the name).
 >
-> Only `CaseInput` and the decision formats match code in `contracts/`. The other formats below are the proposals from section 2.
+> Only `CaseInput` and the decision formats match code in `contracts/`. The worker tasks and findings below use the earlier proposal (`WorkerTask`, `RecordsFinding`, `EvidenceFinding`); the code now uses `WorkerInput` and `WorkerResult` from `worker_io.py` (see section 2). The other formats are the proposals from section 2.
 
 ### 7.1 Background
 
@@ -273,7 +272,7 @@ So the name now differs by source: the state has the new name, while the IRS and
 | 1 | `CaseInput` | 4 flags; the merchant's EIN letter shows the old name |
 | 2 | `open_flags` and more | 1 auto-resolved, 1 out of scope, 2 left to investigate |
 | 3 | `WorkerTask` × 2 | 3 questions for Records, 2 for Evidence |
-| 4 and 5 (round 1) | `RecordsFinding`, `EvidenceFinding` | R1–R4 created; D1, B1, W1, K1 read. Records uses up its budget |
+| 4 and 5 (round 1) | `RecordsFinding`, `EvidenceFinding` | R1–R4 created; D1, B1, W1 read. Records uses up its budget |
 | 6 (round 1) | `ReconcileTable` | 3 conflicts, all pointing to one name: HARBOR LIGHT CYCLES LLC |
 | 7 (first time) | `FollowUp` F1 → Records | Asks: former name, or a different company? |
 | 4 (round 2) | `RecordsFinding` (appended) | R5–R7 created: renamed in 2025; the EIN matches the old name |
@@ -298,7 +297,9 @@ The existing system stores the case in the case service. The analyst clicks "Sta
   "application": {
     "legal_name": "Northline Bicycle Works LLC",
     "dba": "Northline Cycles",
-    "ein": "00-1234567",
+    "address": "1450 W Fulton St, Chicago, IL 60607",
+    "tin_type": "EIN",
+    "tin_last4": "4567",
     "state": "IL",
     "state_entity_id": "IL-0458821",
     "entity_type": "LLC",
@@ -314,9 +315,8 @@ The existing system stores the case in the case service. The analyst clicks "Sta
     {
       "id": "D1",
       "type": "irs_cp575",
-      "extracted": { "name": "HARBOR LIGHT CYCLES LLC", "ein": "00-1234567", "date": "2023-06-08" },
-      "confidence": 0.96,
-      "text": "[MOCK] IRS CP 575 (EIN assignment notice). Name: HARBOR LIGHT CYCLES LLC. EIN: 00-1234567. Date: 2023-06-08."
+      "extracted": { "name": "HARBOR LIGHT CYCLES LLC", "date": "2023-06-08", "ein_last4": "4567" },
+      "confidence": 0.96
     }
   ],
   "bank_verification": {
@@ -330,7 +330,7 @@ The existing system stores the case in the case service. The analyst clicks "Sta
       "id": "W1",
       "url": "https://northlinecycles.example/terms",
       "captured_at": "2026-11-10",
-      "text": "Northline Cycles is a trade name of Northline Bicycle Works LLC."
+      "extracted": { "legal_name": "Northline Bicycle Works LLC", "dba": "Northline Cycles" }
     }
   ],
   "owner_kyc": [{ "id": "K1", "owner_ref": "owner:P1", "result": "pass" }]
@@ -340,8 +340,8 @@ The existing system stores the case in the case service. The analyst clicks "Sta
 `contracts/case_input_guide.md` explains every field and the KYB terms behind it. Four things to keep in mind:
 
 - Everything in `application` is the merchant's claim, and `checks` only shows where things don't match. The real evidence is the merchant evidence (`documents`, `bank_verification`, `web_snapshot`, `owner_kyc`) plus the official records the Records worker finds.
-- The system passes references such as `owner:P1`, never SSNs, so SSNs never reach the model.
-- Text the merchant wrote (`documents[].text`, `web_snapshot[].text`) is untrusted, and only the Evidence worker reads it.
+- The application carries only the TIN's type and last 4 digits, and owners appear as references such as `owner:P1`, so full SSNs and EINs never reach the model.
+- Everything arrives already parsed. Raw OCR and page text stay in case_db; the extracted values are still the merchant's claims, and only the Evidence worker reads documents, bank verification and web snapshots. The Records worker reads owner KYC.
 - D1, B1, W1 and K1 are fixed when the case arrives and never change.
 
 ### 7.4 Step 2, Intake: a first pass in code
@@ -409,9 +409,9 @@ LangGraph's `Send` starts both workers at the same time.
 | 1 | `sos_search(name="Northline Bicycle Works", state="IL")` | One match: IL-0458821, Active | R1 |
 | 2 | `sos_get_entity("IL-0458821")` | LLC, formed 2023-05-30, manager D. PARK | R2 |
 | 3 | `dba_lookup(name="Northline Cycles", state="IL")` | Filed 2024-01-15 by HARBOR LIGHT CYCLES LLC | R3 |
-| 4 | `tin_match(tin_ref="application.ein", name="NORTHLINE BICYCLE WORKS LLC")` | Mismatch | R4 |
+| 4 | `tin_match(name="NORTHLINE BICYCLE WORKS LLC")` | Mismatch | R4 |
 
-After 4 calls the budget is used up, so the worker stops and lists what it couldn't settle under `unresolved` instead of guessing. Note that `tin_match` gets the reference `application.ein`; code fills in the real number.
+After 4 calls the budget is used up, so the worker stops and lists what it couldn't settle under `unresolved` instead of guessing. Note that `tin_match` gets only the name; code looks up the case's submitted EIN and fills in the real number.
 
 ```json
 {
@@ -430,7 +430,7 @@ After 4 calls the budget is used up, so the worker stops and lists what it could
   ],
   "name_history": [],
   "tin_results": [
-    { "tin_ref": "application.ein", "name_tested": "NORTHLINE BICYCLE WORKS LLC", "result": "Mismatch", "evidence": ["R4"] }
+    { "tin": "EIN ending 4567", "name_tested": "NORTHLINE BICYCLE WORKS LLC", "result": "Mismatch", "evidence": ["R4"] }
   ],
   "answers": [
     { "question_id": "Q1", "answer": "IL-0458821, active, formed 2023-05-30", "evidence": ["R1", "R2"] },
@@ -450,21 +450,20 @@ After 4 calls the budget is used up, so the worker stops and lists what it could
 }
 ```
 
-**Evidence worker** (sees only the merchant's own evidence, plus the applied name and EIN for comparison):
+**Evidence worker** (sees only the merchant's own evidence, plus the applied name and TIN last 4 for comparison):
 
-1. D1: extraction confidence is 0.96, high enough that the raw text isn't needed. The EIN matches the application, but the name is HARBOR LIGHT CYCLES LLC, not the applied name.
+1. D1: extraction confidence is 0.96. Its `ein_last4` matches the application's `tin_last4`, but the name is HARBOR LIGHT CYCLES LLC, not the applied name.
 2. B1: bank verification passed, and the account title links Northline Cycles to Northline Bicycle Works LLC.
-3. W1: the website's terms page says Northline Cycles is a trade name of Northline Bicycle Works LLC. This text is read only inside the Evidence worker and is never passed to the lead as is.
-4. K1: the owner passed KYC.
-5. Nothing suspicious, such as instruction-like text.
+3. W1: the fields extracted from the website's terms page give legal name Northline Bicycle Works LLC and DBA Northline Cycles. They stay low-confidence merchant claims.
+4. K1 isn't read here: owner KYC is third-party data, so it belongs to the Records worker.
+5. Nothing suspicious, such as instruction-like values.
 
 ```json
 {
   "evidence_items": [
     { "id": "D1", "kind": "irs_ein_letter", "points_to": "HARBOR LIGHT CYCLES LLC", "ein_matches_application": true, "date": "2023-06-08" },
     { "id": "B1", "kind": "bank_account", "points_to": "NORTHLINE BICYCLE WORKS LLC", "dba": "NORTHLINE CYCLES", "status": "verified" },
-    { "id": "W1", "kind": "website", "points_to": "NORTHLINE BICYCLE WORKS LLC", "dba": "NORTHLINE CYCLES" },
-    { "id": "K1", "kind": "owner_kyc", "owner_ref": "owner:P1", "result": "pass" }
+    { "id": "W1", "kind": "website", "points_to": "NORTHLINE BICYCLE WORKS LLC", "dba": "NORTHLINE CYCLES" }
   ],
   "consistency": [
     {
@@ -533,7 +532,7 @@ Official records can tell these apart, so the lead sends one question to the Rec
 |---|---|---|---|
 | 5 | `sos_filing_history("IL-0458821")` | 2025-03-12 Articles of Amendment: HARBOR LIGHT CYCLES LLC renamed NORTHLINE BICYCLE WORKS LLC | R5 |
 | 6 | `sos_search(name="Harbor Light Cycles", state="IL")` | No separate company by that name; it appears only as a former name of IL-0458821 | R6 |
-| 7 | `tin_match(tin_ref="application.ein", name="HARBOR LIGHT CYCLES LLC")` | Match | R7 |
+| 7 | `tin_match(name="HARBOR LIGHT CYCLES LLC")` | Match | R7 |
 
 R IDs continue from round 1 and never repeat within a review. In round 2 the worker returns only what it newly found. When this merges into the existing `RecordsFinding`, the list fields (`evidence`, `answers`, `tin_results`, `name_history`) are appended, and `unresolved` is replaced by this round's list:
 
@@ -543,7 +542,7 @@ R IDs continue from round 1 and never repeat within a review. In round 2 the wor
     { "old_name": "HARBOR LIGHT CYCLES LLC", "new_name": "NORTHLINE BICYCLE WORKS LLC", "date": "2025-03-12", "evidence": ["R5"] }
   ],
   "tin_results": [
-    { "tin_ref": "application.ein", "name_tested": "HARBOR LIGHT CYCLES LLC", "result": "Match", "evidence": ["R7"] }
+    { "tin": "EIN ending 4567", "name_tested": "HARBOR LIGHT CYCLES LLC", "result": "Match", "evidence": ["R7"] }
   ],
   "answers": [
     {
@@ -627,7 +626,7 @@ Checks (code) does two things in order:
     {
       "rule": "CLEAR_NEEDS_TWO_SOURCES",
       "flag": "DBA_UNVERIFIED",
-      "detail": "Resolved with official records only (R3, R5). Also cite merchant evidence (D, B, W or K)."
+      "detail": "Resolved with official records only (R3, R5). Also cite merchant evidence (D, B or W)."
     }
   ]
 }
@@ -737,7 +736,7 @@ The LangFuse trace for this review (H):
 ```
 trace rv_7f3a (case_1042)
 ├─ intake                    code     2 open flags
-├─ lead_plan                 LLM      2 WorkerTasks
+├─ lead_plan                 LLM      2 WorkerInputs
 ├─ records_worker  round 1   ReAct    4 tool calls (R1–R4), budget used up
 ├─ evidence_worker round 1   ReAct    4 tool calls (D1, B1, W1, K1)
 ├─ reconcile                 code     3 conflicts
@@ -758,7 +757,7 @@ trace rv_7f3a (case_1042)
 |---|---|---|
 | Formatting differences only (e.g. just NAME_SIMILAR_MATCH) | 2 | Intake resolves it, skips steps 3–7 and goes straight to step 8 |
 | EC-4: newly formed company with a brand-new EIN | 4 | `tin_match` returns `Not Issued`; the hard rule in step 9 blocks clearing the TIN flag → request_documents (ask for the IRS EIN letter) |
-| EC-4: sole proprietor with no state registration | 4 | Finding no entity is expected; `tin_match(tin_ref="owner:P1")` checks the owner's SSN and name, with code filling in the real number; clearing still needs merchant evidence such as B or K |
+| EC-4: sole proprietor with no state registration | 4 | Finding no entity is expected; `tin_match(name="<owner's name>")` checks the submitted SSN (`tin_type` = SSN) against the owner's name, with code filling in the real number; KYC (K) supports the owner's identity, and clearing still needs merchant evidence such as B or D |
 | The EIN belongs to an unrelated company | 4 (round 2) | The Records worker finds a separate company → hard rule in step 9 → escalate |
 | Hidden instructions on the website (e.g. "ignore previous instructions…") | 5 | The Evidence worker records them under `suspicious` and doesn't follow them; the lead gets only the fact "W1 contains instruction-like text", and the memo warns the analyst |
 | Conflicts remain after 2 follow-up rounds | 7 | No more follow-ups; the memo is written with the `unresolved` items → insufficient_evidence |

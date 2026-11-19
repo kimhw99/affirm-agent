@@ -1,30 +1,93 @@
 {
   "task_id": "t2",
   "worker": "evidence",
-  "question": "What legal name, owner, EIN and address do the merchant's documents and website show? Do they name 'Sunshine Cafe' as a trade name of Mark Hemlock?",
-  "focus_fields": ["legal_name", "dba_name", "owner_name", "ein_masked", "operating_address", "bank_account_holder", "website_legal_name", "document_issue_date"],
+  "question": "What legal name, owner, EIN and address do the merchant's documents, bank verification and website show? Do they name 'Sunshine Cafe' as a trade name of Mark Hemlock?",
+  "focus_fields": [
+    "name",
+    "ein_last4",
+    "dba",
+    "registrant",
+    "account_holder",
+    "website_legal_name",
+    "date"
+  ],
   "hypotheses": [
-    {"hypothesis_id": "h1", "text": "Sole proprietor using a trade name"},
-    {"hypothesis_id": "h2", "text": "DBA of a registered LLC"}
+    {
+      "hypothesis_id": "h1",
+      "text": "Sole proprietor using a trade name"
+    },
+    {
+      "hypothesis_id": "h2",
+      "text": "DBA of a registered LLC"
+    }
   ],
   "context": {
     "case_id": "case_0012",
-    "ec_flags": ["EC-1", "EC-2", "EC-4"],
-    "submitted_legal_name": "Sunshine Cafe",
-    "entity_type": "sole_prop",
-    "formation_state": "NY",
-    "address": "12 Main St, Great Neck, NY 11021",
-    "tin_ref": "redacted",
-    "tin_last4": "4417",
-    "owners": [{"owner_id": "o1", "name": "Mark Hemlock", "role": "owner", "kyc_ref": null}],
-    "documents": [
-      {"doc_id": "d1", "doc_type": "ein_letter_147c", "file_ref": "docs/case_0012_147c.pdf", "uploaded_at": "2026-11-14T10:00:00"},
-      {"doc_id": "d2", "doc_type": "dba_certificate", "file_ref": "docs/case_0012_dba.pdf", "uploaded_at": "2026-11-14T10:01:00"},
-      {"doc_id": "d3", "doc_type": "voided_check", "file_ref": "docs/case_0012_check.pdf", "uploaded_at": "2026-11-14T10:02:00"}
+    "flag_reasons": [
+      "ENTITY_NOT_FOUND",
+      "TIN_MISMATCH",
+      "NO_COMMERCIAL_RECORD"
     ],
-    "website": "https://sunshinecafe.example"
+    "application": {
+      "legal_name": "Sunshine Cafe",
+      "dba": null,
+      "entity_type": "SOLE_PROPRIETORSHIP",
+      "state": "NY",
+      "state_entity_id": null,
+      "formation_date": null,
+      "address": "12 Main St, Great Neck, NY 11021",
+      "tin_type": "SSN",
+      "tin_last4": "4417",
+      "owners": [
+        {
+          "ref": "owner:P1",
+          "name": "Mark Hemlock",
+          "role": "Owner"
+        }
+      ]
+    },
+    "checks": {
+      "sos_name": {
+        "result": "Unverified",
+        "matched_name": null
+      },
+      "dba": null,
+      "tin": {
+        "result": "Mismatch"
+      },
+      "commercial_db": {
+        "result": "Not Found"
+      }
+    },
+    "documents": [
+      {
+        "id": "D1",
+        "type": "irs_147c"
+      },
+      {
+        "id": "D2",
+        "type": "dba_certificate"
+      }
+    ],
+    "bank_verification": {
+      "id": "B1"
+    },
+    "web_snapshot": [
+      {
+        "id": "W1",
+        "url": "https://sunshinecafe.example",
+        "captured_at": "2026-11-14"
+      }
+    ],
+    "owner_kyc": [
+      {
+        "id": "K1",
+        "owner_ref": "owner:P1"
+      }
+    ]
   },
   "prior_findings": [],
   "follow_up_of": null,
-  "max_tool_calls": 6
+  "max_tool_calls": 6,
+  "record_id_start": 1
 }

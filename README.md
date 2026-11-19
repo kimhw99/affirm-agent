@@ -47,192 +47,35 @@ services/agent/app/
 └── observability/       # LangFuse
 ```
 
-## Communiation Schema
-### Agent and Backend
-```
-class CaseStatus(str, Enum):
-    PENDING_REVIEW = "pending_review"
-    APPROVED = "approved"
-    REJECTED = "rejected"
+## Communication schema
 
+The formats live in `contracts/kyb_contracts/`, and the code there is the source of truth. Don't copy the models here; read them there.
 
-class FlagReason(str, Enum):
-    NAME_SIMILAR_MATCH = "NAME_SIMILAR_MATCH"
-    DBA_UNVERIFIED = "DBA_UNVERIFIED"
-    TIN_MISMATCH = "TIN_MISMATCH"
-    PRODUCT_CATEGORY_REVIEW = "PRODUCT_CATEGORY_REVIEW"
+### Agent and backend: `CaseInput` ([case_input.py](contracts/kyb_contracts/case_input.py))
 
+The case the existing KYB system hands over, served by the case service at `GET /cases/{case_id}`. Everything arrives already parsed. Field-by-field guide: [case_input_guide.md](contracts/case_input_guide.md).
 
-class Owner(BaseModel):
-    ref: str
-    name: str
-    role: str
+| Part | Fields |
+|---|---|
+| Top level | `case_id`, `status`, `flag_reasons` |
+| `application` | `legal_name`, `dba`, `address`, `tin_type` (`EIN`/`SSN`), `tin_last4`, `state`, `state_entity_id`, `entity_type`, `formation_date`, `owners` (`ref` such as `owner:P1`, `name`, `role`) |
+| `checks` | The KYB vendor's labels: `sos_name` (with `matched_name`), `dba`, `tin`, `commercial_db` |
+| `documents` (D) | `id`, `type`, `extracted` (keys per type in `DOCUMENT_FIELDS`), `confidence` |
+| `bank_verification` (B) | `id`, `account_holder`, `status`, `verified_at` |
+| `web_snapshot` (W) | `id`, `url`, `captured_at`, `extracted` (keys in `WEB_FIELDS`) |
+| `owner_kyc` (K) | `id`, `owner_ref`, `result` (`pass`/`fail`/`pending`) |
 
+No full SSN or EIN may appear anywhere in a case; raw OCR and page text stay in case_db.
 
-class Application(BaseModel):
-    legal_name: str
-    dba: str | None = None
-    ein: str = Field(pattern=r"^\d{2}-\d{7}$")
-    state: str = Field(min_length=2, max_length=2)
-    state_entity_id: str
-    entity_type: str
-    formation_date: date
-    owners: list[Owner]
+### Lead and sub-agents: `WorkerInput` / `WorkerResult` ([worker_io.py](contracts/kyb_contracts/worker_io.py))
 
+| Format | Fields |
+|---|---|
+| `WorkerInput` (aliases `WorkerTask`, `FollowUp`) | `task_id`, `worker` (`records`/`evidence`), `question`, `focus_fields`, `hypotheses`, `context`, `prior_findings`, `follow_up_of`, `max_tool_calls`, `record_id_start` |
+| `CaseContext` | Mirrors `CaseInput`: `case_id`, `flag_reasons`, `application` (the same `Application` model), `checks`, and evidence keys only: `documents` (id, type), `bank_verification` (id), `web_snapshot` (id, url, captured_at), `owner_kyc` (id, owner_ref). Workers fetch the stored records by these IDs |
+| `WorkerResult` | `task_id`, `case_id`, `worker`, `status`, `findings`, `sources`, `hypothesis_signals`, `not_found`, `unresolved`, `answer`, `tool_calls_used`, `error` |
+| `Source` | `source_id` is the evidence ID: R (records the Records worker looks up) or D, B, W, K from the case |
 
-class CheckResult(BaseModel):
-    result: str
-    matched_name: str | None = None
+Trust boundary, enforced by the contract: the Records worker cites only R and K sources; the Evidence worker cites only D, B and W. A worker never recommends approve or deny.
 
-
-class Checks(BaseModel):
-    sos_name: CheckResult
-    dba: CheckResult
-    tin: CheckResult
-
-
-class Document(BaseModel):
-    id: str
-    type: str
-    # Using dict[str, Any] here so different document types can have different extracted schemas
-    extracted: dict[str, Any]
-    confidence: float = Field(ge=0.0, le=1.0)
-
-
-class BankVerification(BaseModel):
-    id: str
-    account_holder: str
-    status: Literal["verified", "unverified", "pending", "failed"]
-    verified_at: date
-
-
-class WebSnapshot(BaseModel):
-    id: str
-    url: HttpUrl
-    captured_at: date
-    text: str
-
-
-class OwnerKYC(BaseModel):
-    id: str
-    owner_ref: str
-    result: Literal["pass", "fail", "pending"]
-
-# ==========================================
-# Top-Level Sub-Agent Schema
-# ==========================================
-
-class CaseReview(BaseModel):
-    case_id: str
-    status: CaseStatus
-    flag_reasons: list[FlagReason]
-    application: Application
-    checks: Checks
-    documents: list[Document]
-    bank_verification: BankVerification | None = None
-    web_snapshot: list[WebSnapshot] = Field(default_factory=list)
-    owner_kyc: list[OwnerKYC] = Field(default_factory=list)
-```
-
-#### Lead and Sub-agents
-```
-# ==========================================
-# Shared & Nested Models
-# ==========================================
-
-class Hypothesis(BaseModel):
-    hypothesis_id: str
-    text: str
-
-
-class Owner(BaseModel):
-    owner_id: str
-    name: str
-    role: str
-    kyc_ref: Optional[str] = None
-
-
-class Document(BaseModel):
-    doc_id: str
-    doc_type: str
-    file_ref: str
-    uploaded_at: datetime
-
-
-class CaseContext(BaseModel):
-    case_id: str
-    ec_flags: list[str]
-    submitted_legal_name: str
-    entity_type: str
-    formation_state: str
-    address: str
-    tin_ref: str
-    tin_last4: str
-    owners: list[Owner]
-    documents: list[Document] = Field(default_factory=list)
-    website: Optional[str] = None
-
-
-class Citation(BaseModel):
-    source_id: str
-    locator: str
-    excerpt: str
-
-
-class Finding(BaseModel):
-    finding_id: str
-    subject: str
-    field: str
-    value: Any
-    source_id: str
-    extraction_method: str
-    confidence: Literal["low", "medium", "high"] | str
-    citation: Citation
-    note: Optional[str] = None
-
-
-class Source(BaseModel):
-    source_id: str
-    source_type: str
-    authority: Literal["official", "third_party", "merchant"] | str
-    locator: str
-    retrieved_at: datetime
-
-
-class HypothesisSignal(BaseModel):
-    hypothesis_id: str
-    direction: Literal["supports", "contradicts", "neutral"] | str
-    finding_ids: list[str]
-
-
-# ==========================================
-# Top-Level Sub-Agent Schemas
-# ==========================================
-
-class WorkerInput(BaseModel):
-    """Schema for JSON blocks 1, 2, and 3."""
-    task_id: str
-    worker: Literal["records", "evidence"] | str
-    question: str
-    focus_fields: list[str]
-    hypotheses: list[Hypothesis]
-    context: CaseContext
-    prior_findings: list[Finding] = Field(default_factory=list)
-    follow_up_of: Optional[str] = None
-    max_tool_calls: int
-
-
-class WorkerResult(BaseModel):
-    """Schema for JSON block 4."""
-    task_id: str
-    case_id: str
-    worker: Literal["records", "evidence"] | str
-    status: Literal["completed", "failed", "partial"] | str
-    findings: list[Finding]
-    sources: list[Source]
-    hypothesis_signals: list[HypothesisSignal]
-    not_found: list[str] = Field(default_factory=list)
-    unresolved: list[str] = Field(default_factory=list)
-    tool_calls_used: int
-    error: Optional[str] = None
-```
+Examples: `contracts/examples/` (`case_input/*.json`, `worker_input_*.json`, `worker_result_records.json`).

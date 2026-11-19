@@ -55,8 +55,8 @@ The "In the project" columns refer to steps in the workflow. Here they are in or
 | Case JSON | Existing system | Hands the case (one `CaseInput`) to the case service |
 | Intake | Code | Prepares the case first: normalizes names, computes name controls (see 6.4), marks `NAME_SIMILAR_MATCH` resolved when the names differ only in formatting, and sets aside out-of-scope flags |
 | Lead | LLM | Reads the case and gives both workers questions to investigate; afterwards decides whether to follow up (at most two rounds), then writes the memo |
-| Records worker | LLM with tools | Looks up official records and commercial databases: the state registry, the DBA registry, IRS TIN matching and so on |
-| Evidence worker | LLM | Reads the merchant-side evidence in the case: uploaded documents, bank verification, website snapshots, KYC results |
+| Records worker | LLM with tools | Looks up official records and third-party data: the state registry, the DBA registry, IRS TIN matching, commercial databases and the owners' KYC results |
+| Evidence worker | LLM with tools | Fetches the merchant-side evidence in the case by ID: the extracted fields of uploaded documents, bank verification and website snapshots |
 | Reconcile | Code | Puts what the two workers found side by side and finds what still doesn't match |
 | Checks | Code | After the memo is written, checks it against a few hard rules; if it fails, sends it back to the Lead to fix |
 | Analyst decision | Analyst | Reads the memo and makes the final decision: approve, request documents, escalate (hand the case to someone more senior) or deny |
@@ -97,26 +97,29 @@ That's because missing fields and odd-looking data are exactly what the agent ha
 
 Likewise, the contract doesn't check whether the data agrees with itself (for example, whether `checks` and `flag_reasons` line up); see 6.6.
 
-### 2.3 Rule 2: real SSNs never go into CaseInput
+### 2.3 Rule 2: full tax IDs never go into CaseInput
 
-An SSN (Social Security Number) is a person's number: 9 digits, written XXX-XX-XXXX. Sole proprietors often file taxes under it.
+An SSN (Social Security Number) is a person's number: 9 digits, written XXX-XX-XXXX. Sole proprietors often file taxes under it. An EIN is a business's number: 9 digits, written XX-XXXXXXX.
 
+- The application carries only the TIN's type and last 4 digits (`tin_type`, `tin_last4`; see 5.3). Document fields do the same (`ein_last4`, see 4.5).
 - In CaseInput, owners appear only as reference IDs such as `owner:P1` (see 5.2).
-- The case service keeps the real SSN in a separate table that the model never sees.
-- For TIN matching, the Records worker calls `tin_match` with references only (`owner:P1` or `application.ein`), and code fetches the real number.
-- How SSNs are kept out: see `SSN_PATTERN` in 4.6 and the integrity check in section 8.
+- The case service keeps the real SSN or EIN in a separate table that the model never sees.
+- For TIN matching, the Records worker calls `tin_match` with only a name to test; code looks up the case's submitted TIN by `case_id` and fills in the real number.
+- How full numbers are kept out: see `TIN_PATTERN` in 4.6 and the integrity check in section 8.
 
-### 2.4 Rule 3: text written by the merchant is untrusted
+### 2.4 Rule 3: everything arrives parsed, and merchant claims stay on the Evidence side
 
-A document's `text` (the full OCR text) and a website's `text` both come from the merchant's side. The merchant can write anything there, including hidden instructions aimed at AI.
+The existing system has already parsed everything: the application, the vendor checks, the fields extracted from each document, the bank verification, the website fields and the KYC results. The workers parse nothing; their tools fetch these stored records by evidence ID (see 2.5).
 
-So only the Evidence worker reads this text, and it never passes the raw text to the Lead. Every other step sees only the results the Evidence worker has worked out.
+Raw merchant text (a document's full OCR text, a website's page text) stays in case_db and isn't part of CaseInput. The merchant can write anything there, including hidden instructions aimed at AI, so it never reaches the model.
+
+The extracted values are still the merchant's claims. Only the Evidence worker reads documents, bank verification and web snapshots, and it never passes them to the Lead as facts; every other step sees only the findings it reports. Owner KYC comes from a third-party vendor, so the Records worker reads it.
 
 ### 2.5 Rule 4: evidence IDs are fixed when the case arrives
 
 | ID | What it is | Who assigns it | Where it lives |
 |---|---|---|---|
-| R | Results from official systems and commercial databases | The Records worker, as it looks them up; unique across the whole review | `RecordsFinding.evidence` (the Records worker's output) |
+| R | Results from official systems and commercial databases | The Records worker, as it looks them up; unique across the whole review (the Lead passes `record_id_start`) | `WorkerResult.sources[].source_id` (see `worker_io.py`) |
 | D | Documents the merchant uploaded | The existing system | `CaseInput.documents` |
 | B | Bank verification result | The existing system | `CaseInput.bank_verification` |
 | W | Website snapshot | The existing system | `CaseInput.web_snapshot` |
@@ -124,7 +127,9 @@ So only the Evidence worker reads this text, and it never passes the raw text to
 
 D, B, W and K IDs are assigned when the case arrives and never change. The memo cites evidence by ID only, and Checks looks each ID up again to build `evidence_index`. If an ID changed, the citation would point to the wrong thing.
 
-The source matters too: Checks has a hard rule that to mark a flag resolved, the memo must cite both an official record (R) and merchant-side evidence (D, B, W or K).
+In the workers' output, a source's `source_id` is its evidence ID. The Records worker may cite only R and K; the Evidence worker only D, B and W. `worker_io.py` rejects anything else.
+
+The source matters too: Checks has a hard rule that to mark a flag resolved, the memo must cite both an official or third-party record (R, or K for owner KYC) and merchant-side evidence (D, B or W).
 
 ---
 
@@ -236,23 +241,26 @@ The fields the existing system extracts from each document type. The rule: field
 
 | `type` | Extracted fields | Notes |
 |---|---|---|
-| `irs_cp575` | `name`, `ein`, `date` | The name, EIN and date on the letter |
-| `irs_147c` | `name`, `ein`, `date` | Same as above; here `name` is the name the IRS has on file now |
+| `irs_cp575` | `name`, `ein_last4`, `name_control`, `address`, `date` | The name, the EIN's last 4 digits, the IRS name control, the address and the date on the letter |
+| `irs_147c` | `name`, `ein_last4`, `name_control`, `address`, `date` | Same as above; here `name` is the name the IRS has on file now |
 | `articles` | `legal_name`, `state`, `state_entity_id`, `formation_date` | Legal name at formation, state, entity ID, formation date |
 | `articles_of_amendment` | `old_name`, `new_name`, `state_entity_id`, `date` | Names before and after the change, entity ID, date of the change |
 | `dba_certificate` | `dba`, `registrant`, `jurisdiction`, `filed`, `expires` | DBA, registrant, where it was registered (state or county, such as `Kings County, NY`), filing date, expiration date |
 | `w9` | `legal_name`, `business_name`, `tin_type`, `tin_last4` | The name on line 1, the business name on line 2, the TIN type (SSN or EIN) and the TIN's last 4 digits. Only the last 4 digits reach us |
 | `good_standing` | `legal_name`, `status`, `date` | Legal name, status, issue date |
+| `business_license` | `holder`, `status`, `address`, `issued`, `authority` | License holder, status (such as active or pending), operating address, issue date, issuing city, county or state |
+
+Website snapshots have their own list, `WEB_FIELDS`: `legal_name`, `dba`, `address` (see 7.3).
 
 All values are strings, dates included, for example `"2023-06-08"`.
 
-### 4.6 `SSN_PATTERN`: the regex that spots SSNs
+### 4.6 `TIN_PATTERN`: the regex that spots full tax IDs
 
-`SSN_PATTERN` (`\b\d{3}-\d{2}-\d{4}\b`) matches numbers written as 3 digits, 2 digits and 4 digits separated by dashes. The integrity check in section 8 turns the whole case into JSON text and scans it with this pattern; any match rejects the case. It doesn't matter which field the number is in: document text, website text and names all count.
+`TIN_PATTERN` matches a full SSN (`XXX-XX-XXXX`), a full EIN (`XX-XXXXXXX`) or 9 digits written together. The integrity check in section 8 turns the whole case into JSON text and scans it with this pattern; any match rejects the case. It doesn't matter which field the number is in: extracted fields, names and addresses all count. `state_entity_id` is the one field skipped, because some states issue 9-digit entity IDs. (`worker_io.py` imports the same pattern for the workers' context.)
 
-- **Test data convention:** fake EINs always start with `00` and fake SSNs with `000`. Real numbers never start this way, so a fake is obvious at a glance. But fake SSNs are rejected by this check too, so they can only live in the case service's separate table (in the golden cases, `secrets.json`), never in CaseInput.
-- **EINs aren't mistaken for SSNs:** an EIN is written as 2 digits and 7 digits.
-- **Limits:** it only recognizes the dashed format, so 9 digits written together slip through; and another number that happens to have this format is rejected by mistake.
+- **Test data convention:** fake EINs always start with `00` and fake SSNs with `000`. Real numbers never start this way, so a fake is obvious at a glance. But fake numbers are rejected by this check too, so full ones can only live in the case service's separate table (in the golden cases, `secrets.json`), never in CaseInput.
+- **Limits:** another number that happens to have one of these formats, such as a 9-digit ZIP+4 written without the dash, is rejected by mistake.
+- `SSN_PATTERN` (dashed SSNs only) is kept for existing imports; `TIN_PATTERN` covers it.
 
 ---
 
@@ -266,13 +274,14 @@ Everything in `application` is the merchant's claim, not a verified fact; the la
 |---|---|---|---|---|
 | `legal_name` | Formation or amendment documents; for a sole proprietor, their own name | The state registry; TIN matching usually uses this name too | `checks.sos_name`, `checks.tin` | EC-1, EC-2 |
 | `dba` | DBA certificate | The DBA registry | `checks.dba` | EC-1 |
-| `ein` | CP 575 or 147C | The IRS (TIN and name together) | `checks.tin` | EC-2 |
+| `address` | The merchant's own records | Registry addresses, license and website addresses | No separate check | EC-1, EC-4 |
+| `tin_type`, `tin_last4` | CP 575, 147C or W-9; for a sole proprietor, the owner's SSN | The IRS (TIN and name together) | `checks.tin` | EC-2 |
 | `state`, `state_entity_id` | Formation documents | The state registry, to find the right company | `checks.sos_name` | EC-1, EC-4 |
 | `entity_type` | Formation documents; sole proprietors don't have any | The state registry | No separate check | EC-4 |
 | `formation_date` | Formation documents | The state registry | No separate check; used to tell whether the company is new | EC-4 |
 | `owners` | Filled in by the merchant | KYC services | `owner_kyc` | EC-4 |
 
-When a sole proprietor has no EIN, TIN matching uses the owner's SSN. The SSN lives in the case service's separate table; CaseInput only has the reference `owner:P1` (see 2.3).
+When a sole proprietor has no EIN, TIN matching uses the owner's SSN: `tin_type` is `SSN` and `tin_last4` holds its last 4 digits. The full number lives in the case service's separate table (see 2.3).
 
 ### 5.2 `Owner`: the people behind the business
 
@@ -291,7 +300,9 @@ When a sole proprietor has no EIN, TIN matching uses the owner's SSN. The SSN li
 |---|---|---|---|---|
 | `legal_name` | Legal name: the official name registered with the state; for a sole proprietor, their full personal name | Text | No | The IRS keeps a name of its own: the one the EIN was issued under, or a later one reported to the IRS. When the two differ, you get EC-2 |
 | `dba` | DBA (doing business as): the name a business trades under; also called an assumed name, fictitious business name or trade name | Text | Yes | The existing system runs `checks.dba` only when a DBA is filled in |
-| `ein` | EIN (Employer Identification Number): a business's federal tax ID, issued by the IRS; a name change doesn't need a new one | `XX-XXXXXXX`; the samples start with `00` | Yes | Empty when a sole proprietor files taxes under their own SSN |
+| `address` | The business address the merchant entered | Text | No | The Records worker uses it to search the registry; the Evidence worker compares it with license and website addresses |
+| `tin_type` | Which tax ID was submitted: `EIN` (Employer Identification Number, a business's federal tax ID; a name change doesn't need a new one) or `SSN` (a sole proprietor filing under their own number) | `EIN` or `SSN` | Yes | Empty only when no TIN was submitted; then `tin_last4` is empty too |
+| `tin_last4` | The submitted TIN's last 4 digits | 4 digits | Yes | Given together with `tin_type`. The full number stays in case_db (see 2.3) |
 | `state` | The state where the business is registered or operates | Two capital letters, such as `IL` | No | Decides which state's records to search |
 | `state_entity_id` | State entity ID: the number the state gives each company | Varies by state | Yes | Sole proprietors usually have none |
 | `entity_type` | Entity type | See 4.3 | No | — |
@@ -370,7 +381,7 @@ This check exists only when the application lists a DBA. Common causes: the DBA 
 | Not Found | The IRS has no record of the number | `TIN_NOT_FOUND` |
 | Not Issued | The number hasn't been issued yet; common for brand-new EINs | `TIN_NOT_ISSUED` |
 
-This check is empty when there's neither an EIN nor an SSN. When a sole proprietor has no EIN, the existing system checks the owner's SSN instead, which is why `case_2001` has a `tin` result even though it has no `ein`.
+This check is empty when there's neither an EIN nor an SSN. When a sole proprietor has no EIN, the existing system checks the owner's SSN instead, which is why `case_2001` has a `tin` result with `tin_type` = `SSN`.
 
 | Term | What it means | Example in the project |
 |---|---|---|
@@ -417,23 +428,22 @@ The three sample cases side by side:
 
 ---
 
-## 7. Merchant evidence: `Document`, `BankVerification`, `WebSnapshot`, `OwnerKYC`
+## 7. Case evidence: `Document`, `BankVerification`, `WebSnapshot`, `OwnerKYC`
 
-These four parts are the merchant-side evidence the agent can cite, with IDs starting with D, B, W and K (see 2.5); the Evidence worker reads them. All of them can be empty: a case with no documents or no website snapshot is normal, not an error.
+These four parts are the evidence that arrives with the case, with IDs starting with D, B, W and K (see 2.5). The first three are merchant-side, and the Evidence worker reads them. `OwnerKYC` comes from a third-party KYC vendor, and the Records worker reads it. All of them can be empty: a case with no documents or no website snapshot is normal, not an error.
 
 ### 7.1 `Document`: documents the merchant uploaded
 
-After the merchant uploads documents, the existing system runs OCR and extracts fields. For each document we get the five fields below; we don't get the original file.
+After the merchant uploads documents, the existing system runs OCR and extracts fields. For each document we get the four fields below; we don't get the original file, and the full OCR text stays in case_db.
 
 | Field | Meaning | Format | Notes |
 |---|---|---|---|
 | `id` | Evidence ID | `D` plus digits, such as `D1` | Assigned by the existing system; never changes |
 | `type` | Document type | See 4.4 | — |
 | `extracted` | Fields the existing system extracted | A dictionary; the keys are in 4.5 | — |
-| `confidence` | How confident the extraction is | 0 to 1 | When it's low, the Evidence worker checks against the full `text`; see the note below the table |
-| `text` | The full OCR text | Text | Untrusted; only the Evidence worker reads it (see 2.4) |
+| `confidence` | How confident the extraction is | 0 to 1 | Becomes the finding's confidence level; see the note below the table |
 
-When confidence is low, the Evidence worker checks the fields in `extracted` against the full `text`. That catches extraction mistakes, such as picking the wrong line, but not characters the OCR itself misread: if `text` already says `HARB0R` (an O read as a zero), no amount of rereading fixes it. In that case the agent can only say the document is unclear and recommend request_documents, so the merchant uploads a clearer copy.
+The workers don't re-read documents. When confidence is low, the Evidence worker reports the fields as low-confidence findings, and the agent can only say the document is unclear and recommend request_documents, so the merchant uploads a clearer copy. (Re-reading the OCR text wouldn't help much anyway: if the OCR read `HARBOR` as `HARB0R`, the text has the same mistake.)
 
 `known_fields_only` is `Document`'s own check: if `extracted` has a field this document type shouldn't have (say `name` misspelled as `nmae`), it raises an error. The rule is in 4.5.
 
@@ -463,9 +473,11 @@ Bank verification confirms the payout account exists and belongs to this name. U
 | `id` | Evidence ID | `W` plus digits |
 | `url` | The page that was captured | Must be a valid URL. The samples use the `.example` domain, which is reserved for examples and isn't a real site |
 | `captured_at` | The date the page was captured. When `evidence_index` is built, it becomes this evidence's `as_of` date | Date |
-| `text` | The page text | Text; untrusted, may hide instructions aimed at AI (see 2.4) |
+| `extracted` | Fields the existing system extracted from the page | A dictionary; keys only from `WEB_FIELDS` (`legal_name`, `dba`, `address`); can be empty | The merchant's own claim, so always low confidence. The page text stays in case_db (see 2.4) |
 
-Why there's no `confidence`: a web page is already text, so there's no OCR, and there's no `extracted` either, so there's nothing to score. What can go wrong is an incomplete capture: content that only appears after JavaScript runs, or text inside images, never makes it into `text`. So when the snapshot lacks some information, the agent should say "not in the snapshot", not "not on the website".
+`WebSnapshot` has the same `known_fields_only` check as `Document`: a key outside `WEB_FIELDS` raises an error.
+
+Why there's no `confidence`: a web page is already text, so there's no OCR to score. What can go wrong is an incomplete capture: content that only appears after JavaScript runs, or text inside images, never makes it into the snapshot. So when the snapshot lacks some information, the agent should say "not in the snapshot", not "not on the website".
 
 ### 7.4 `OwnerKYC`: the owners' KYC results
 
@@ -497,7 +509,9 @@ KYC (Know Your Customer) means verifying a person: are they real, and do their n
 
 1. **No duplicate evidence IDs:** D, B, W and K IDs are checked together. With a duplicate, a citation in the memo wouldn't know which one it means.
 2. **KYC results must belong to real owners:** every `owner_ref` in `owner_kyc` must be someone in `application.owners`.
-3. **No SSNs:** no number in SSN format may appear anywhere in the case (see 4.6).
+3. **No full tax IDs:** no full SSN or EIN may appear anywhere in the case (see 4.6).
+
+`Application` has one check of its own: `tin_type` and `tin_last4` are given together or not at all.
 
 ---
 
@@ -647,7 +661,7 @@ Example: Northline (`case_1042`)
         │
         ▼
 ③ Applies to Affirm with the new name and this EIN
-   └─ Application: legal_name = Northline Bicycle Works LLC, ein = 00-1234567
+   └─ Application: legal_name = Northline Bicycle Works LLC, tin_type = EIN, tin_last4 = 4567
         │
         ▼
 ④ Existing system runs TIN matching on the EIN plus the applied name
@@ -659,7 +673,7 @@ Example: Northline (`case_1042`)
 
 | Application | Record | Result |
 |---|---|---|
-| `ein`: 00-1234567 | IRS: 00-1234567 | Matches; the number exists |
+| `tin_last4`: 4567 (EIN) | IRS: the same EIN | Matches; the number exists |
 | `legal_name`: Northline Bicycle Works LLC (NORT) | Name the IRS has: HARBOR LIGHT CYCLES LLC (HARB) | Doesn't match; the first four characters differ |
 
 **Cause:** the company didn't tell the IRS about its name change, so the IRS still has the EIN under the old name.
@@ -671,7 +685,7 @@ Example: Northline (`case_1042`)
 - A typo at the start of the applied name.
 - The name change was just reported to the IRS and the database hasn't caught up.
 
-**In the project:** the Records worker uses `tin_match` to try again with the old name; a match shows the IRS still has the old name. That's how the full example in section 7 of the workflow doc works it out. The call passes only the reference `application.ein` as `tin_ref`; code fills in the real number.
+**In the project:** the Records worker uses `tin_match` to try again with the old name; a match shows the IRS still has the old name. That's how the full example in section 7 of the workflow doc works it out. The call passes only the name to test; code looks up the case's submitted TIN and fills in the real number.
 
 ### 9.5 `TIN_NOT_FOUND` (EC-2)
 
@@ -686,8 +700,8 @@ Example: Copperleaf Dental Supply Inc., in Georgia (made up)
         │
         ▼
 ② Applies to Affirm, swapping two digits of the EIN, and uploads the CP 575
-   └─ Application: ein = 00-7350512
-   └─ documents: D1 is the CP 575, showing 00-7305512
+   └─ Application: tin_type = EIN, tin_last4 = 0512 (full number 00-7350512, kept in case_db)
+   └─ documents: D1 is the CP 575, with ein_last4 = 5512 (full number 00-7305512)
         │
         ▼
 ③ Existing system runs TIN matching on the application's EIN plus the company name
@@ -699,14 +713,14 @@ Example: Copperleaf Dental Supply Inc., in Georgia (made up)
 
 | Application | Record | Result |
 |---|---|---|
-| `ein`: 00-7350512 | IRS: no such number | Not found |
-| `ein`: 00-7350512 | CP 575 (D1): 00-7305512 | Doesn't match; two digits in the middle are swapped |
+| `tin_last4`: 0512 | IRS: no such number | Not found |
+| `tin_last4`: 0512 | CP 575 (D1): `ein_last4` 5512 | Doesn't match; two digits were swapped |
 
 **Cause:** the number was entered wrong on the application.
 
 **Other common causes:** a made-up number; a different number, such as a state tax ID, entered in the EIN field.
 
-**In the project:** the Evidence worker compares the EIN on D1 with the application and spots the swap. Also, real IRS responses have no separate "not found" (see 6.4), so how this label differs from `TIN_NOT_ISSUED` is still to be confirmed.
+**In the project:** the Evidence worker compares `ein_last4` on D1 with the application's `tin_last4` and spots the difference. (A swap that only touches the first five digits wouldn't show in the last 4; then only TIN matching catches it.) Also, real IRS responses have no separate "not found" (see 6.4), so how this label differs from `TIN_NOT_ISSUED` is still to be confirmed.
 
 ### 9.6 `TIN_NOT_ISSUED` (EC-2)
 
@@ -725,7 +739,7 @@ Example: Tidewater Kayak Rentals LLC, in North Carolina (made up)
         │
         ▼
 ③ A few days later, applies to Affirm without uploading the CP 575
-   └─ Application: ein = 00-5521873, formation_date = a few days ago
+   └─ Application: tin_type = EIN, tin_last4 = 1873, formation_date = a few days ago
         │
         ▼
 ④ Existing system runs TIN matching
@@ -737,7 +751,7 @@ Example: Tidewater Kayak Rentals LLC, in North Carolina (made up)
 
 | Application | Record | Result |
 |---|---|---|
-| `ein`: 00-5521873 | IRS TIN matching: no such number yet | Not found |
+| `tin_last4`: 1873 (EIN) | IRS TIN matching: no such number yet | Not found |
 | `formation_date`: a few days ago | State registry: formed a few days ago | Matches; the company really is new |
 
 **Cause:** the EIN was just issued and isn't in the IRS TIN matching database yet. The IRS says this can take up to two weeks, and it can take longer (see 6.4).
@@ -763,7 +777,7 @@ Example: Maya Torres, who runs a tailoring shop called Bluebird Tailoring (`case
         ▼
 ③ Applies to Affirm. She files taxes under her own SSN and has no EIN
    └─ Application: legal_name = Maya Torres, dba = Bluebird Tailoring
-   └─ Application: entity_type = SOLE_PROPRIETORSHIP; ein and state_entity_id are empty
+   └─ Application: entity_type = SOLE_PROPRIETORSHIP; tin_type = SSN, tin_last4 = 3456; state_entity_id is empty
         │
         ▼
 ④ Existing system compares the applied name with the state registry
