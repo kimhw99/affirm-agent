@@ -136,8 +136,10 @@ Every format that crosses a service or step boundary lives in the shared package
 | Module | Formats | Producer → consumers |
 |---|---|---|
 | `case_input.py` | `CaseInput` and its parts | Case service → intake and both workers |
+| `world.py` | `World` (a golden case's `world.json`), and the records case-service endpoints 1–6 return | Golden cases → case service → Records worker tools |
+| `case_secrets.py` | `CaseSecrets` (a golden case's `secrets.json`): the full TIN and SSNs | Golden cases → case service only |
 | `decision.py` | `DecisionInput`, `DecisionRecord`, `AGREES_WITH`, `STATUS_AFTER` | Review app → agent API → case service; evaluation reads the records |
-| `worker_io.py` | Worker input and output (to add) | Lead ↔ workers |
+| `worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult` | Lead ↔ workers |
 | `memo.py` | `Memo`, `CheckResult`, `evidence_index` (to add) | Agent service → review app |
 
 Whoever produces a format owns it, and the parts that use it review every change in a pull request. `docs/workflow-handoffs.md` (section 2) lists every format and its fields, and `contracts/case_input_guide.md` explains each `CaseInput` field.
@@ -149,10 +151,10 @@ affirm-agent/
 ├── contracts/            shared data formats (kyb_contracts), sample cases, case_input_guide.md
 ├── services/             backend services: API gateway, auth service, case service, agent service
 ├── frontend/             review app (React)
-├── data/                 (planned) golden cases and mock official records
+├── data/                 golden cases (data/golden/README.md); each case's world.json holds its mock official records
 ├── db/                   (planned) database setup
 ├── eval/                 (planned) evaluation runner and single-agent baseline
-├── scripts/              (planned) helper scripts, such as the seed script for golden cases
+├── scripts/              helper scripts: validate_golden.py checks the golden cases
 ├── docs/                 proposal, workflow handoffs, architecture
 ├── docker-compose.yml    runs the whole stack
 ├── .env.example          names of the environment variables; copy to .env, which is never committed
@@ -167,7 +169,7 @@ affirm-agent/
 | `services/`: agent service, workflow | Intake, lead, reconcile, checks, interrupt, checkpoints | H | BEAC-3 |
 | `services/`: agent service, workers | Records and Evidence workers and their tools | E | BEAC-4 |
 | `frontend/` | Review app | XL | BEAC-5 |
-| `data/` (planned) | Golden cases from everyone; mock official records | Everyone; E for the mock records (to confirm) | |
+| `data/` | Golden cases from everyone; each case's `world.json` holds its mock official records | Everyone; XL for the format, the checks and the loading | BEAC-19 |
 | `eval/` (planned) | Evaluation runner and single-agent baseline | H | BEAC-3 |
 | `docker-compose.yml` | The whole stack. Each owner writes their service's Dockerfile | XL | BEAC-5 |
 

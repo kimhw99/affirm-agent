@@ -14,7 +14,9 @@ affirm-agent/
 ├── contracts/                    # Shared data formats (Pydantic); each producer maintains its own
 │   ├── kyb_contracts/
 │   │   ├── case_input.py         # CaseInput
-│   │   ├── worker_io.py          # WorkerTask, FollowUp, RecordsFinding, EvidenceFinding
+│   │   ├── world.py              # World (a golden case's world.json); what case-service endpoints 1–6 return
+│   │   ├── case_secrets.py       # CaseSecrets (a golden case's secrets.json): the full TIN and SSNs
+│   │   ├── worker_io.py          # WorkerInput (aliases WorkerTask, FollowUp), WorkerResult
 │   │   ├── memo.py               # Memo, CheckResult, evidence_index
 │   │   └── decision.py           # DecisionInput, DecisionRecord
 │   └── examples/                 # One valid JSON example per format
@@ -25,7 +27,7 @@ affirm-agent/
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway
 ├── db/init.sql                   # Creates the three databases and their accounts
-├── data/golden/
+├── data/golden/                  # Golden cases: case.json, world.json, secrets.json per case (see its README)
 │   ├── ec1/                      # EC-1 cases, one folder per case
 │   ├── ec2/                      # EC-2 cases
 │   ├── ec4/                      # EC-4 cases
@@ -66,6 +68,20 @@ The case the existing KYB system hands over, served by the case service at `GET 
 | `owner_kyc` (K) | `id`, `owner_ref`, `result` (`pass`/`fail`/`pending`) |
 
 No full SSN or EIN may appear anywhere in a case; raw OCR and page text stay in case_db.
+
+### Case service and Records worker tools: `World` ([world.py](contracts/kyb_contracts/world.py))
+
+What case-service endpoints 1–6 return ([case-service-endpoints.md](docs/case-service-endpoints.md)). The records come from each golden case's `world.json`, which holds them in these shapes.
+
+| Model | Endpoints | Fields |
+|---|---|---|
+| `RegistryEntity` | 1, 2 | `state`, `state_entity_id`, `legal_name`, `former_names`, `entity_type`, `entity_status`, `formation_date`, `registered_address`, `officers` |
+| `Filing` | 3 | `event_id`, `event_type`, `effective_date`, `old_value`, `new_value` |
+| `DbaFiling` | 4 | `filing_id`, `state`, `county`, `dba`, `registrant`, `registrant_type`, `registrant_state_entity_id`, `filed`, `expires`, `status` |
+| `CommercialProfile` | 5 | `profile_id`, `business_name`, `address`, `first_seen`, `last_updated` |
+| `TinRecord` | 6 | `tin_type`, `tin_last4`, `irs_status`, `irs_name` |
+
+The full numbers live only in each golden case's `secrets.json` (`CaseSecrets`, [case_secrets.py](contracts/kyb_contracts/case_secrets.py)); the case service keeps them in private tables and never returns them. How to write a golden case: [data/golden/README.md](data/golden/README.md).
 
 ### Lead and sub-agents: `WorkerInput` / `WorkerResult` ([worker_io.py](contracts/kyb_contracts/worker_io.py))
 
