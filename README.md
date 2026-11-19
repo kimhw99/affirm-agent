@@ -10,6 +10,9 @@ affirm-agent/
 ├── .gitignore                    # .env, node_modules, pycache
 ├── docs/
 │   ├── proposal/                 # Project proposal
+│   ├── architecture.md           # How the services, the workflow and the data fit together
+│   ├── case-service-endpoints.md # The read endpoints the agent's workers call
+│   ├── database.md               # The three databases and the case_db tables
 │   └── workflow-handoffs.md      # Workflow steps, owners and handoffs
 ├── contracts/                    # Shared data formats (Pydantic); each producer maintains its own
 │   ├── kyb_contracts/
@@ -23,7 +26,7 @@ affirm-agent/
 ├── services/
 │   ├── gateway/                  # FastAPI; verifies the JWT and routes by path
 │   ├── auth/                     # Login, JWT, roles (auth_db)
-│   ├── case/                     # Cases, decisions, audit log (case_db); seed script
+│   ├── case/                     # Cases, decisions, audit log (case_db, tables in schema.sql); seed script
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway
 ├── db/init.sql                   # Creates the three databases and their accounts

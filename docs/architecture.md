@@ -24,9 +24,10 @@ flowchart TB
         agent["Agent service<br/>/reviews API + LangGraph workflow"]
     end
 
-    subgraph store["storage"]
-        db[("PostgreSQL<br/>case data, separate SSN table,<br/>graph checkpoints")]
-        mock[("Mock official records<br/>state registry, DBA, IRS TIN match,<br/>commercial databases")]
+    subgraph store["PostgreSQL: one database per service"]
+        authdb[("auth_db<br/>users and roles")]
+        casedb[("case_db<br/>cases, mock official records,<br/>full TINs and SSNs (private),<br/>decisions, audit log")]
+        agentdb[("agent_db<br/>graph checkpoints")]
     end
 
     subgraph ext["external services"]
@@ -39,10 +40,10 @@ flowchart TB
     gw -->|"/auth"| auth
     gw -->|"/cases"| cases
     gw -->|"/reviews"| agent
-    agent -->|"GET /cases/{case_id},<br/>save the decision"| cases
-    cases --> db
-    agent -->|"checkpoints"| db
-    agent -->|"Records worker tools"| mock
+    agent -->|"GET /cases/{case_id},<br/>endpoints 1–10 for the workers' tools,<br/>save the decision"| cases
+    auth --> authdb
+    cases --> casedb
+    agent -->|"checkpoints"| agentdb
     agent -->|"prompts, never SSNs"| llm
     agent -.->|"traces"| lf
 ```
@@ -52,10 +53,10 @@ flowchart TB
 | Review app | Login, a case queue filtered by role, the memo with clickable evidence IDs, the decision form. Polls the review status | XL |
 | API gateway | The only entry point for the browser. Verifies the JWT and routes `/auth`, `/cases` and `/reviews` to the right service | XL |
 | Auth service | Logs users in and issues JWTs that carry the user's role | XL |
-| Case service | Stores cases and serves them as `CaseInput` (`GET /cases/{case_id}`). Keeps owners' SSNs in a separate table. Saves each decision, the new case status and the audit log in one transaction | XL |
+| Case service | Stores cases and serves them as `CaseInput` (`GET /cases/{case_id}`), plus the read endpoints the workers' tools call (`docs/case-service-endpoints.md`). Keeps full TINs and SSNs in private tables. Saves each decision, the new case status and the audit log in one transaction | XL |
 | Agent service | The `/reviews` API (XL) around the LangGraph workflow (H) and the two workers and their tools (E). Starts a review in the background, pauses it for the analyst, and resumes it with the decision | XL + H + E |
-| PostgreSQL | Case data for the case service, and the graph's checkpoints, so a paused review survives a restart | XL (case data), H (checkpoints) |
-| Mock official records | What the Records worker's tools search in place of real state, DBA, IRS and commercial sources | E (to confirm) |
+| PostgreSQL | One database per service: `auth_db` (users and roles), `case_db` (cases, mock official records, full TINs and SSNs, decisions, audit log) and `agent_db` (the graph's checkpoints, so a paused review survives a restart). See `docs/database.md` | XL (auth_db, case_db), H (checkpoints) |
+| Mock official records | Tables in `case_db` that the Records worker's tools search, through case-service endpoints 1–6, in place of real state, DBA, IRS and commercial sources. Loaded from each golden case's `world.json` | XL (tables and endpoints); everyone writes the records in their golden cases |
 | LangFuse | A trace for every node, LLM call and tool call | H |
 
 ## 2. Inside the agent service: one review
@@ -152,10 +153,10 @@ affirm-agent/
 ├── services/             backend services: API gateway, auth service, case service, agent service
 ├── frontend/             review app (React)
 ├── data/                 golden cases (data/golden/README.md); each case's world.json holds its mock official records
-├── db/                   (planned) database setup
+├── db/                   init.sql: creates the three databases and their accounts (docs/database.md)
 ├── eval/                 (planned) evaluation runner and single-agent baseline
 ├── scripts/              helper scripts: validate_golden.py checks the golden cases
-├── docs/                 proposal, workflow handoffs, architecture
+├── docs/                 proposal, workflow handoffs, architecture, case-service endpoints, databases
 ├── docker-compose.yml    runs the whole stack
 ├── .env.example          names of the environment variables; copy to .env, which is never committed
 └── README.md
@@ -177,7 +178,7 @@ Branches, commits and pull requests start with the Jira key of the subtask they 
 
 ## 6. Security boundaries
 
-- **SSNs never reach the model.** Owners appear as references such as `owner:P1`. The real numbers stay in a separate table in the case service, `tin_match` takes references and code fills in the values, and `CaseInput` rejects anything shaped like an SSN.
+- **SSNs never reach the model.** Owners appear as references such as `owner:P1`. The real numbers stay in the `private` schema of `case_db`, which the agent service has no account for: it reads only through the case service's endpoints, which never return a full number. `tin_match` takes references and code fills in the values, and `CaseInput` rejects anything shaped like an SSN.
 - **Merchant-written text stays in one place.** Only the Evidence worker reads document and website text. The lead gets structured findings, and Checks takes excerpts from the saved sources, not from the model.
 - **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body.
 - **Only step 11 changes a case's status**, in the same transaction as the decision record and the audit log entry.
@@ -191,3 +192,4 @@ For a new teammate, or an AI assistant helping with one part of the project:
 2. `docs/architecture.md`: this doc
 3. `docs/workflow-handoffs.md`: each step, its owner and its handoffs, plus a worked example
 4. `contracts/README.md`, then `contracts/case_input_guide.md`: the shared formats and the KYB terms behind them
+5. `docs/database.md`, when working on the backend: the databases and the `case_db` tables
