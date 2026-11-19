@@ -115,7 +115,7 @@ Search the mocked commercial database (LexisNexis / D&B style), for EC-4's `NO_C
 ```
 
 #### 6. `GET /cases/{case_id}/tin-record`
-The mocked IRS record behind the TIN the merchant submitted (`application.tin_type` + `tin_last4`). The case service looks up the full number in its private table and returns only what the IRS has on file for it. The agent computes the TIN-match result itself, from the name it's testing and `irs_name`.
+The mocked IRS record behind the TIN the merchant submitted (`application.tin_type` + `tin_last4`). The case service returns the case's tin_record row, keyed by case_id (seeded from world.json). It doesn't look up by the full number, and nothing it returns contains it. The agent computes the TIN-match result itself, from the name it's testing and `irs_name`.
 
 ```json
 {"tin_type": "EIN", "tin_last4": "4567", "irs_status": "issued", "irs_name": "HARBOR LIGHT CYCLES LLC"}
