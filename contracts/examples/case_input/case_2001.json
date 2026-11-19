@@ -1,0 +1,55 @@
+{
+  "case_id": "case_2001",
+  "status": "pending_review",
+  "flag_reasons": ["ENTITY_NOT_FOUND", "DBA_UNVERIFIED", "TIN_MISMATCH"],
+  "application": {
+    "legal_name": "Maya Torres",
+    "dba": "Bluebird Tailoring",
+    "ein": null,
+    "state": "NY",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": null,
+    "owners": [{ "ref": "owner:P1", "name": "Maya Torres", "role": "Owner" }]
+  },
+  "checks": {
+    "sos_name": { "result": "Unverified", "matched_name": null },
+    "dba": { "result": "Unverified" },
+    "tin": { "result": "Mismatch" },
+    "commercial_db": { "result": "Not Found" }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "BLUEBIRD TAILORING",
+        "registrant": "MAYA TORRES",
+        "jurisdiction": "Kings County, NY",
+        "filed": "2026-09-02"
+      },
+      "confidence": 0.91,
+      "text": "[MOCK] Certificate of Assumed Name. Business name: BLUEBIRD TAILORING. Registrant: MAYA TORRES. Kings County, NY. Filed 2026-09-02."
+    },
+    {
+      "id": "D2",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Maya Torres",
+        "business_name": "Bluebird Tailoring",
+        "tin_type": "SSN",
+        "tin_last4": "3456"
+      },
+      "confidence": 0.88,
+      "text": "[MOCK] Form W-9. Name: Maya Torres. Business name: Bluebird Tailoring. TIN type: SSN, ending 3456."
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "MAYA TORRES DBA BLUEBIRD TAILORING",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [],
+  "owner_kyc": [{ "id": "K1", "owner_ref": "owner:P1", "result": "pass" }]
+}
