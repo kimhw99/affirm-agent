@@ -87,8 +87,8 @@ flowchart TD
 Who sees what:
 
 - **Lead (steps 3, 7, 8)** sees the case summary, the open flags and the workers' findings. It never sees document or website text, and it writes evidence IDs only, never excerpts.
-- **Records worker (step 4)** sees the application's identifiers and the existing system's check results. Its tools take references such as `owner:P1` or `application.ein`, and code fills in the real values. It never sees documents, the website, bank data or SSNs.
-- **Evidence worker (step 5)** sees the merchant's evidence plus the applied name and EIN for comparison. It treats every piece of merchant text as data, never as instructions, and it can't call the official-records tools.
+- **Records worker (step 4)** sees the application's identifiers (including the TIN's type and last 4 digits) and the existing system's check results, and reads owner KYC by its K ID. `tin_match` takes only a name; code looks up the case's submitted TIN and fills in the real number. It never sees documents, the website, bank data or full SSNs and EINs.
+- **Evidence worker (step 5)** fetches the merchant's already-extracted evidence (D, B, W) by ID, plus the applied name and TIN last 4 for comparison. Raw OCR and page text never reach it. It treats every extracted value as the merchant's claim, never as instructions, and it can't call the official-records tools.
 - **Code steps (2, 6 and 9)** are deterministic and unit-tested. Checks (step 9) builds the `evidence_index` from saved sources and enforces the hard rules from the proposal.
 
 ## 3. One review, request by request

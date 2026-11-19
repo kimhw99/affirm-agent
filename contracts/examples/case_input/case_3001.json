@@ -1,29 +1,49 @@
 {
   "case_id": "case_3001",
   "status": "pending_review",
-  "flag_reasons": ["TIN_MISMATCH"],
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
   "application": {
     "legal_name": "Maple Ridge Coffee Roasters LLC",
     "dba": null,
-    "ein": "00-7654321",
+    "address": "77 N High St, Columbus, OH 43215",
+    "tin_type": "EIN",
+    "tin_last4": "4321",
     "state": "OH",
     "state_entity_id": "OH-5582114",
     "entity_type": "LLC",
     "formation_date": "2021-08-16",
-    "owners": [{ "ref": "owner:P1", "name": "Jordan Lee", "role": "Member" }]
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Jordan Lee",
+        "role": "Member"
+      }
+    ]
   },
   "checks": {
-    "sos_name": { "result": "Verified", "matched_name": "MAPLE RIDGE COFFEE ROASTERS LLC" },
-    "tin": { "result": "Mismatch" },
-    "commercial_db": { "result": "Found" }
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "MAPLE RIDGE COFFEE ROASTERS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
   },
   "documents": [
     {
       "id": "D1",
       "type": "irs_147c",
-      "extracted": { "name": "BLUE RIVER TOOLS INC", "ein": "00-7654321", "date": "2026-10-28" },
-      "confidence": 0.97,
-      "text": "[MOCK] IRS Letter 147C (EIN verification). Name on file: BLUE RIVER TOOLS INC. EIN: 00-7654321. Date: 2026-10-28."
+      "extracted": {
+        "name": "BLUE RIVER TOOLS INC",
+        "date": "2026-10-28",
+        "ein_last4": "4321"
+      },
+      "confidence": 0.97
     }
   ],
   "bank_verification": {
@@ -37,8 +57,16 @@
       "id": "W1",
       "url": "https://mapleridgecoffee.example/about",
       "captured_at": "2026-11-14",
-      "text": "[MOCK] Maple Ridge Coffee Roasters roasts small-batch coffee in Columbus, Ohio."
+      "extracted": {
+        "legal_name": "Maple Ridge Coffee Roasters"
+      }
     }
   ],
-  "owner_kyc": [{ "id": "K1", "owner_ref": "owner:P1", "result": "pass" }]
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
 }

@@ -2,6 +2,8 @@
 
 from .case_input import (
     DOCUMENT_FIELDS,
+    TIN_PATTERN,
+    WEB_FIELDS,
     Application,
     BankVerification,
     CaseInput,
@@ -12,6 +14,7 @@ from .case_input import (
     FlagReason,
     Owner,
     OwnerKYC,
+    TinType,
     WebSnapshot,
 )
 from .decision import (
@@ -26,6 +29,8 @@ __all__ = [
     "AGREES_WITH",
     "DOCUMENT_FIELDS",
     "STATUS_AFTER",
+    "TIN_PATTERN",
+    "WEB_FIELDS",
     "Application",
     "BankVerification",
     "CaseInput",
@@ -38,6 +43,7 @@ __all__ = [
     "FlagReason",
     "Owner",
     "OwnerKYC",
+    "TinType",
     "WebSnapshot",
     "is_override",
 ]

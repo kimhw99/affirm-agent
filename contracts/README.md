@@ -14,8 +14,9 @@ For a field-by-field walkthrough of `CaseInput` and the KYB background behind it
 ## Rules
 
 - **Structure only.** The contracts check types, formats and IDs, not business rules such as "an LLC must have a state ID". Missing or odd data is exactly what the agent has to handle, so the contract must be able to carry it.
-- **No SSNs.** Owners appear as `owner:P1`. The case service keeps the real number in a separate table that the model never sees, and `CaseInput` rejects anything that looks like an SSN.
-- **Merchant text is untrusted.** Document `text` and website `text` are read only by the Evidence worker.
+- **Already parsed.** The application, vendor checks, document fields, bank verification, website fields and KYC results all arrive parsed. Workers fetch stored records by evidence ID and parse nothing.
+- **No full tax IDs.** The application carries `tin_type` and `tin_last4`; owners appear as `owner:P1`. The case service keeps real SSNs and EINs in a separate table that the model never sees, and `CaseInput` rejects anything that looks like a full SSN or EIN.
+- **Merchant claims stay on the Evidence side.** Raw OCR and page text stay in case_db. Documents, bank verification and web snapshots are read only by the Evidence worker; owner KYC (third-party) is read by the Records worker.
 - **Evidence IDs are fixed.** D (documents), B (bank), W (website) and K (KYC) IDs are set when the case arrives and never change.
 - **Unknown fields are errors.** Every model uses `extra="forbid"`, so a typo fails loudly instead of being dropped.
 

@@ -4,38 +4,113 @@
   "worker": "records",
   "status": "completed",
   "findings": [
-    {"finding_id": "f_rec_1", "subject": "business", "field": "tin_match", "value": "3",
-     "source_id": "src_irs_1", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_irs_1", "locator": "tin_match:req_551",
-                  "excerpt": "code 3: name/TIN combination does not match ('Sunshine Cafe')"},
-     "note": "Checked against the business name"},
-    {"finding_id": "f_rec_2", "subject": "business", "field": "tin_match", "value": "6",
-     "source_id": "src_irs_2", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_irs_2", "locator": "tin_match:req_552",
-                  "excerpt": "code 6: matched on SSN with name 'Mark Hemlock'"},
-     "note": "Checked against the owner's name"},
-    {"finding_id": "f_rec_3", "subject": "business", "field": "irs_name_control", "value": "HEML",
-     "source_id": "src_irs_2", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_irs_2", "locator": "tin_match:req_552", "excerpt": "name control HEML"}},
-    {"finding_id": "f_rec_4", "subject": "owner:o1", "field": "kyc_status", "value": "verified",
-     "source_id": "src_kyc_1", "extraction_method": "structured_record", "confidence": "high",
-     "citation": {"source_id": "src_kyc_1", "locator": "kyc_77", "excerpt": "name and address verified"}}
+    {
+      "finding_id": "f_rec_1",
+      "subject": "business",
+      "field": "tin_match",
+      "value": "3",
+      "source_id": "R1",
+      "extraction_method": "structured_record",
+      "confidence": "high",
+      "citation": {
+        "source_id": "R1",
+        "locator": "tin_match:req_551",
+        "excerpt": "code 3: name/TIN combination does not match ('Sunshine Cafe')"
+      },
+      "note": "Checked against the business name"
+    },
+    {
+      "finding_id": "f_rec_2",
+      "subject": "owner:P1",
+      "field": "tin_match",
+      "value": "6",
+      "source_id": "R2",
+      "extraction_method": "structured_record",
+      "confidence": "high",
+      "citation": {
+        "source_id": "R2",
+        "locator": "tin_match:req_552",
+        "excerpt": "code 6: matched on SSN with name 'Mark Hemlock'"
+      },
+      "note": "Checked against the owner's name"
+    },
+    {
+      "finding_id": "f_rec_3",
+      "subject": "owner:P1",
+      "field": "irs_name_control",
+      "value": "HEML",
+      "source_id": "R2",
+      "extraction_method": "structured_record",
+      "confidence": "high",
+      "citation": {
+        "source_id": "R2",
+        "locator": "tin_match:req_552",
+        "excerpt": "name control HEML"
+      }
+    },
+    {
+      "finding_id": "f_rec_4",
+      "subject": "owner:P1",
+      "field": "kyc_result",
+      "value": "pass",
+      "source_id": "K1",
+      "extraction_method": "structured_record",
+      "confidence": "high",
+      "citation": {
+        "source_id": "K1",
+        "locator": "case_0012/K1",
+        "excerpt": "result: pass"
+      }
+    }
   ],
   "sources": [
-    {"source_id": "src_irs_1", "source_type": "irs_tin_match", "authority": "official",
-     "locator": "tin_match:req_551", "retrieved_at": "2026-11-17T09:00:00"},
-    {"source_id": "src_irs_2", "source_type": "irs_tin_match", "authority": "official",
-     "locator": "tin_match:req_552", "retrieved_at": "2026-11-17T09:00:05"},
-    {"source_id": "src_kyc_1", "source_type": "kyc_vendor", "authority": "third_party",
-     "locator": "kyc_77", "retrieved_at": "2026-11-17T09:00:09"}
+    {
+      "source_id": "R1",
+      "source_type": "irs_tin_match",
+      "authority": "official",
+      "locator": "tin_match:req_551",
+      "retrieved_at": "2026-11-17T09:00:00"
+    },
+    {
+      "source_id": "R2",
+      "source_type": "irs_tin_match",
+      "authority": "official",
+      "locator": "tin_match:req_552",
+      "retrieved_at": "2026-11-17T09:00:05"
+    },
+    {
+      "source_id": "K1",
+      "source_type": "owner_kyc",
+      "authority": "third_party",
+      "locator": "case_0012/K1",
+      "retrieved_at": "2026-11-17T09:00:09"
+    }
   ],
   "hypothesis_signals": [
-    {"hypothesis_id": "h1", "direction": "supports", "finding_ids": ["f_rec_2", "f_rec_4"]},
-    {"hypothesis_id": "h3", "direction": "contradicts", "finding_ids": ["f_rec_2"]}
+    {
+      "hypothesis_id": "h1",
+      "direction": "supports",
+      "finding_ids": [
+        "f_rec_2",
+        "f_rec_4"
+      ]
+    },
+    {
+      "hypothesis_id": "h3",
+      "direction": "contradicts",
+      "finding_ids": [
+        "f_rec_2"
+      ]
+    }
   ],
-  "not_found": ["legal_name", "dba_name"],
-  "unresolved": ["No NY entity or Nassau County DBA found for 'Sunshine Cafe' or for owner Mark Hemlock"],
-  "answer": "The TIN belongs to the owner, not the business name: it fails against 'Sunshine Cafe' (f_rec_1) but matches Mark Hemlock's SSN (f_rec_2), and the owner's KYC is verified (f_rec_4). No NY entity or county DBA filing for 'Sunshine Cafe' was found, so the trade name itself is unconfirmed by an official record.",
+  "not_found": [
+    "legal_name",
+    "dba_name"
+  ],
+  "unresolved": [
+    "No NY entity or Nassau County DBA found for 'Sunshine Cafe' or for owner Mark Hemlock"
+  ],
+  "answer": "The TIN belongs to the owner, not the business name: it fails against 'Sunshine Cafe' (f_rec_1) but matches Mark Hemlock's SSN (f_rec_2), and the owner's KYC passed (f_rec_4). No NY entity or county DBA filing for 'Sunshine Cafe' was found, so the trade name itself is unconfirmed by an official record.",
   "tool_calls_used": 5,
   "error": null
 }

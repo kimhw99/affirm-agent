@@ -1,29 +1,52 @@
 {
   "case_id": "case_1042",
   "status": "pending_review",
-  "flag_reasons": ["NAME_SIMILAR_MATCH", "DBA_UNVERIFIED", "TIN_MISMATCH", "PRODUCT_CATEGORY_REVIEW"],
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH",
+    "PRODUCT_CATEGORY_REVIEW"
+  ],
   "application": {
     "legal_name": "Northline Bicycle Works LLC",
     "dba": "Northline Cycles",
-    "ein": "00-1234567",
+    "address": "1450 W Fulton St, Chicago, IL 60607",
+    "tin_type": "EIN",
+    "tin_last4": "4567",
     "state": "IL",
     "state_entity_id": "IL-0458821",
     "entity_type": "LLC",
     "formation_date": "2023-05-30",
-    "owners": [{ "ref": "owner:P1", "name": "Dana Park", "role": "Manager" }]
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Dana Park",
+        "role": "Manager"
+      }
+    ]
   },
   "checks": {
-    "sos_name": { "result": "Similar Match", "matched_name": "NORTHLINE BICYCLE WORKS, L.L.C." },
-    "dba": { "result": "Unverified" },
-    "tin": { "result": "Mismatch" }
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "NORTHLINE BICYCLE WORKS, L.L.C."
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Mismatch"
+    }
   },
   "documents": [
     {
       "id": "D1",
       "type": "irs_cp575",
-      "extracted": { "name": "HARBOR LIGHT CYCLES LLC", "ein": "00-1234567", "date": "2023-06-08" },
-      "confidence": 0.96,
-      "text": "[MOCK] IRS CP 575 (EIN assignment notice). Name: HARBOR LIGHT CYCLES LLC. EIN: 00-1234567. Date: 2023-06-08."
+      "extracted": {
+        "name": "HARBOR LIGHT CYCLES LLC",
+        "date": "2023-06-08",
+        "ein_last4": "4567"
+      },
+      "confidence": 0.96
     }
   ],
   "bank_verification": {
@@ -37,8 +60,17 @@
       "id": "W1",
       "url": "https://northlinecycles.example/terms",
       "captured_at": "2026-11-10",
-      "text": "Northline Cycles is a trade name of Northline Bicycle Works LLC."
+      "extracted": {
+        "legal_name": "Northline Bicycle Works LLC",
+        "dba": "Northline Cycles"
+      }
     }
   ],
-  "owner_kyc": [{ "id": "K1", "owner_ref": "owner:P1", "result": "pass" }]
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
 }
