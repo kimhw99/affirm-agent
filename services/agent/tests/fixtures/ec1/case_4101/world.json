@@ -1,0 +1,47 @@
+{
+  "case_id": "case_4101",
+  "registry": [
+    {
+      "state": "TX",
+      "state_entity_id": "TX-802231",
+      "legal_name": "SMITH AND SONS, INCORPORATED",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2015-04-02",
+      "registered_address": "88 Elm St, Austin, TX 78701",
+      "officers": [
+        {
+          "name": "Robert Smith",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TX-802231-1",
+          "event_type": "formation",
+          "effective_date": "2015-04-02",
+          "old_value": null,
+          "new_value": "SMITH AND SONS, INCORPORATED"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-41010",
+      "state": "TX",
+      "business_name": "SMITH & SONS INC",
+      "address": "88 Elm St, Austin, TX 78701",
+      "first_seen": "2015-06-01",
+      "last_updated": "2026-08-15"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2231",
+    "irs_status": "issued",
+    "irs_name": "SMITH AND SONS INC"
+  }
+}

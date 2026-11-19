@@ -1,0 +1,170 @@
+{
+  "records": [
+    {
+      "tool": "search_registry",
+      "args": {
+        "name": "Sunshine Cafe"
+      },
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "registry_match",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "tool": "search_dba",
+      "args": {
+        "name": "Sunshine Cafe",
+        "county": "Nassau"
+      },
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "registrant",
+          "value": "MARK HEMLOCK"
+        },
+        {
+          "field": "registrant_type",
+          "value": "individual"
+        },
+        {
+          "field": "name_comparison",
+          "subject": "owner:P1",
+          "value": {
+            "name_field": "R2.registrant",
+            "against": "owner:P1",
+            "label": "normalized_equal"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Sunshine Cafe"
+      },
+      "sources": [
+        "R3"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Mismatch"
+        },
+        {
+          "field": "tin_type",
+          "value": "SSN"
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Mark Hemlock"
+      },
+      "sources": [
+        "R4"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Match",
+          "subject": "owner:P1"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "HEML"
+        }
+      ]
+    },
+    {
+      "tool": "get_kyc_result",
+      "args": {},
+      "sources": [
+        "K1"
+      ],
+      "expect": [
+        {
+          "field": "kyc_result",
+          "value": "pass"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "registrant",
+          "value": "Mark Hemlock"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "name_field": "D1.registrant",
+            "against": "owner:P1",
+            "label": "exact"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "get_bank_verification",
+      "args": {},
+      "sources": [
+        "B1"
+      ],
+      "expect": [
+        {
+          "field": "account_legal_name",
+          "value": "MARK HEMLOCK"
+        },
+        {
+          "field": "account_dba",
+          "value": "SUNSHINE CAFE"
+        }
+      ]
+    },
+    {
+      "tool": "get_site_identity",
+      "args": {
+        "web_id": "W1"
+      },
+      "sources": [
+        "W1"
+      ],
+      "expect": [
+        {
+          "field": "injection_suspected",
+          "value": true
+        },
+        {
+          "field": "website_legal_name",
+          "value": "Sunshine Cafe",
+          "confidence": "low"
+        }
+      ],
+      "absent": [
+        {
+          "field": "name_comparison",
+          "value": {
+            "name_field": "website_dba"
+          }
+        }
+      ]
+    }
+  ]
+}

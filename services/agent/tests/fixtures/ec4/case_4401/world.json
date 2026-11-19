@@ -1,0 +1,30 @@
+{
+  "case_id": "case_4401",
+  "registry": [
+    {
+      "state": "CO",
+      "state_entity_id": "CO-20261488",
+      "legal_name": "JUNIPER & PINE CANDLE CO. LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-11-09",
+      "registered_address": "41 Pearl St, Boulder, CO 80302",
+      "officers": [
+        {
+          "name": "Avery Collins",
+          "title": "Member"
+        }
+      ],
+      "filings": []
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9031",
+    "irs_status": "not_issued",
+    "irs_name": null
+  }
+}

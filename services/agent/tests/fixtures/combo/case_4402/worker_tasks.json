@@ -1,0 +1,188 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Who does the submitted SSN belong to: the business name or the owner? Is 'Sunshine Cafe' registered as an entity or as a DBA in NY or Nassau County?",
+    "focus_fields": [
+      "tin_match_result",
+      "name_control_tested",
+      "legal_name",
+      "dba",
+      "registrant",
+      "kyc_result"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "Sole proprietor using a trade name"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "DBA of a registered LLC"
+      },
+      {
+        "hypothesis_id": "h3",
+        "text": "Wrong or fake TIN"
+      }
+    ],
+    "context": {
+      "case_id": "case_4402",
+      "flag_reasons": [
+        "ENTITY_NOT_FOUND",
+        "TIN_MISMATCH",
+        "NO_COMMERCIAL_RECORD"
+      ],
+      "application": {
+        "legal_name": "Sunshine Cafe",
+        "dba": null,
+        "address": "12 Main St, Great Neck, NY 11021",
+        "tin_type": "SSN",
+        "tin_last4": "4417",
+        "state": "NY",
+        "state_entity_id": null,
+        "entity_type": "SOLE_PROPRIETORSHIP",
+        "formation_date": null,
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Mark Hemlock",
+            "role": "Owner"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Unverified",
+          "matched_name": null
+        },
+        "tin": {
+          "result": "Mismatch"
+        },
+        "commercial_db": {
+          "result": "Not Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "dba_certificate"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://sunshinecafe.example",
+          "captured_at": "2026-11-14"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 7,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "What do the DBA certificate, W-9, bank verification and website say about who runs 'Sunshine Cafe'?",
+    "focus_fields": [
+      "dba",
+      "registrant",
+      "legal_name",
+      "business_name",
+      "account_holder",
+      "website_dba"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "Sole proprietor using a trade name"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "DBA of a registered LLC"
+      }
+    ],
+    "context": {
+      "case_id": "case_4402",
+      "flag_reasons": [
+        "ENTITY_NOT_FOUND",
+        "TIN_MISMATCH",
+        "NO_COMMERCIAL_RECORD"
+      ],
+      "application": {
+        "legal_name": "Sunshine Cafe",
+        "dba": null,
+        "address": "12 Main St, Great Neck, NY 11021",
+        "tin_type": "SSN",
+        "tin_last4": "4417",
+        "state": "NY",
+        "state_entity_id": null,
+        "entity_type": "SOLE_PROPRIETORSHIP",
+        "formation_date": null,
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Mark Hemlock",
+            "role": "Owner"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Unverified",
+          "matched_name": null
+        },
+        "tin": {
+          "result": "Mismatch"
+        },
+        "commercial_db": {
+          "result": "Not Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "dba_certificate"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://sunshinecafe.example",
+          "captured_at": "2026-11-14"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 6,
+    "record_id_start": 1
+  }
+}

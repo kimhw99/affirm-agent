@@ -1,0 +1,171 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Is 'Smith & Sons Inc.' the same entity as the Texas record 'SMITH AND SONS, INCORPORATED' at TX-802231, or a different company?",
+    "focus_fields": [
+      "legal_name",
+      "entity_status",
+      "tin_match_result"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "Only punctuation and suffix differ"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "A different company with a similar name"
+      }
+    ],
+    "context": {
+      "case_id": "case_4101",
+      "flag_reasons": [
+        "NAME_SIMILAR_MATCH"
+      ],
+      "application": {
+        "legal_name": "Smith & Sons Inc.",
+        "dba": null,
+        "address": "88 Elm St, Austin, TX 78701",
+        "tin_type": "EIN",
+        "tin_last4": "2231",
+        "state": "TX",
+        "state_entity_id": "TX-802231",
+        "entity_type": "CORPORATION",
+        "formation_date": "2015-04-02",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Robert Smith",
+            "role": "President"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Similar Match",
+          "matched_name": "SMITH AND SONS, INCORPORATED"
+        },
+        "tin": {
+          "result": "Match"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "articles"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://smithandsons.example/about",
+          "captured_at": "2026-11-12"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 5,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "Do the articles, W-9, bank verification and website all name the same corporation as the application?",
+    "focus_fields": [
+      "legal_name",
+      "tin_last4",
+      "account_holder",
+      "website_legal_name"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "Only punctuation and suffix differ"
+      }
+    ],
+    "context": {
+      "case_id": "case_4101",
+      "flag_reasons": [
+        "NAME_SIMILAR_MATCH"
+      ],
+      "application": {
+        "legal_name": "Smith & Sons Inc.",
+        "dba": null,
+        "address": "88 Elm St, Austin, TX 78701",
+        "tin_type": "EIN",
+        "tin_last4": "2231",
+        "state": "TX",
+        "state_entity_id": "TX-802231",
+        "entity_type": "CORPORATION",
+        "formation_date": "2015-04-02",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Robert Smith",
+            "role": "President"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Similar Match",
+          "matched_name": "SMITH AND SONS, INCORPORATED"
+        },
+        "tin": {
+          "result": "Match"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "articles"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://smithandsons.example/about",
+          "captured_at": "2026-11-12"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 5,
+    "record_id_start": 1
+  }
+}

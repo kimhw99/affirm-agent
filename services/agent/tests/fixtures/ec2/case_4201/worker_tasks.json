@@ -1,0 +1,176 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Which name does the submitted EIN match at the IRS: 'Bluefin Supply' or the registered entity behind it?",
+    "focus_fields": [
+      "tin_match_result",
+      "name_control_tested",
+      "legal_name",
+      "dba",
+      "registrant"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The merchant applied under its brand; the EIN belongs to the LLC"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "The EIN belongs to an unrelated business"
+      }
+    ],
+    "context": {
+      "case_id": "case_4201",
+      "flag_reasons": [
+        "TIN_MISMATCH",
+        "NAME_UNVERIFIED"
+      ],
+      "application": {
+        "legal_name": "Bluefin Supply",
+        "dba": null,
+        "address": "1900 Bayshore Dr, Tampa, FL 33606",
+        "tin_type": "EIN",
+        "tin_last4": "5120",
+        "state": "FL",
+        "state_entity_id": "FL-L19000412",
+        "entity_type": "LLC",
+        "formation_date": "2019-01-22",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Tom Harwick",
+            "role": "Managing Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Unverified",
+          "matched_name": null
+        },
+        "tin": {
+          "result": "Mismatch"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_147c"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://bluefinsupply.example/legal",
+          "captured_at": "2026-11-09"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 6,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "What name and EIN do the IRS letter and W-9 show, and does the letter's name control fit the applied name?",
+    "focus_fields": [
+      "name",
+      "ein_last4",
+      "name_control",
+      "legal_name",
+      "business_name"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The merchant applied under its brand; the EIN belongs to the LLC"
+      }
+    ],
+    "context": {
+      "case_id": "case_4201",
+      "flag_reasons": [
+        "TIN_MISMATCH",
+        "NAME_UNVERIFIED"
+      ],
+      "application": {
+        "legal_name": "Bluefin Supply",
+        "dba": null,
+        "address": "1900 Bayshore Dr, Tampa, FL 33606",
+        "tin_type": "EIN",
+        "tin_last4": "5120",
+        "state": "FL",
+        "state_entity_id": "FL-L19000412",
+        "entity_type": "LLC",
+        "formation_date": "2019-01-22",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Tom Harwick",
+            "role": "Managing Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Unverified",
+          "matched_name": null
+        },
+        "tin": {
+          "result": "Mismatch"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_147c"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://bluefinsupply.example/legal",
+          "captured_at": "2026-11-09"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 5,
+    "record_id_start": 1
+  }
+}

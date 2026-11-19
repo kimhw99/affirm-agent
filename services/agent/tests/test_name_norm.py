@@ -138,6 +138,16 @@ def test_match_dba_looser_threshold():
     assert [r["filing_id"] for r in hits] == ["nassau_2"]
 
 
+def test_match_dba_reads_the_dba_field_of_a_dba_filing():
+    from kyb_contracts.world import DbaFiling
+
+    filing = DbaFiling(filing_id="X-1", state="NY", county="Nassau", dba="SUNSHINE CAFE",
+                       registrant="MARK HEMLOCK", registrant_type="individual",
+                       filed="2023-04-20", status="active")
+    assert match_dba("Sunshine Cafe", [filing]) == [filing]
+    assert match_dba("Sunshine Café", [{"dba": "Sunshine Cafe"}]) == [{"dba": "Sunshine Cafe"}]
+
+
 def test_match_dba_accepts_objects():
     class Rec:
         def __init__(self, dba_name):
@@ -156,6 +166,7 @@ def test_match_dba_accepts_objects():
         ("Mark Hemlock", True, "HEML"),
         ("Hemlock, Mark", True, "HEML"),
         ("Mark A. Hemlock Jr.", True, "HEML"),
+        ("Mark Hemlock dba Sunshine Cafe", True, "HEML"),  # embedded DBA dropped first
         ("Ann Smith-Jones", True, "SMIT"),
         ("Ann Al-Rashid", True, "AL-R"),
         ("Jose Nunez", True, "NUNE"),

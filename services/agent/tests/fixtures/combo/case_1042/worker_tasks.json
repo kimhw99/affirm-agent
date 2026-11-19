@@ -1,0 +1,173 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Is 'Northline Bicycle Works LLC' the entity at IL-0458821, who registered the DBA 'Northline Cycles', and which name does the submitted EIN match at the IRS?",
+    "focus_fields": [
+      "legal_name",
+      "former_name",
+      "dba",
+      "registrant",
+      "tin_match_result",
+      "kyc_result"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The LLC renamed itself with the state but not with the IRS"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "The EIN belongs to a different business"
+      }
+    ],
+    "context": {
+      "case_id": "case_1042",
+      "flag_reasons": [
+        "NAME_SIMILAR_MATCH",
+        "DBA_UNVERIFIED",
+        "TIN_MISMATCH",
+        "PRODUCT_CATEGORY_REVIEW"
+      ],
+      "application": {
+        "legal_name": "Northline Bicycle Works LLC",
+        "dba": "Northline Cycles",
+        "address": "1450 W Fulton St, Chicago, IL 60607",
+        "tin_type": "EIN",
+        "tin_last4": "4567",
+        "state": "IL",
+        "state_entity_id": "IL-0458821",
+        "entity_type": "LLC",
+        "formation_date": "2023-05-30",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Dana Park",
+            "role": "Manager"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Similar Match",
+          "matched_name": "NORTHLINE BICYCLE WORKS, L.L.C."
+        },
+        "dba": {
+          "result": "Unverified"
+        },
+        "tin": {
+          "result": "Mismatch"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_cp575"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://northlinecycles.example/terms",
+          "captured_at": "2026-11-10"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 8,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "Which names and EIN do the merchant's IRS letter, bank verification and website show, and do they point to the same entity as the application?",
+    "focus_fields": [
+      "name",
+      "ein_last4",
+      "account_holder",
+      "website_legal_name",
+      "website_dba"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The LLC renamed itself with the state but not with the IRS"
+      }
+    ],
+    "context": {
+      "case_id": "case_1042",
+      "flag_reasons": [
+        "NAME_SIMILAR_MATCH",
+        "DBA_UNVERIFIED",
+        "TIN_MISMATCH",
+        "PRODUCT_CATEGORY_REVIEW"
+      ],
+      "application": {
+        "legal_name": "Northline Bicycle Works LLC",
+        "dba": "Northline Cycles",
+        "address": "1450 W Fulton St, Chicago, IL 60607",
+        "tin_type": "EIN",
+        "tin_last4": "4567",
+        "state": "IL",
+        "state_entity_id": "IL-0458821",
+        "entity_type": "LLC",
+        "formation_date": "2023-05-30",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Dana Park",
+            "role": "Manager"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Similar Match",
+          "matched_name": "NORTHLINE BICYCLE WORKS, L.L.C."
+        },
+        "dba": {
+          "result": "Unverified"
+        },
+        "tin": {
+          "result": "Mismatch"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_cp575"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://northlinecycles.example/terms",
+          "captured_at": "2026-11-10"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 6,
+    "record_id_start": 1
+  }
+}

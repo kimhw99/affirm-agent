@@ -1,0 +1,169 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Is the DBA 'Bend Street Coffee' registered anywhere in Ohio (state or Montgomery County), and to whom?",
+    "focus_fields": [
+      "dba",
+      "registrant",
+      "dba_status"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The DBA is filed with the county by the LLC"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "The DBA belongs to someone else"
+      }
+    ],
+    "context": {
+      "case_id": "case_4102",
+      "flag_reasons": [
+        "DBA_UNVERIFIED"
+      ],
+      "application": {
+        "legal_name": "Riverbend Coffee Roasters LLC",
+        "dba": "Bend Street Coffee",
+        "address": "220 Bend St, Dayton, OH 45402",
+        "tin_type": "EIN",
+        "tin_last4": "7712",
+        "state": "OH",
+        "state_entity_id": "OH-4471902",
+        "entity_type": "LLC",
+        "formation_date": "2021-08-16",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Maria Lopez",
+            "role": "Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Verified",
+          "matched_name": "RIVERBEND COFFEE ROASTERS LLC"
+        },
+        "dba": {
+          "result": "Unverified"
+        },
+        "tin": {
+          "result": "Match"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "dba_certificate"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://bendstreetcoffee.example",
+          "captured_at": "2026-11-11"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 5,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "Does the merchant's evidence tie 'Bend Street Coffee' to Riverbend Coffee Roasters LLC?",
+    "focus_fields": [
+      "dba",
+      "registrant",
+      "account_holder",
+      "website_dba"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The DBA is filed with the county by the LLC"
+      }
+    ],
+    "context": {
+      "case_id": "case_4102",
+      "flag_reasons": [
+        "DBA_UNVERIFIED"
+      ],
+      "application": {
+        "legal_name": "Riverbend Coffee Roasters LLC",
+        "dba": "Bend Street Coffee",
+        "address": "220 Bend St, Dayton, OH 45402",
+        "tin_type": "EIN",
+        "tin_last4": "7712",
+        "state": "OH",
+        "state_entity_id": "OH-4471902",
+        "entity_type": "LLC",
+        "formation_date": "2021-08-16",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Maria Lopez",
+            "role": "Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Verified",
+          "matched_name": "RIVERBEND COFFEE ROASTERS LLC"
+        },
+        "dba": {
+          "result": "Unverified"
+        },
+        "tin": {
+          "result": "Match"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "dba_certificate"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://bendstreetcoffee.example",
+          "captured_at": "2026-11-11"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 5,
+    "record_id_start": 1
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "case_id": "case_4202",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Stonegate Tile & Stone LLC",
+    "dba": null,
+    "address": "4410 N 7th St, Phoenix, AZ 85014",
+    "tin_type": "EIN",
+    "tin_last4": "3301",
+    "state": "AZ",
+    "state_entity_id": "AZ-2341987",
+    "entity_type": "LLC",
+    "formation_date": "2019-03-11",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Luis Ortega",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "STONEGATE TILE & STONE LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "confidence": 0.58,
+      "extracted": {
+        "name": "STONEGATE TILE AND STONE LLC",
+        "ein_last4": "3301",
+        "name_control": "STON",
+        "date": "2026-09-14"
+      }
+    },
+    {
+      "id": "D2",
+      "type": "w9",
+      "confidence": 0.91,
+      "extracted": {
+        "legal_name": "Stonegate Tile & Stone LLC",
+        "tin_type": "EIN",
+        "tin_last4": "3301"
+      }
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "STONEGATE TILE & STONE LLC",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://stonegatetile.example",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Stonegate Tile & Stone LLC"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "case_id": "case_1042",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH",
+    "PRODUCT_CATEGORY_REVIEW"
+  ],
+  "application": {
+    "legal_name": "Northline Bicycle Works LLC",
+    "dba": "Northline Cycles",
+    "address": "1450 W Fulton St, Chicago, IL 60607",
+    "tin_type": "EIN",
+    "tin_last4": "4567",
+    "state": "IL",
+    "state_entity_id": "IL-0458821",
+    "entity_type": "LLC",
+    "formation_date": "2023-05-30",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Dana Park",
+        "role": "Manager"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "NORTHLINE BICYCLE WORKS, L.L.C."
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Mismatch"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "HARBOR LIGHT CYCLES LLC",
+        "date": "2023-06-08",
+        "ein_last4": "4567"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://northlinecycles.example/terms",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Northline Bicycle Works LLC",
+        "dba": "Northline Cycles"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "records": [
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Stonegate Tile & Stone LLC"
+      },
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Mismatch"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "STON"
+        }
+      ]
+    },
+    {
+      "tool": "get_filing_history",
+      "args": {},
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "filing_event",
+          "value": {
+            "event_type": "formation"
+          }
+        }
+      ],
+      "absent": [
+        {
+          "field": "former_name"
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Stonegate Tile and Stone"
+      },
+      "sources": [
+        "R3"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Mismatch"
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Luis Ortega"
+      },
+      "sources": [
+        "R4"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Mismatch"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "LUIS"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "low_extraction_confidence",
+          "value": true
+        },
+        {
+          "field": "name",
+          "value": "STONEGATE TILE AND STONE LLC",
+          "confidence": "low"
+        },
+        {
+          "field": "tin_last4_matches_application",
+          "value": true
+        }
+      ]
+    },
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D2"
+      },
+      "sources": [
+        "D2"
+      ],
+      "expect": [
+        {
+          "field": "tin_last4",
+          "value": "3301",
+          "confidence": "high"
+        }
+      ],
+      "absent": [
+        {
+          "field": "low_extraction_confidence"
+        }
+      ]
+    }
+  ]
+}

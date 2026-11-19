@@ -1,0 +1,250 @@
+{
+  "records": [
+    {
+      "tool": "get_registry_entity",
+      "args": {},
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "legal_name",
+          "value": "NORTHLINE BICYCLE WORKS, L.L.C."
+        },
+        {
+          "field": "entity_status",
+          "value": "active"
+        },
+        {
+          "field": "state_entity_id",
+          "value": "IL-0458821"
+        },
+        {
+          "field": "former_names",
+          "value": [
+            "HARBOR LIGHT CYCLES LLC"
+          ]
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "normalized_equal"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "get_filing_history",
+      "args": {},
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "filing_event",
+          "value": {
+            "event_type": "name_change",
+            "effective_date": "2025-03-12",
+            "old_value": "HARBOR LIGHT CYCLES LLC"
+          }
+        },
+        {
+          "field": "former_name",
+          "value": "HARBOR LIGHT CYCLES LLC"
+        }
+      ]
+    },
+    {
+      "tool": "search_dba",
+      "args": {
+        "name": "Northline Cycles"
+      },
+      "sources": [
+        "R3"
+      ],
+      "expect": [
+        {
+          "field": "dba",
+          "value": "NORTHLINE CYCLES"
+        },
+        {
+          "field": "registrant",
+          "value": "HARBOR LIGHT CYCLES LLC"
+        },
+        {
+          "field": "dba_expired",
+          "value": false
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "former_name",
+            "label": "exact",
+            "name_field": "R3.registrant"
+          }
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.dba",
+            "label": "normalized_equal",
+            "name_field": "R3.dba"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Northline Bicycle Works LLC"
+      },
+      "sources": [
+        "R4"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Mismatch"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "NORT"
+        },
+        {
+          "field": "tin_last4",
+          "value": "4567"
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "HARBOR LIGHT CYCLES LLC"
+      },
+      "sources": [
+        "R5"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Match"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "HARB"
+        }
+      ]
+    },
+    {
+      "tool": "get_kyc_result",
+      "args": {
+        "owner_ref": "owner:P1"
+      },
+      "sources": [
+        "K1"
+      ],
+      "expect": [
+        {
+          "field": "kyc_result",
+          "value": "pass",
+          "subject": "owner:P1"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "name",
+          "value": "HARBOR LIGHT CYCLES LLC",
+          "confidence": "high"
+        },
+        {
+          "field": "tin_last4_matches_application",
+          "value": true
+        },
+        {
+          "field": "name_control_matches_legal_name",
+          "value": false
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "different",
+            "name_field": "D1.name"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "get_bank_verification",
+      "args": {
+        "bank_id": "B1"
+      },
+      "sources": [
+        "B1"
+      ],
+      "expect": [
+        {
+          "field": "account_legal_name",
+          "value": "NORTHLINE BICYCLE WORKS LLC"
+        },
+        {
+          "field": "account_dba",
+          "value": "NORTHLINE CYCLES"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "normalized_equal",
+            "name_field": "B1.account_legal_name"
+          }
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.dba",
+            "label": "normalized_equal",
+            "name_field": "B1.account_dba"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "get_site_identity",
+      "args": {
+        "web_id": "W1"
+      },
+      "sources": [
+        "W1"
+      ],
+      "expect": [
+        {
+          "field": "website_legal_name",
+          "value": "Northline Bicycle Works LLC",
+          "confidence": "low"
+        },
+        {
+          "field": "website_dba",
+          "value": "Northline Cycles",
+          "confidence": "low"
+        },
+        {
+          "field": "injection_suspected",
+          "value": false
+        }
+      ]
+    }
+  ]
+}

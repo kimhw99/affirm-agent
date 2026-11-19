@@ -1,0 +1,25 @@
+{
+  "case_id": "case_4402",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "NY-NAS-2023-1187",
+      "state": "NY",
+      "county": "Nassau",
+      "dba": "SUNSHINE CAFE",
+      "registrant": "MARK HEMLOCK",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2023-04-20",
+      "expires": null,
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "4417",
+    "irs_status": "issued",
+    "irs_name": "MARK HEMLOCK"
+  }
+}
