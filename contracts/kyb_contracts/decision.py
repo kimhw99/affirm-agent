@@ -11,11 +11,10 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from .case_input import CaseStatus, Contract
+from .memo import Recommendation
 
 Decision = Literal["approve", "request_docs", "escalate", "deny"]
 
-# Belongs to the memo format. Kept here until memo.py exists, then import it from there.
-Recommendation = Literal["recommend_clear", "request_documents", "escalate", "insufficient_evidence"]
 
 # Which decisions count as agreeing with each recommendation (proposal, to confirm).
 AGREES_WITH: dict[str, set[str]] = {

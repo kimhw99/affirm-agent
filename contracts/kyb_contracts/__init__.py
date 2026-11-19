@@ -17,6 +17,22 @@ from .case_input import (
     TinType,
     WebSnapshot,
 )
+from .memo import (
+    FLAG_EDGE_CASE,
+    CheckFailure,
+    CheckOutcome,
+    CheckResult,
+    CheckStatus,
+    DocumentRequest,
+    EvidenceEntry,
+    EvidenceIndex,
+    FlagOutcome,
+    FollowUpRecord,
+    Memo,
+    Recommendation,
+    ReviewOutput,
+    RuledOut,
+)
 from .decision import (
     AGREES_WITH,
     STATUS_AFTER,
@@ -27,6 +43,20 @@ from .decision import (
 
 __all__ = [
     "AGREES_WITH",
+    "FLAG_EDGE_CASE",
+    "CheckFailure",
+    "CheckOutcome",
+    "CheckResult",
+    "CheckStatus",
+    "DocumentRequest",
+    "EvidenceEntry",
+    "EvidenceIndex",
+    "FlagOutcome",
+    "FollowUpRecord",
+    "Memo",
+    "Recommendation",
+    "ReviewOutput",
+    "RuledOut",
     "DOCUMENT_FIELDS",
     "STATUS_AFTER",
     "TIN_PATTERN",

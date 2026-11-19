@@ -9,7 +9,7 @@ For a field-by-field walkthrough of `CaseInput` and the KYB background behind it
 | `kyb_contracts/case_input.py` | `CaseInput` and its parts | case service, intake, both workers |
 | `kyb_contracts/decision.py` | `DecisionInput`, `DecisionRecord`, the status each decision leads to (`STATUS_AFTER`) and the override rule (`AGREES_WITH`, `is_override`) | review app, agent API, case service, evaluation |
 | `kyb_contracts/worker_io.py` | Worker input and output (to add) | graph, workers |
-| `kyb_contracts/memo.py` | Memo, the checks result, `evidence_index` (to add; `Recommendation` moves here from `decision.py`) | graph, review app |
+| `kyb_contracts/memo.py` | `Memo` (per-flag outcomes, per-check `CheckOutcome`s, recommendation, follow-up history), the step 9 `CheckResult`, `evidence_index`, and `ReviewOutput` (what `GET /reviews/{id}` returns); `Recommendation` lives here | graph, review app |
 
 ## Rules
 
@@ -41,3 +41,4 @@ All data in `examples/` is fictional. EINs start with `00`, which real EINs neve
 | `case_1042.json` | EC-1 + EC-2: renamed in 2025; the IRS and the DBA record still show the old name |
 | `case_2001.json` | EC-4: sole proprietor with no state registration; the TIN on file is the owner's SSN |
 | `case_3001.json` | EC-2: the EIN belongs to an unrelated company |
+| `review_output_case_1042.json` | The `ReviewOutput` for case_1042: renamed company cleared after one internal follow-up |
