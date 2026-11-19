@@ -38,7 +38,7 @@ python -c "import json, pathlib; from kyb_contracts import CaseInput; [CaseInput
 
 All data in `examples/` is fictional. EINs start with `00` and SSNs with `000`, which real numbers never do. Full numbers appear only in `case_secrets/`; `CaseInput` and `World` reject anything that looks like a full SSN or EIN.
 
-`world/case_1042.json` and `case_secrets/case_1042.json` are the other two files of `case_1042`, so the three files together show one complete golden case (`case.json`, `world.json`, `secrets.json` in `data/golden/<ec>/<case_id>/`).
+`world/case_1042.json` and `case_secrets/case_1042.json` are the other two files of `case_1042`, so the three files together show one complete golden case (`case.json`, `world.json`, `secrets.json` in `data/golden/<ec>/<case_id>/`). How to write one: [data/golden/README.md](../data/golden/README.md).
 
 The sample cases in `case_input/`:
 
