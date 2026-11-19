@@ -59,6 +59,8 @@ Rule: whoever produces the data owns its format; whoever uses it reviews the for
 | Format | Main fields | Producer (owns the format) | Consumers (review it) | Defined in |
 |---|---|---|---|---|
 | `CaseInput` | case_id, status, flag_reasons, application, checks, documents, bank_verification, web_snapshot, owner_kyc | XL | H, E | `contracts/kyb_contracts/case_input.py` |
+| `World` (a golden case's `world.json`) | case_id, registry (with filings), dba_filings, commercial, tin_record; the records are what case-service endpoints 1–6 return | XL | E | `contracts/kyb_contracts/world.py` |
+| `CaseSecrets` (a golden case's `secrets.json`) | case_id, tin_type, tin, owners (ref, ssn): the full numbers, never served | XL | — (case service only) | `contracts/kyb_contracts/case_secrets.py` |
 | `WorkerInput` (aliases `WorkerTask`, and `FollowUp` when `follow_up_of` is set) | task_id, worker, question, focus_fields, hypotheses, context (`CaseContext`: the application, checks and evidence IDs from `CaseInput`), prior_findings, follow_up_of, max_tool_calls, record_id_start | H | E | `contracts/kyb_contracts/worker_io.py` |
 | `WorkerResult` | task_id, case_id, worker, status, findings, sources (each `source_id` is an evidence ID), hypothesis_signals, not_found, unresolved, answer, tool_calls_used, error | E | H | `contracts/kyb_contracts/worker_io.py` |
 | `ReconcileTable` | Per field: records_value, evidence_value, status, evidence_ids | H | H | Proposed here |
@@ -83,7 +85,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Item | Details |
 |---|---|
 | Tasks | Define the `CaseInput` format (Pydantic); store and serve cases in the case service; write the seed script that loads the golden cases into the database |
-| Input | Golden case files written by the team (YAML or JSON) |
+| Input | Golden cases written by the team: `case.json`, `world.json` and `secrets.json` per case, checked by `scripts/validate_golden.py` (see `data/golden/README.md`) |
 | Output | `CaseInput` JSON served through `GET /cases/{id}` |
 | Owner | XL; H and E review the format |
 | Handoffs | To H: the fields intake needs. To E: the documents, bank_verification and web_snapshot fields the Evidence worker reads, and the owner_kyc fields the Records worker reads. From the team: the content of the golden cases |
@@ -118,7 +120,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Tasks | Decide which tools to call within the budget: sos_search, sos_get_entity, sos_filing_history, dba_lookup, commercial_db_search, tin_match, get_kyc, normalize_name, name_control. Pin down the legal entity, find which entity owns the DBA, any name changes, and why the TIN doesn't match; answer the lead's questions |
 | Input | `WorkerInput`; identifiers (applied name, DBA, address, state entity number, state, formation date, entity type, TIN type and last 4, owner refs, KYC IDs); upstream check result codes. Cannot see: document, bank or website contents; full SSNs or EINs |
 | Output | `WorkerResult`; every finding cites a source with an R or K ID, a locator and a verbatim excerpt |
-| Owner | E; the mock official records (state registry, DBA, filing history, TIN matching, commercial database) also belong to E (to confirm) |
+| Owner | E. The mock official records (state registry, DBA, filing history, TIN matching, commercial database) are written in each golden case's `world.json` and served by the case service (`docs/case-service-endpoints.md`) |
 | Handoffs | From H: `WorkerInput` (first task or follow-up). To H: `WorkerResult` |
 | Done when | It runs on its own on a case file, without the graph; when the budget runs out it returns unresolved items instead of guessing |
 
@@ -209,7 +211,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Auth and API gateway | JWT login, roles, permission checks on every endpoint; the gateway routes `/auth`, `/cases` and `/reviews` | XL | To the team: the JWT claims and the list of roles |
 | Agent service API | `POST /reviews` starts a review in the background; `GET /reviews/{id}` returns the status and memo; `POST /reviews/{id}/decision` submits the decision and resumes the graph; the frontend polls the status | XL (HTTP layer) + H (graph calls) | Agree on the endpoints with H |
 | LangFuse | A trace for every node and every LLM and tool call | H | E's workers use the same callback setup |
-| Golden dataset | About 28 cases, each with expected_decision, must_cite and forbidden_actions; 9–10 per person, each set including one case with hidden instructions. Proposed: XL writes EC-1, E writes EC-2, H writes EC-4 and the combined cases (to confirm) | Everyone | To XL for loading into the database; to H for evaluation |
+| Golden dataset | About 28 cases, each with expected_decision, must_cite and forbidden_actions; 9–10 per person, each set including one case with hidden instructions. Proposed: XL writes EC-1, E writes EC-2, H writes EC-4 and the combined cases (to confirm). How to write and check a case: `data/golden/README.md` | Everyone | To XL for loading into the database; to H for evaluation |
 | Evaluation runner and single-agent baseline | Run every case; compute false-clear rate, accuracy, citation validity, cost and latency; the single agent uses the same tools and code checks | H | From E: tools that the single agent can reuse |
 | Override rate | Share of cases where the analyst's decision differs from the agent's recommendation | XL | From H: the recommendation in the memo |
 | Deployment | Each owner writes the Dockerfile for their service; XL integrates Docker Compose and EC2 | XL | Every owner hands in their Dockerfile by 11/20 |
@@ -235,7 +237,7 @@ Progress on each deliverable is tracked in Jira (subtasks under BEAC-3, BEAC-4 a
 
 ## 6. Open questions
 
-1. Do the mock official records and both workers' tool interfaces belong to E?
+1. Do both workers' tool interfaces belong to E? (The mock official records are now written in each golden case's `world.json` and served by the case service.)
 2. Does intake belong to H or XL?
 3. Is splitting the golden cases by edge case across the three of us OK?
 4. With the scope narrowed to EC-1/2/4, which roles do we keep?

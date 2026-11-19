@@ -115,7 +115,7 @@ Search the mocked commercial database (LexisNexis / D&B style), for EC-4's `NO_C
 ```
 
 #### 6. `GET /cases/{case_id}/tin-record`
-The mocked IRS record behind the TIN the merchant submitted (`application.tin_type` + `tin_last4`). The case service looks up the full number in its private table and returns only what the IRS has on file for it. The agent computes the TIN-match result itself, from the name it's testing and `irs_name`.
+The mocked IRS record behind the TIN the merchant submitted (`application.tin_type` + `tin_last4`). The case service returns the case's tin_record row, keyed by case_id (seeded from world.json). It doesn't look up by the full number, and nothing it returns contains it. The agent computes the TIN-match result itself, from the name it's testing and `irs_name`.
 
 ```json
 {"tin_type": "EIN", "tin_last4": "4567", "irs_status": "issued", "irs_name": "HARBOR LIGHT CYCLES LLC"}
@@ -173,13 +173,13 @@ One saved website snapshot: `CaseInput.web_snapshot[]`, unchanged.
 
 ## Seed data
 
-Each golden case is a folder `data/golden/<ec>/<case_id>/`:
+Each golden case is a folder `data/golden/<ec>/<case_id>/`. Each file has a model in `contracts/kyb_contracts/`, and `scripts/validate_golden.py` checks that a case's files agree with each other (see `data/golden/README.md`):
 
-| File | Holds | Loaded into |
-|---|---|---|
-| `case.json` | One `CaseInput` (validates against `case_input.py`) | The case tables, served by `GET /cases/{case_id}` and endpoints 7–10 |
-| `world.json` | Reference data: `registry` (endpoint 2 shape, with `filings`), `dba_filings`, `commercial`, `tin_record` (endpoint 6 shape) | The mocked registry, DBA, commercial and IRS tables (endpoints 1–6) |
-| `secrets.json` | The full TIN and SSNs | The private table only; never served |
+| File | Holds | Model | Loaded into |
+|---|---|---|---|
+| `case.json` | One `CaseInput` | `CaseInput` (`case_input.py`) | The case tables, served by `GET /cases/{case_id}` and endpoints 7–10 |
+| `world.json` | `case_id` and the reference data: `registry` (endpoint 2 shape, with `filings`), `dba_filings`, `commercial` (endpoint 5 shape, plus the `state` it filters on), `tin_record` (endpoint 6 shape) | `World` (`world.py`) | The mocked registry, DBA, commercial and IRS tables (endpoints 1–6) |
+| `secrets.json` | `case_id`, `tin_type`, the full `tin`, and each owner's `ssn` | `CaseSecrets` (`case_secrets.py`) | The private tables only; never served |
 
 It would help if your seed script loaded these files, so the agent's offline tests (a fake client that reads the same files) and the real database use the same data.
 
