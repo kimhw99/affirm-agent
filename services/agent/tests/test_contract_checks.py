@@ -74,6 +74,16 @@ def test_worker_fields_translates_lead_names_to_tool_names():
     assert worker_fields("evidence", ["license_status", "holder", "holder"]) == ["status", "holder"]
 
 
+def test_a_fact_name_gives_every_field_the_fact_accepts():
+    """'name' is both a Lead fact and a field the Evidence worker writes. The fact wins, so a
+    follow-up on the name check also gets back the license holder and the website's name."""
+    assert {"name", "legal_name", "holder", "new_name", "website_legal_name"} <= set(
+        worker_fields("evidence", ["name"]))
+    assert {"former_name", "former_names"} <= set(worker_fields("records", ["former_name"]))
+    # A field name that isn't a Lead fact stays narrow.
+    assert worker_fields("evidence", ["legal_name"]) == ["legal_name"]
+
+
 def test_follow_up_prior_findings_use_tool_field_names(case_1042):
     """A follow-up about 'dba_owner' and 'tin_match' gets back the worker's 'registrant' and
     'tin_match_result' findings (it used to compare the Lead's names with the tools' names)."""

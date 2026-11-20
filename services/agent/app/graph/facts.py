@@ -102,15 +102,19 @@ def worker_fields(worker: str, names: Iterable[str]) -> list[str]:
     """The Lead's names (a fact above, or any spelling it accepts) as the field names that
     worker actually writes (``kyb_contracts.worker_io.FINDING_FIELDS``), in order and
     without repeats. Used for ``WorkerInput.focus_fields`` and to pick prior findings, so a
-    worker is told, and given back, the names it writes. Names the worker never writes are dropped."""
+    worker is told, and given back, the names it writes. A name that is a Lead fact gives every
+    field that fact accepts, even when it is also a field name (the Evidence ``name`` fact gives
+    ``holder`` and ``website_legal_name`` too). Names the worker never writes are dropped."""
     written = FINDING_FIELDS[worker]
     out: list[str] = []
     for name in names:
-        if name in written:
+        if name in _FIELD_TABLES[worker]:      # a Lead fact: every field it accepts
+            fields = sorted(_FIELD_TABLES[worker][name] & written)
+        elif name in written:                  # a field name that isn't a Lead fact
             fields = [name]
-        else:
-            fields = sorted({f for fact, accepted in _FIELD_TABLES[worker].items()
-                             if name == fact or name in accepted for f in accepted & written})
+        else:                                  # an older spelling the Lead accepts
+            fields = sorted({f for accepted in _FIELD_TABLES[worker].values()
+                             if name in accepted for f in accepted & written})
         out += [f for f in fields if f not in out]
     return out
 
