@@ -31,6 +31,7 @@ from kyb_contracts.worker_io import (
     Authority,
     Citation,
     Confidence,
+    FINDING_FIELDS,
     ExtractionMethod,
     Finding,
     Source,
@@ -40,6 +41,11 @@ from kyb_contracts.worker_io import (
 
 from app.clients.case_client import CaseDataClient
 from app.shared.name_norm import LABEL_RANK, NameComparison, best_comparison
+
+# The most R sources (official or third-party records) one tool call may add. Searches
+# keep only their closest matches. The lead gives parallel Records follow-ups separate
+# blocks of R numbers (app/graph/followup.py, R_ID_STRIDE), sized from this cap.
+MAX_RECORDS_PER_CALL = 3
 
 UNTRUSTED_OPEN = "<untrusted_merchant_content>"
 UNTRUSTED_CLOSE = "</untrusted_merchant_content>"
@@ -299,6 +305,9 @@ class ToolContext:
     def add_finding(self, source: Source, field: str, value: Any, excerpt: str, *,
                     method: ExtractionMethod, confidence: str, subject: str = "business",
                     note: Optional[str] = None) -> Finding:
+        if field not in FINDING_FIELDS[self.worker]:
+            raise AssertionError(f"the {self.worker} tools may not write the field {field!r}; "
+                                 "add it to kyb_contracts.worker_io.FINDING_FIELDS first")
         if excerpt not in self.rendered[source.source_id]:
             raise AssertionError(f"excerpt {excerpt!r} is not in the rendered {source.source_id}")
         key = (source.source_id, field, subject, json.dumps(as_value(value), sort_keys=True, default=str))
@@ -441,6 +450,7 @@ def output_from(ctx: ToolContext, tool: str, sources: list[Source], findings: li
 
 __all__ = [
     "ID_FIELDS",
+    "MAX_RECORDS_PER_CALL",
     "Record",
     "ToolArgs",
     "ToolContext",

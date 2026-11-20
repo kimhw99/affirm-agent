@@ -13,6 +13,7 @@ from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEn
 from app.shared.name_norm import LABEL_RANK, best_comparison, match_dba
 
 from ._common import (
+    MAX_RECORDS_PER_CALL,
     Record,
     ToolArgs,
     ToolContext,
@@ -26,7 +27,7 @@ from ._common import (
 HIGH = "high"
 STRUCTURED = ExtractionMethod.STRUCTURED_RECORD
 DERIVED = ExtractionMethod.DERIVED
-MAX_CANDIDATES = 3
+MAX_CANDIDATES = MAX_RECORDS_PER_CALL  # one R source per entity, filing or profile kept
 
 
 def _state(ctx: ToolContext, state: Optional[str]) -> str:
@@ -288,9 +289,16 @@ def search_dba(ctx: ToolContext, args: SearchDbaArgs) -> ToolOutput:
         finding = ctx.add_finding(source, "dba_match", "none", line, method=STRUCTURED, confidence=HIGH, note=note)
         return ctx.remember(call_key, output_from(ctx, "search_dba", [source], [finding]))
 
+    def rank(f: DbaFiling) -> tuple:
+        c = best_comparison(args.name, f.dba)
+        return (f.status == "active", LABEL_RANK[c.label], c.score, f.filed)
+
+    ranked = sorted(matches, key=rank, reverse=True)[:MAX_CANDIDATES]
+    note = (f"{len(matches)} matching DBA filing(s) in {where}; showing the {len(ranked)} closest, active first."
+            if len(ranked) < len(matches) else None)
     sources, findings = [], []
     add = ctx.add_finding
-    for filing in matches:
+    for filing in ranked:
         source, lines = _dba_source(ctx, filing)
         sources.append(source)
         findings += [
@@ -313,7 +321,7 @@ def search_dba(ctx: ToolContext, args: SearchDbaArgs) -> ToolOutput:
                             method=DERIVED, confidence=HIGH))
         ctx.name_hints(f"{source.source_id}.dba", filing.dba)
         ctx.name_hints(f"{source.source_id}.registrant", filing.registrant, include_owners=True)
-    return ctx.remember(call_key, output_from(ctx, "search_dba", sources, findings))
+    return ctx.remember(call_key, output_from(ctx, "search_dba", sources, findings, note))
 
 
 # --------------------------------------------------------------------------

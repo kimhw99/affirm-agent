@@ -1,40 +1,41 @@
 """A read-only index over the workers' findings, used by reconcile and the guardrails.
 
 Workers report findings with a ``field`` name (``worker_io.Finding.field``). Each
-logical fact below lists the field names it accepts: first the names the BEAC-7
-workers' tools write (``app/tools``), then older spellings kept for compatibility.
+logical fact below lists the field names it accepts: first the names the
+workers write (``kyb_contracts.worker_io.FINDING_FIELDS``), then older spellings kept
+for compatibility.
 Evidence is also told apart by *where* it came from (the source kind: an R record's
 ``source_type``, or the case document type for a D ID).
 
-What the BEAC-7 Records worker writes, and how the Lead reads it
-    get_registry_entity / search_registry -> legal_name, entity_status, state_entity_id,
+What the Records worker reports, by source, and how the Lead reads it
+    state registry -> legal_name, entity_status, state_entity_id,
         formation_date, former_names (a list), officer_name; one R source per entity.
         A search can return look-alike entities, so registry facts are split by entity:
         the applicant's entity (its state_entity_id, or the closest name) feeds the
         registry checks; any other entity is a "separate entity", never the applicant.
         Nothing found -> registry_match "none" / registry_entity "not_found".
-    get_filing_history -> filing_event, former_name (one per name change)
-    search_dba -> dba, registrant, registrant_state_entity_id, dba_status, dba_expired
+    registry filing history -> filing_event, former_name (one per name change)
+    DBA filings -> dba, registrant, registrant_state_entity_id, dba_status, dba_expired
         (an expired or withdrawn filing no longer ties the DBA to anyone)
-    check_tin_match -> tin_match_result ("Match" | "Mismatch" | "Not Issued" |
+    IRS TIN match -> tin_match_result ("Match" | "Mismatch" | "Not Issued" |
         "Not Found"); the name tested is in the R source's locator ("... name=<name>")
         and in the name_control_tested finding's note. name_control_tested is the
         control of the *tested* name, not the IRS's, so it isn't irs_name_control.
-    get_kyc_result -> kyc_result (subject owner:Pn)
+    KYC -> kyc_result (subject owner:Pn)
 
-What the BEAC-7 Evidence worker writes
-    get_document -> each extracted field under its own name (name, legal_name,
+What the Evidence worker reports, by source
+    case document -> each extracted field under its own name (name, legal_name,
         business_name, holder, dba, registrant, ein_last4, name_control, date, status,
         formation_date, ...), plus derived checks and injection_suspected
-    get_bank_verification -> account_holder (the Lead splits "LEGAL DBA TRADE" itself), bank_status
-    get_site_identity -> website_legal_name, website_dba, website_address,
+    bank verification -> account_holder (the Lead splits "LEGAL DBA TRADE" itself), bank_status
+    website -> website_legal_name, website_dba, website_address,
         injection_suspected (true or false)
 
 Name matching is the Lead's: reconcile.py compares records against evidence with
-app/shared/name_norm.py. The tools only show the worker's model name_checks hints
-(which lookup next); they never write name-comparison findings.
+app/shared/name_norm.py. The workers only use name_checks hints to choose
+their next lookup; they never report name-comparison findings.
 
-Only facts some tool can report are listed here. There is no pending-filing,
+Only facts some worker can report are listed here. There is no pending-filing,
 domain-age or tampering fact: the case service and world.json carry no such data. A
 filed-but-unapproved formation shows up as the registry's entity_status "pending".
 
@@ -50,7 +51,7 @@ from typing import Any, Iterable, Optional
 
 from app.shared.name_norm import LABEL_RANK, best_comparison
 from kyb_contracts.case_input import CaseInput
-from kyb_contracts.worker_io import WorkerResult
+from kyb_contracts.worker_io import FINDING_FIELDS, WorkerResult
 
 # ---------- Logical facts -> accepted field names ----------
 
@@ -93,6 +94,26 @@ EVIDENCE_FIELDS: dict[str, frozenset[str]] = {
     "suspicious": frozenset({"injection_suspected", "suspicious_content", "instruction_like_text", "suspicious"}),
     "old_name": frozenset({"old_name"}),
 }
+
+_FIELD_TABLES = {"records": RECORDS_FIELDS, "evidence": EVIDENCE_FIELDS}
+
+
+def worker_fields(worker: str, names: Iterable[str]) -> list[str]:
+    """The Lead's names (a fact above, or any spelling it accepts) as the field names that
+    worker actually writes (``kyb_contracts.worker_io.FINDING_FIELDS``), in order and
+    without repeats. Used for ``WorkerInput.focus_fields`` and to pick prior findings, so a
+    worker is told, and given back, the names it writes. Names the worker never writes are dropped."""
+    written = FINDING_FIELDS[worker]
+    out: list[str] = []
+    for name in names:
+        if name in written:
+            fields = [name]
+        else:
+            fields = sorted({f for fact, accepted in _FIELD_TABLES[worker].items()
+                             if name == fact or name in accepted for f in accepted & written})
+        out += [f for f in fields if f not in out]
+    return out
+
 
 EIN_LETTERS = frozenset({"irs_cp575", "irs_147c"})
 FORMATION_DOCS = frozenset({"articles", "good_standing"})
@@ -327,4 +348,5 @@ __all__ = [
     "text",
     "truthy",
     "weakest_conf",
+    "worker_fields",
 ]
