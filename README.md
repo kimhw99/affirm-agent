@@ -11,7 +11,7 @@ affirm-agent/
 ├── docs/
 │   ├── proposal/                 # Project proposal
 │   ├── architecture.md           # How the services, the workflow and the data fit together
-│   ├── case-service-endpoints.md # The read endpoints the agent's workers call
+│   ├── case-service-endpoints.md # The case-service endpoints the agent calls
 │   ├── database.md               # The three databases and the case_db tables
 │   └── workflow-handoffs.md      # Workflow steps, owners and handoffs
 ├── contracts/                    # Shared data formats (Pydantic); each producer maintains its own

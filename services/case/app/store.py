@@ -1,4 +1,5 @@
-"""Reads from case_db, returned as the kyb_contracts models the endpoints serve.
+"""Reads from case_db, returned as the kyb_contracts models the endpoints serve, and
+the one write: saving the analyst's decision (step 11).
 
 Every function takes an open connection whose rows come back as dicts (psycopg's
 dict_row). A lookup returns None when nothing matches; a search returns a list,
@@ -12,9 +13,12 @@ given must match, and at most 20 rows come back, best matches first. Unlike the 
 there is no fuzzy matching of misspelled words yet.
 """
 
+import json
 import re
+from datetime import datetime, timezone
 
 from kyb_contracts.case_input import BankVerification, CaseInput, Document, OwnerKYC, WebSnapshot
+from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
 SEARCH_LIMIT = 20
@@ -181,3 +185,63 @@ def get_bank_verification(conn, case_id: str, bank_id: str) -> BankVerification 
 def get_web_snapshot(conn, case_id: str, web_id: str) -> WebSnapshot | None:
     """Endpoint 10, without the page text."""
     return _one(conn, WebSnapshot, WEB + " AND web_id = %s", case_id, web_id)
+
+
+# ---------- Step 11: the analyst's decision ----------
+
+DECISION = "review_id, case_id, decision, note, analyst_id, agent_recommendation, overridden, decided_at"
+
+# The statuses in which a case can take a decision. Approved and denied cases are done,
+# and a docs_requested case waits for the merchant's new evidence (CaseStatus).
+DECIDABLE = {"pending_review", "escalated"}
+
+
+class CaseNotFound(LookupError):
+    """There's no case with this ID."""
+
+
+class DecisionConflict(Exception):
+    """The review already has a different decision, or the case can't take one now."""
+
+
+def _utc(moment: datetime) -> datetime:
+    """A time without a time zone counts as UTC."""
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+def same_decision(a: DecisionRecord, b: DecisionRecord) -> bool:
+    """Whether two records are the same decision, at the same moment."""
+    return (a.model_dump(exclude={"decided_at"}) == b.model_dump(exclude={"decided_at"})
+            and _utc(a.decided_at) == _utc(b.decided_at))
+
+
+def save_decision(conn, record: DecisionRecord) -> bool:
+    """Step 11: saves the decision, the case's new status and an audit log entry, all or nothing.
+
+    Returns False, changing nothing, when this review's decision was already saved with
+    the same content, so a retry is safe. Raises CaseNotFound or DecisionConflict.
+    """
+    to_status = STATUS_AFTER[record.decision].value
+    with conn.transaction():
+        # Locks the case's row, so two decisions for one case can't both pass the checks.
+        case = conn.execute("SELECT status FROM cases WHERE case_id = %s FOR UPDATE", [record.case_id]).fetchone()
+        if case is None:
+            raise CaseNotFound(record.case_id)
+        saved = conn.execute(f"SELECT {DECISION} FROM decisions WHERE review_id = %s", [record.review_id]).fetchone()
+        if saved is not None:
+            if same_decision(DecisionRecord.model_validate(saved), record):
+                return False
+            raise DecisionConflict(f"review {record.review_id} already has a different decision")
+        if case["status"] not in DECIDABLE:
+            raise DecisionConflict(f"case {record.case_id} is {case['status']}, so it can't take a decision")
+        conn.execute(f"INSERT INTO decisions ({DECISION}) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                     [record.review_id, record.case_id, record.decision, record.note, record.analyst_id,
+                      record.agent_recommendation, record.overridden, _utc(record.decided_at)])
+        conn.execute("UPDATE cases SET status = %s, updated_at = now() WHERE case_id = %s",
+                     [to_status, record.case_id])
+        conn.execute("INSERT INTO audit_log (case_id, review_id, actor_id, action, from_status, to_status, detail) "
+                     "VALUES (%s, %s, %s, 'decision', %s, %s, %s::jsonb)",
+                     [record.case_id, record.review_id, record.analyst_id, case["status"], to_status,
+                      json.dumps({"decision": record.decision, "agent_recommendation": record.agent_recommendation,
+                                  "overridden": record.overridden})])
+    return True

@@ -1,8 +1,9 @@
 """The case service's HTTP API.
 
 GET /cases/{case_id} serves a whole CaseInput, and endpoints 1-10 serve the records
-the agent's workers look up (docs/case-service-endpoints.md). All of them are
-read-only and need the service token; GET /health doesn't.
+the agent's workers look up (docs/case-service-endpoints.md). POST
+/cases/{case_id}/decisions saves the analyst's decision (step 11). All of them need
+the service token; GET /health doesn't.
 
 Until the auth service issues service JWTs (BEAC-14), the token is a shared secret:
 the agent sends CASE_SERVICE_TOKEN as a Bearer token, and this service compares it
@@ -21,12 +22,14 @@ from pathlib import Path
 from typing import Annotated, Iterator
 
 import psycopg
-from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from psycopg.conninfo import make_conninfo
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
+from pydantic import BaseModel, ConfigDict
 
-from kyb_contracts.case_input import BankVerification, CaseInput, Document, OwnerKYC, WebSnapshot
+from kyb_contracts.case_input import BankVerification, CaseInput, CaseStatus, Document, OwnerKYC, WebSnapshot
+from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
 from . import store
@@ -152,6 +155,37 @@ def get_bank_verification(case_id: str, bank_id: str, conn: Conn):
 @router.get("/cases/{case_id}/web-snapshots/{web_id}", response_model=WebSnapshot)
 def get_web_snapshot(case_id: str, web_id: str, conn: Conn):
     return found(store.get_web_snapshot(conn, case_id, web_id), "web snapshot")
+
+
+# ---------- Step 11: the analyst's decision ----------
+
+class SaveDecision(BaseModel):
+    """Body of POST /cases/{case_id}/decisions, and its response."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision_record: DecisionRecord
+    case_status: CaseStatus | None = None  # the status the sender expects; it must be STATUS_AFTER's
+
+
+@router.post("/cases/{case_id}/decisions", status_code=201, response_model=SaveDecision)
+def save_decision(case_id: str, body: SaveDecision, conn: Conn, response: Response):
+    """Saves the decision, sets the case's status from it and writes the audit log, in one transaction."""
+    record = body.decision_record
+    if record.case_id != case_id:
+        raise HTTPException(422, f"decision_record.case_id is {record.case_id}, but the path is for {case_id}")
+    status = STATUS_AFTER[record.decision]
+    if body.case_status not in (None, status):
+        raise HTTPException(422, f"{record.decision} sets the case to {status.value}, not {body.case_status.value}")
+    try:
+        created = store.save_decision(conn, record)
+    except store.CaseNotFound:
+        raise HTTPException(404, "no such case") from None
+    except store.DecisionConflict as error:
+        raise HTTPException(409, str(error)) from None
+    if not created:
+        response.status_code = 200  # already saved: a retry
+    return SaveDecision(decision_record=record, case_status=status)
 
 
 app.include_router(router)
