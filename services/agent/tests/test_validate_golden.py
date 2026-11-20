@@ -17,8 +17,8 @@ _spec.loader.exec_module(validate_golden)
 
 
 def _example() -> dict[str, dict]:
-    """The three files of case_1042, taken from contracts/examples/."""
-    sources = {"case.json": "case_input", "world.json": "world", "secrets.json": "case_secrets"}
+    """The two files of case_1042, taken from contracts/examples/."""
+    sources = {"case.json": "case_input", "world.json": "world"}
     return {name: json.loads((EXAMPLES / folder / "case_1042.json").read_text(encoding="utf-8"))
             for name, folder in sources.items()}
 
@@ -48,7 +48,6 @@ def test_a_case_without_a_tin_passes(tmp_path):
     del case["checks"]["tin"]
     case["flag_reasons"].remove("TIN_MISMATCH")
     files["world.json"]["tin_record"] = None
-    files["secrets.json"]["tin_type"] = files["secrets.json"]["tin"] = None
     _write(tmp_path, files, ec="ec1")
     assert _problems(tmp_path) == []
 
@@ -67,23 +66,22 @@ def test_a_missing_file_is_reported(tmp_path):
 
 def test_case_id_must_match_the_folder(tmp_path):
     _write(tmp_path, _example(), case_id="case_1043")
-    assert sum("but the folder is case_1043" in p for p in _problems(tmp_path)) == 3
+    assert sum("but the folder is case_1043" in p for p in _problems(tmp_path)) == 2
 
 
 def test_model_errors_are_reported_without_the_number(tmp_path, capsys):
     files = _example()
-    files["secrets.json"]["owners"][0]["ssn"] = "123-45-6789"
+    files["case.json"]["application"]["address"] = "000-12-3456 W Fulton St"
     _write(tmp_path, files)
-    assert any(p.startswith("secrets.json: owners.0") and "never issued" in p for p in _problems(tmp_path))
+    assert any(p.startswith("case.json: ") and "full SSN or EIN" in p for p in _problems(tmp_path))
     assert validate_golden.main([str(tmp_path)]) == 1
-    assert "123-45-6789" not in capsys.readouterr().out
+    assert "000-12-3456" not in capsys.readouterr().out
 
 
-def test_the_full_tin_must_end_in_tin_last4(tmp_path):
-    files = _example()
-    files["secrets.json"]["tin"] = "00-1234560"
-    _write(tmp_path, files)
-    assert "secrets.json: the full TIN doesn't end in case.json's tin_last4" in _problems(tmp_path)
+def test_other_files_in_the_folder_are_ignored(tmp_path):
+    folder = _write(tmp_path, _example())
+    (folder / "secrets.json").write_text("not json at all", encoding="utf-8")
+    assert _problems(tmp_path) == []
 
 
 def test_world_needs_a_tin_record_when_the_case_has_a_tin(tmp_path):
@@ -91,13 +89,6 @@ def test_world_needs_a_tin_record_when_the_case_has_a_tin(tmp_path):
     files["world.json"]["tin_record"] = None
     _write(tmp_path, files)
     assert "world.json: tin_record is missing, but the case has a TIN" in _problems(tmp_path)
-
-
-def test_secrets_owners_must_be_owners_in_the_case(tmp_path):
-    files = _example()
-    files["secrets.json"]["owners"][0]["ref"] = "owner:P2"
-    _write(tmp_path, files)
-    assert any("owners that aren't in case.json" in p for p in _problems(tmp_path))
 
 
 def test_the_vendor_tin_result_must_fit_the_irs_status(tmp_path):

@@ -17,7 +17,6 @@ from .case_input import (
     TinType,
     WebSnapshot,
 )
-from .case_secrets import CaseSecrets, OwnerSecret
 from .decision import (
     AGREES_WITH,
     STATUS_AFTER,
@@ -55,7 +54,6 @@ __all__ = [
     "Application",
     "BankVerification",
     "CaseInput",
-    "CaseSecrets",
     "CaseStatus",
     "CheckFailure",
     "CheckResult",
@@ -76,7 +74,6 @@ __all__ = [
     "Officer",
     "Owner",
     "OwnerKYC",
-    "OwnerSecret",
     "Recommendation",
     "RegistryEntity",
     "RuledOutCause",

@@ -60,7 +60,6 @@ Rule: whoever produces the data owns its format; whoever uses it reviews the for
 |---|---|---|---|---|
 | `CaseInput` | case_id, status, flag_reasons, application, checks, documents, bank_verification, web_snapshot, owner_kyc | XL | H, E | `contracts/kyb_contracts/case_input.py` |
 | `World` (a golden case's `world.json`) | case_id, registry (with filings), dba_filings, commercial, tin_record; the records are what case-service endpoints 1–6 return | XL | E | `contracts/kyb_contracts/world.py` |
-| `CaseSecrets` (a golden case's `secrets.json`) | case_id, tin_type, tin, owners (ref, ssn): the full numbers, never served | XL | — (case service only) | `contracts/kyb_contracts/case_secrets.py` |
 | `WorkerInput` (aliases `WorkerTask`, and `FollowUp` when `follow_up_of` is set) | task_id, worker, question, focus_fields, hypotheses, context (`CaseContext`: the application, checks and evidence IDs from `CaseInput`), prior_findings, follow_up_of, max_tool_calls, record_id_start | H | E | `contracts/kyb_contracts/worker_io.py` |
 | `WorkerResult` | task_id, case_id, worker, status, findings, sources (each `source_id` is an evidence ID), hypothesis_signals, not_found, unresolved, answer, tool_calls_used, error | E | H | `contracts/kyb_contracts/worker_io.py` |
 | `ReconcileTable` | Per field: records_value, evidence_value, status, evidence_ids | H | H | Proposed here |
@@ -85,7 +84,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Item | Details |
 |---|---|
 | Tasks | Define the `CaseInput` format (Pydantic); store and serve cases in the case service; write the seed script that loads the golden cases into the database |
-| Input | Golden cases written by the team: `case.json`, `world.json` and `secrets.json` per case, checked by `scripts/validate_golden.py` (see `data/golden/README.md`) |
+| Input | Golden cases written by the team: `case.json` and `world.json` per case, checked by `scripts/validate_golden.py` (see `data/golden/README.md`) |
 | Output | `CaseInput` JSON served through `GET /cases/{id}` |
 | Owner | XL; H and E review the format |
 | Handoffs | To H: the fields intake needs. To E: the documents, bank_verification and web_snapshot fields the Evidence worker reads, and the owner_kyc fields the Records worker reads. From the team: the content of the golden cases |
@@ -124,7 +123,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Handoffs | From H: `WorkerInput` (first task or follow-up). To H: `WorkerResult` |
 | Done when | It runs on its own on a case file, without the graph; when the budget runs out it returns unresolved items instead of guessing |
 
-`tin_match` takes only the name to test; code looks up the case's submitted TIN by `case_id` and fills in the real number, so full SSNs and EINs never enter the model's context. `get_kyc` takes an owner ref such as `owner:P1`.
+`tin_match` takes only the name to test; the tool gets the case's IRS record by `case_id` (case-service endpoint 6) and compares the names in code. No full SSN or EIN is involved, so none can enter the model's context. `get_kyc` takes an owner ref such as `owner:P1`.
 
 ### Step 5. Evidence worker (ReAct loop)
 
@@ -414,7 +413,7 @@ LangGraph's `Send` starts both workers at the same time.
 | 3 | `dba_lookup(name="Northline Cycles", state="IL")` | Filed 2024-01-15 by HARBOR LIGHT CYCLES LLC | R3 |
 | 4 | `tin_match(name="NORTHLINE BICYCLE WORKS LLC")` | Mismatch | R4 |
 
-After 4 calls the budget is used up, so the worker stops and lists what it couldn't settle under `unresolved` instead of guessing. Note that `tin_match` gets only the name; code looks up the case's submitted EIN and fills in the real number.
+After 4 calls the budget is used up, so the worker stops and lists what it couldn't settle under `unresolved` instead of guessing. Note that `tin_match` gets only the name; the tool compares it with the case's IRS record, looked up by `case_id`.
 
 ```json
 {
@@ -760,7 +759,7 @@ trace rv_7f3a (case_1042)
 |---|---|---|
 | Formatting differences only (e.g. just NAME_SIMILAR_MATCH) | 2 | Intake resolves it, skips steps 3–7 and goes straight to step 8 |
 | EC-4: newly formed company with a brand-new EIN | 4 | `tin_match` returns `Not Issued`; the hard rule in step 9 blocks clearing the TIN flag → request_documents (ask for the IRS EIN letter) |
-| EC-4: sole proprietor with no state registration | 4 | Finding no entity is expected; `tin_match(name="<owner's name>")` checks the submitted SSN (`tin_type` = SSN) against the owner's name, with code filling in the real number; KYC (K) supports the owner's identity, and clearing still needs merchant evidence such as B or D |
+| EC-4: sole proprietor with no state registration | 4 | Finding no entity is expected; `tin_match(name="<owner's name>")` checks the owner's name against the IRS record for the submitted SSN (`tin_type` = SSN); KYC (K) supports the owner's identity, and clearing still needs merchant evidence such as B or D |
 | The EIN belongs to an unrelated company | 4 (round 2) | The Records worker finds a separate company → hard rule in step 9 → escalate |
 | Hidden instructions on the website (e.g. "ignore previous instructions…") | 5 | The Evidence worker records them under `suspicious` and doesn't follow them; the lead gets only the fact "W1 contains instruction-like text", and the memo warns the analyst |
 | Conflicts remain after 2 follow-up rounds | 7 | No more follow-ups; the memo is written with the `unresolved` items → insufficient_evidence |

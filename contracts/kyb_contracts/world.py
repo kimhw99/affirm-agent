@@ -2,7 +2,7 @@
 
 No tool in this project calls a real registry, the IRS or a data vendor. The team
 writes these records by hand: one world.json per golden case, next to its case.json
-(a CaseInput) and secrets.json (case_secrets.py), in data/golden/<ec>/<case_id>/.
+(a CaseInput) in data/golden/<ec>/<case_id>/.
 
 The case service loads every world.json into its mock tables and serves them through
 read endpoints 1-6 (docs/case-service-endpoints.md). The agent's offline tests read
@@ -16,8 +16,7 @@ exactly those shapes, with two additions the endpoints don't return:
 Rules for this contract, as in case_input.py:
 - It checks structure only: types, formats and IDs. Whether a world agrees with its
   case.json (for example with checks.sos_name) belongs in scripts/validate_golden.py.
-- No full SSN or EIN anywhere: the TIN record carries the last 4 digits only. The
-  full number is in secrets.json.
+- No full SSN or EIN anywhere: the TIN record carries the last 4 digits only.
 - Every world.json goes into the same tables, so record IDs (state_entity_id,
   event_id, filing_id, profile_id) must be unique across all golden cases, not just
   within one file. This model checks one file; validate_golden.py checks them all.

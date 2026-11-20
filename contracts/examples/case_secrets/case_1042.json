@@ -1,8 +1,0 @@
-{
-  "case_id": "case_1042",
-  "tin_type": "EIN",
-  "tin": "00-1234567",
-  "owners": [
-    {"ref": "owner:P1", "ssn": "000-31-7742"}
-  ]
-}
