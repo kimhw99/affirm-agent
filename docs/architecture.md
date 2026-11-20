@@ -138,7 +138,6 @@ Every format that crosses a service or step boundary lives in the shared package
 |---|---|---|
 | `case_input.py` | `CaseInput` and its parts | Case service → intake and both workers |
 | `world.py` | `World` (a golden case's `world.json`), and the records case-service endpoints 1–6 return | Golden cases → case service → Records worker tools |
-| `case_secrets.py` | `CaseSecrets` (a golden case's `secrets.json`): the full TIN and SSNs | Golden cases → `scripts/validate_golden.py` only; the case service doesn't load it |
 | `decision.py` | `DecisionInput`, `DecisionRecord`, `AGREES_WITH`, `STATUS_AFTER` | Review app → agent API → case service; evaluation reads the records |
 | `worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult` | Lead ↔ workers |
 | `memo.py` | `Memo`, `CheckResult`, `evidence_index` (to add) | Agent service → review app |

@@ -18,8 +18,7 @@
 --
 -- No table holds a full TIN or SSN. Like CaseInput and world.json, the tables carry
 -- only a TIN's type and last 4 digits, and owners appear as owner:P1. The full numbers
--- stay with the existing KYB system; in the golden cases they're in secrets.json,
--- which the seed script doesn't load.
+-- stay with the existing KYB system.
 --
 -- The endpoint numbers are those in docs/case-service-endpoints.md.
 

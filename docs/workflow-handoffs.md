@@ -60,7 +60,6 @@ Rule: whoever produces the data owns its format; whoever uses it reviews the for
 |---|---|---|---|---|
 | `CaseInput` | case_id, status, flag_reasons, application, checks, documents, bank_verification, web_snapshot, owner_kyc | XL | H, E | `contracts/kyb_contracts/case_input.py` |
 | `World` (a golden case's `world.json`) | case_id, registry (with filings), dba_filings, commercial, tin_record; the records are what case-service endpoints 1–6 return | XL | E | `contracts/kyb_contracts/world.py` |
-| `CaseSecrets` (a golden case's `secrets.json`) | case_id, tin_type, tin, owners (ref, ssn): the full numbers, never loaded into case_db | XL | — (only `scripts/validate_golden.py` reads it) | `contracts/kyb_contracts/case_secrets.py` |
 | `WorkerInput` (aliases `WorkerTask`, and `FollowUp` when `follow_up_of` is set) | task_id, worker, question, focus_fields, hypotheses, context (`CaseContext`: the application, checks and evidence IDs from `CaseInput`), prior_findings, follow_up_of, max_tool_calls, record_id_start | H | E | `contracts/kyb_contracts/worker_io.py` |
 | `WorkerResult` | task_id, case_id, worker, status, findings, sources (each `source_id` is an evidence ID), hypothesis_signals, not_found, unresolved, answer, tool_calls_used, error | E | H | `contracts/kyb_contracts/worker_io.py` |
 | `ReconcileTable` | Per field: records_value, evidence_value, status, evidence_ids | H | H | Proposed here |
@@ -85,7 +84,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Item | Details |
 |---|---|
 | Tasks | Define the `CaseInput` format (Pydantic); store and serve cases in the case service; write the seed script that loads the golden cases into the database |
-| Input | Golden cases written by the team: `case.json`, `world.json` and `secrets.json` per case, checked by `scripts/validate_golden.py` (see `data/golden/README.md`) |
+| Input | Golden cases written by the team: `case.json` and `world.json` per case, checked by `scripts/validate_golden.py` (see `data/golden/README.md`) |
 | Output | `CaseInput` JSON served through `GET /cases/{id}` |
 | Owner | XL; H and E review the format |
 | Handoffs | To H: the fields intake needs. To E: the documents, bank_verification and web_snapshot fields the Evidence worker reads, and the owner_kyc fields the Records worker reads. From the team: the content of the golden cases |

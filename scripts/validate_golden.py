@@ -1,18 +1,16 @@
 """Checks that each golden case's files agree with each other.
 
 A golden case is a folder data/golden/<ec>/<case_id>/, where <ec> is ec1, ec2, ec4
-or combo. It holds three files, each checked against its model in
+or combo. It holds two files, each checked against its model in
 contracts/kyb_contracts/ (other files in the folder are ignored):
 
-    case.json     the case the existing system hands over   CaseInput    (case_input.py)
-    world.json    the mocked official and vendor records    World        (world.py)
-    secrets.json  the full TIN and the owners' SSNs         CaseSecrets  (case_secrets.py)
+    case.json   the case the existing system hands over   CaseInput  (case_input.py)
+    world.json  the mocked official and vendor records    World      (world.py)
 
 Once each file passes its model, this script checks what no single model can see:
-- case_id: the folder name and all three files agree.
-- TIN: case.json's tin_type and tin_last4, world.json's tin_record and the full
-  number in secrets.json describe the same TIN, or none of them has one.
-- Owners: every owner in secrets.json is an owner in case.json.
+- case_id: the folder name and both files agree.
+- TIN: case.json's tin_type and tin_last4 and world.json's tin_record describe the
+  same TIN, or neither has one.
 - Vendor checks: checks.tin fits the IRS status in tin_record; checks.sos_name's
   matched_name is the legal name of an entity in world.json; checks.dba and
   checks.tin appear only when the application has a DBA or a TIN.
@@ -36,8 +34,7 @@ Usage, from the repo root (needs pydantic; `pip install -e ./contracts` installs
 
 The cross-case checks cover only the cases in that run, so run it with no argument
 before committing. It prints each problem and exits with 1 if there are any, 0 if
-there are none, and 2 if the path isn't a folder. Messages never include the numbers
-in secrets.json.
+there are none, and 2 if the path isn't a folder.
 """
 
 import argparse
@@ -52,7 +49,6 @@ sys.path.insert(0, str(REPO / "contracts"))  # use this repo's contracts, instal
 from pydantic import BaseModel, ValidationError  # noqa: E402
 
 from kyb_contracts.case_input import CaseInput  # noqa: E402
-from kyb_contracts.case_secrets import CaseSecrets  # noqa: E402
 from kyb_contracts.world import World  # noqa: E402
 
 GOLDEN = REPO / "data" / "golden"
@@ -60,7 +56,6 @@ GOLDEN = REPO / "data" / "golden"
 FILES: dict[str, type[BaseModel]] = {
     "case.json": CaseInput,
     "world.json": World,
-    "secrets.json": CaseSecrets,
 }
 
 # The flags of each edge case, grouped as in FlagReason (case_input.py).
@@ -97,7 +92,6 @@ class GoldenCase:
     folder: Path
     case: CaseInput | None = None
     world: World | None = None
-    secrets: CaseSecrets | None = None
     problems: list[str] = field(default_factory=list)
 
     @property
@@ -131,7 +125,7 @@ def _describe(error: dict) -> str:
 
 
 def load_case(folder: Path) -> GoldenCase:
-    """Read a case folder's three files and check each against its model."""
+    """Read a case folder's two files and check each against its model."""
     golden = GoldenCase(folder)
     for name, model in FILES.items():
         path = folder / name
@@ -141,7 +135,7 @@ def load_case(folder: Path) -> GoldenCase:
         try:
             parsed = model.model_validate_json(path.read_text(encoding="utf-8"))
         except ValidationError as error:
-            # Location and message only, so an error in secrets.json never echoes a number.
+            # Location and message only: never echo a value, in case it's a full TIN.
             golden.problems += [f"{name}: {_describe(e)}" for e in error.errors()]
             continue
         setattr(golden, name.removesuffix(".json"), parsed)
@@ -151,25 +145,15 @@ def load_case(folder: Path) -> GoldenCase:
 def check_case(golden: GoldenCase) -> None:
     """Add the problems that show only when a case's files are read together."""
     problems = golden.problems
-    for name, parsed in (("case.json", golden.case), ("world.json", golden.world),
-                         ("secrets.json", golden.secrets)):
+    for name, parsed in (("case.json", golden.case), ("world.json", golden.world)):
         if parsed is not None and parsed.case_id != golden.folder.name:
             problems.append(f"{name}: case_id is {parsed.case_id}, but the folder is {golden.folder.name}")
 
-    case, world, secrets = golden.case, golden.world, golden.secrets
+    case, world = golden.case, golden.world
     if case is None:
         return  # every other check compares against case.json
     app, checks = case.application, case.checks
     flags = {getattr(flag, "value", flag) for flag in case.flag_reasons}
-
-    if secrets is not None:
-        if secrets.tin_type != app.tin_type:
-            problems.append(f"secrets.json: tin_type is {secrets.tin_type}, but case.json has {app.tin_type}")
-        elif secrets.tin is not None and secrets.tin[-4:] != app.tin_last4:
-            problems.append("secrets.json: the full TIN doesn't end in case.json's tin_last4")
-        unknown = sorted({o.ref for o in secrets.owners} - {o.ref for o in app.owners})
-        if unknown:
-            problems.append(f"secrets.json: owners that aren't in case.json: {unknown}")
 
     if world is not None:
         record = world.tin_record

@@ -179,7 +179,6 @@ Each golden case is a folder `data/golden/<ec>/<case_id>/`. Each file has a mode
 |---|---|---|---|
 | `case.json` | One `CaseInput` | `CaseInput` (`case_input.py`) | The case tables, served by `GET /cases/{case_id}` and endpoints 7–10 |
 | `world.json` | `case_id` and the reference data: `registry` (endpoint 2 shape, with `filings`), `dba_filings`, `commercial` (endpoint 5 shape, plus the `state` it filters on), `tin_record` (endpoint 6 shape) | `World` (`world.py`) | The mocked registry, DBA, commercial and IRS tables (endpoints 1–6) |
-| `secrets.json` | `case_id`, `tin_type`, the full `tin`, and each owner's `ssn` | `CaseSecrets` (`case_secrets.py`) | Nothing; only `scripts/validate_golden.py` reads it |
 
 It would help if your seed script loaded these files, so the agent's offline tests (a fake client that reads the same files) and the real database use the same data.
 
@@ -198,5 +197,5 @@ It would help if your seed script loaded these files, so the agent's offline tes
 ## What I need back from you
 
 1. Changes to any path or field name.
-2. Whether the seed layout (`case.json`, `world.json`, `secrets.json`) works for your seed script.
+2. Whether the seed layout (`case.json` and `world.json`) works for your seed script.
 3. Roughly when the endpoints will be running in Docker Compose. Until then, the agent tests against a fake client that reads the golden files.

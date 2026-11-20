@@ -258,7 +258,7 @@ All values are strings, dates included, for example `"2023-06-08"`.
 
 `TIN_PATTERN` matches a full SSN (`XXX-XX-XXXX`), a full EIN (`XX-XXXXXXX`) or 9 digits written together. The integrity check in section 8 turns the whole case into JSON text and scans it with this pattern; any match rejects the case. It doesn't matter which field the number is in: extracted fields, names and addresses all count. `state_entity_id` is the one field skipped, because some states issue 9-digit entity IDs. (`worker_io.py` imports the same pattern for the workers' context.)
 
-- **Test data convention:** fake EINs always start with `00` and fake SSNs with `000`. Real numbers never start this way, so a fake is obvious at a glance. But fake numbers are rejected by this check too, so in the golden cases full ones live only in `secrets.json`, never in CaseInput.
+- **Test data convention:** when a doc needs a full number as an example, fake EINs start with `00` and fake SSNs with `000`. Real numbers never start this way, so a fake is obvious at a glance. Fake numbers are rejected by this check too, so no golden case holds a full number, fake or not.
 - **Limits:** another number that happens to have one of these formats, such as a 9-digit ZIP+4 written without the dash, is rejected by mistake.
 - `SSN_PATTERN` (dashed SSNs only) is kept for existing imports; `TIN_PATTERN` covers it.
 

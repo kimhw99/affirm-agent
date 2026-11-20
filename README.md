@@ -18,7 +18,6 @@ affirm-agent/
 │   ├── kyb_contracts/
 │   │   ├── case_input.py         # CaseInput
 │   │   ├── world.py              # World (a golden case's world.json); what case-service endpoints 1–6 return
-│   │   ├── case_secrets.py       # CaseSecrets (a golden case's secrets.json): the full TIN and SSNs
 │   │   ├── worker_io.py          # WorkerInput (aliases WorkerTask, FollowUp), WorkerResult
 │   │   ├── memo.py               # Memo, CheckResult, evidence_index
 │   │   └── decision.py           # DecisionInput, DecisionRecord
@@ -30,7 +29,7 @@ affirm-agent/
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway
 ├── db/init.sql                   # Creates the three databases and their accounts
-├── data/golden/                  # Golden cases: case.json, world.json, secrets.json per case (see its README)
+├── data/golden/                  # Golden cases: case.json and world.json per case (see its README)
 │   ├── ec1/                      # EC-1 cases, one folder per case
 │   ├── ec2/                      # EC-2 cases
 │   ├── ec4/                      # EC-4 cases
@@ -84,7 +83,7 @@ What case-service endpoints 1–6 return ([case-service-endpoints.md](docs/case-
 | `CommercialProfile` | 5 | `profile_id`, `business_name`, `address`, `first_seen`, `last_updated` |
 | `TinRecord` | 6 | `tin_type`, `tin_last4`, `irs_status`, `irs_name` |
 
-The full numbers live only in each golden case's `secrets.json` (`CaseSecrets`, [case_secrets.py](contracts/kyb_contracts/case_secrets.py)). Only `scripts/validate_golden.py` reads them: the case service doesn't load `secrets.json`, so `case_db` never holds a full number. How to write a golden case: [data/golden/README.md](data/golden/README.md).
+The TIN record carries only the last 4 digits; no file or table in this project holds a full TIN or SSN. How to write a golden case: [data/golden/README.md](data/golden/README.md).
 
 ### Lead and sub-agents: `WorkerInput` / `WorkerResult` ([worker_io.py](contracts/kyb_contracts/worker_io.py))
 
