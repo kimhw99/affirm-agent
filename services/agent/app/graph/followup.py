@@ -13,6 +13,11 @@ The loop:
 3. It stops when nothing is open, a HARD_FAIL appears, ``MAX_INTERNAL_ROUNDS`` rounds
    are used, the last round found nothing new, or no internal step is left.
 
+Which step comes next also reads what the workers said about their last pass
+(``worker_notes.py``): if a worker left something unresolved for this check, its next
+step goes to that worker first, and the follow-up question tells the worker what is
+still unresolved and what it already searched for without finding a record.
+
 The LLM may reword an ``ask`` to be more specific; it never decides whether to send one.
 """
 
@@ -20,11 +25,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Mapping, Optional, Sequence
 
 from app.graph.facts import EIN_LETTERS, FactIndex, text
 from app.graph.plan import Plan, case_context
 from app.graph.reconcile import decide, open_required
+from app.graph.worker_notes import WorkerNote, follow_up_context, unresolved_workers
 from kyb_contracts.case_input import TIN_PATTERN, CaseInput, DocumentType
 from kyb_contracts.memo import DocumentRequest
 from app.review import CheckOutcome, FollowUpRecord
@@ -37,6 +43,7 @@ R_ID_STRIDE = 20   # parallel Records follow-ups each get their own R-number ran
 
 @dataclass(frozen=True)
 class InternalStep:
+    name: str                                     # recorded on the FollowUpRecord, so a step runs once
     target: Literal["records", "evidence"]
     ask: str
     focus: tuple[str, ...]
@@ -64,51 +71,51 @@ class MerchantRequest:
 
 
 _REGISTRY_RETRY = InternalStep(
-    "records",
+    "registry_retry", "records",
     "Search the {state} registry by the DBA '{dba}' and by entity number {entity_id}, "
     "and check for registrations of '{legal_name}' in other states.",
     ("legal_name", "entity_status", "state_entity_id", "former_names", "former_name", "registry_match"),
 )
 _FILING_HISTORY = InternalStep(
-    "records",
+    "filing_history", "records",
     "Read the filing history of entity {entity_id}: is '{other_name}' a former name of it, "
     "or a separate company?",
     ("former_name", "former_names", "filing_event", "name_change", "separate_entity"),
 )
 _COUNTY_DBA = InternalStep(
-    "records",
+    "county_dba", "records",
     "Search county-level DBA records in {state} for '{dba}' and report the registered owner.",
     ("dba", "registrant", "registrant_state_entity_id", "dba_name", "dba_owner"),
 )
 _TIN_RETRY = InternalStep(
-    "records",
+    "tin_retry", "records",
     "Run the TIN match again with the name '{retry_name}' and report the result and the name control.",
     ("tin_match_result", "name_control_tested", "former_names", "former_name", "tin_match", "irs_name_control"),
 )
 _PENDING = InternalStep(
-    "records",
-    "Check the filing history and pending filings in {state} for '{legal_name}'.",
+    "pending_filing", "records",
+    "Search the {state} registry for '{legal_name}' and read its filing history: is a formation filed "
+    "but still pending?",
     ("registry_match", "registry_entity", "filing_history", "formation_date", "entity_status",
-     "registry_found", "pending_filing"),
+     "registry_found"),
 )
 _KYC = InternalStep(
-    "records",
+    "owner_kyc", "records",
     "Read the owner KYC result for {owner_ref} and run the TIN match with the owner's name '{owner}'.",
     ("kyc_result", "tin_match_result", "name_control_tested", "tin_match"),
 )
 _EVIDENCE_EIN = InternalStep(
-    "evidence",
+    "ein_letters", "evidence",
     "Re-read the IRS letters (CP 575 / 147C) and the W-9: report the name, EIN last 4, name control and date.",
     ("name", "ein_last4", "name_control", "date", "tin_type", "tin_last4", "legal_name", "business_name"),
 )
 _EVIDENCE_OPERATING = InternalStep(
-    "evidence",
-    "Report the bank verification status, any business license status, and the website's domain age.",
-    ("bank_status", "account_holder", "status", "holder", "website_legal_name", "license_status",
-     "domain_age_days"),
+    "operating", "evidence",
+    "Report the bank verification status, any business license status, and the name the website shows.",
+    ("bank_status", "account_holder", "status", "holder", "website_legal_name", "license_status"),
 )
 _EVIDENCE_NAMES = InternalStep(
-    "evidence",
+    "evidence_names", "evidence",
     "Report the exact legal name and DBA each document, the bank account and the website show.",
     ("legal_name", "name", "holder", "dba", "registrant", "account_holder", "website_legal_name",
      "website_dba"),
@@ -157,6 +164,8 @@ class PendingFollowUp:
     status_before: str
     sent_at: datetime
     focus: tuple[str, ...]
+    step: str = ""
+    context: str = ""            # what the worker left open last time; added to the question
 
     def to_dict(self) -> dict[str, Any]:
         d = self.__dict__.copy()
@@ -213,23 +222,48 @@ def _fill(template: str, case: CaseInput, facts: FactIndex, outcome: CheckOutcom
     return template.format(**values)
 
 
-def _tried(history: list[dict[str, Any]], check_id: str) -> int:
-    return sum(1 for h in history if h["check_id"] == check_id and h["target"] in ("records", "evidence"))
+def _untried(history: list[dict[str, Any]], check_id: str) -> list[InternalStep]:
+    """The check's playbook steps not run yet, in playbook order."""
+    steps = list(PLAYBOOK.get(check_id, _GENERIC)[0])
+    for h in history:
+        if h["check_id"] != check_id or h["target"] not in ("records", "evidence"):
+            continue
+        done = next((s for s in steps if s.name == h.get("step")), None)
+        if done is None and not h.get("step"):   # a record from before steps were named: oldest first
+            done = steps[0] if steps else None
+        if done is not None:
+            steps.remove(done)
+    return steps
+
+
+def choose_step(untried: list[InternalStep], notes: Sequence[WorkerNote] = ()) -> Optional[InternalStep]:
+    """The next step: the first one aimed at a worker that left this check unresolved, else
+    the next in playbook order. (A worker's not_found doesn't skip its steps: a different
+    search, e.g. county DBA records after the state's, is often exactly what is needed.)"""
+    if not untried:
+        return None
+    unsettled = unresolved_workers(notes)
+    return next((s for s in untried if s.target in unsettled), untried[0])
 
 
 def next_follow_ups(case: CaseInput, outcomes: dict[str, CheckOutcome], facts: FactIndex,
-                    history: list[dict[str, Any]], round_no: int, now: datetime) -> list[PendingFollowUp]:
-    """One internal follow-up per open required check, using the next untried step."""
+                    history: list[dict[str, Any]], round_no: int, now: datetime,
+                    notes: Optional[Mapping[str, Sequence[WorkerNote]]] = None) -> list[PendingFollowUp]:
+    """One internal follow-up per open required check, using the best untried step.
+
+    ``notes``: per check, what the workers reported as unresolved or not found
+    (``worker_notes.notes_by_check``)."""
+    notes = notes or {}
     out: list[PendingFollowUp] = []
     n = len(history)
     for o in open_required(outcomes):
-        steps, _ = PLAYBOOK.get(o.check_id, _GENERIC)
-        k = _tried(history, o.check_id)
-        if k >= len(steps):
+        check_notes = list(notes.get(o.check_id, ()))
+        step = choose_step(_untried(history, o.check_id), check_notes)
+        if step is None:
             continue
-        step = steps[k]
         n += 1
         fid = f"F{n}"
+        reported = [x.render() for x in check_notes if x.worker == step.target]
         out.append(PendingFollowUp(
             follow_up_id=fid,
             check_id=o.check_id,
@@ -237,18 +271,20 @@ def next_follow_ups(case: CaseInput, outcomes: dict[str, CheckOutcome], facts: F
             round=round_no,
             ask=_fill(step.ask, case, facts, o),
             reason=f"{o.check_id} is {o.status}" + (f": records {o.records_value!r}" if o.records_value else "")
-                   + (f", evidence {o.evidence_value!r}" if o.evidence_value else ""),
+                   + (f", evidence {o.evidence_value!r}" if o.evidence_value else "")
+                   + (f"; {'; '.join(reported)}" if reported else ""),
             task_id=f"{case.case_id}-{step.target}-{fid}",
             status_before=o.status,
             sent_at=now,
             focus=step.focus,
+            step=step.name,
+            context=follow_up_context(check_notes, step.target),
         ))
     return out
 
 
 def has_internal_candidates(outcomes: dict[str, CheckOutcome], history: list[dict[str, Any]]) -> bool:
-    return any(_tried(history, o.check_id) < len(PLAYBOOK.get(o.check_id, _GENERIC)[0])
-               for o in open_required(outcomes))
+    return any(_untried(history, o.check_id) for o in open_required(outcomes))
 
 
 def safe_ask(candidate: Optional[str], fallback: str) -> str:
@@ -273,7 +309,7 @@ def follow_up_task(case: CaseInput, plan: Plan, fu: PendingFollowUp, results: li
     return WorkerInput(
         task_id=fu.task_id,
         worker=fu.target,
-        question=f"[{fu.check_id}] {fu.ask}",
+        question=f"[{fu.check_id}] {fu.ask}" + (f" {fu.context}" if fu.context else ""),
         focus_fields=list(fu.focus),
         hypotheses=plan.hypotheses,
         context=case_context(case),
@@ -294,6 +330,7 @@ def to_record(fu: PendingFollowUp, status_after: str, new_evidence: list[str],
         ask=fu.ask,
         reason=fu.reason,
         task_id=fu.task_id,
+        step=fu.step or None,
         status_before=fu.status_before,
         status_after=status_after,
         new_evidence=new_evidence,
@@ -348,6 +385,7 @@ __all__ = [
     "MerchantAsk",
     "MerchantRequest",
     "PendingFollowUp",
+    "choose_step",
     "follow_up_task",
     "has_internal_candidates",
     "merchant_record",

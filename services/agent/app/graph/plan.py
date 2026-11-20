@@ -187,10 +187,11 @@ TEMPLATES: tuple[CheckTemplate, ...] = (
         "EC4.registry_presence", "EC-4",
         "The business is registered, or its absence is expected (new filing or sole proprietor)",
         (FlagReason.ENTITY_NOT_FOUND, FlagReason.NO_COMMERCIAL_RECORD, FlagReason.TIN_NOT_ISSUED),
-        "Registry lookup, filing history and pending filings",
+        "Registry lookup (a 'pending' status is a filed formation not yet approved) and filing history",
         "Articles or certificate of formation with a recent filing stamp",
-        "Found and active; or not found and the plan expected it (recent formation papers, or a sole proprietor)",
-        ("registry_found", "entity_status", "pending_filing", "formation_date"),
+        "Found and active; or pending or not found and the plan expected it (recent formation papers, "
+        "or a sole proprietor)",
+        ("registry_found", "entity_status", "formation_date"),
         ("formation_date", "date", "legal_name"),
         expected_absence=_newly_formed,
     ),
@@ -226,10 +227,10 @@ TEMPLATES: tuple[CheckTemplate, ...] = (
     CheckTemplate(
         "EC4.operating", "EC-4", "The business is really operating",
         (FlagReason.ENTITY_NOT_FOUND, FlagReason.NO_COMMERCIAL_RECORD),
-        "—", "Verified bank account, active license, website / domain age, DBA certificate",
-        "A verified bank account, plus a license, a live website or a filed DBA certificate",
+        "—", "Verified bank account, active license, website snapshot, DBA certificate",
+        "A verified bank account, plus an active license, a website naming the business or a filed DBA certificate",
         (),
-        ("bank_status", "license_status", "domain_age_days"),
+        ("bank_status", "license_status", "website_legal_name"),
     ),
 )
 

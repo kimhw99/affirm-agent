@@ -1,12 +1,18 @@
 """Reconcile compares in code first; the LLM only judges EXPLAINED, with citations."""
 
+import json
+from pathlib import Path
+
 from conftest import TODAY
-from fakes import ScriptedWorker, document, evidence_1042, kyc, records_1042, registry_entity, tin_match
+from fakes import (ScriptedWorker, bank, document, evidence_1042, kyc, records_1042, registry_entity, tin_match,
+                   website)
 
 from app.graph.facts import FactIndex
 from app.graph.orchestrator import route_case
 from app.graph.plan import build_plan, initial_tasks
 from app.graph.reconcile import Explanation, apply_explanation, assess, decide, reconcile
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 
 def _run(raw, records_script, evidence_script, explainer=None):
@@ -108,13 +114,55 @@ def test_dissolved_entity_is_a_hard_fail(case_1042):
     assert (o.status, o.hard_fail_reason) == ("HARD_FAIL", "entity_dissolved_or_revoked")
 
 
-def test_tampered_document_is_a_hard_fail(case_1042):
+def test_low_extraction_confidence_is_not_treated_as_tampering(case_1042):
+    """No worker can report tampering; a shaky extraction (what the tools do report) is not a hard fail."""
     def evidence(task):
         recs = evidence_1042(task)
-        recs[0].findings.append(("document_tampered", True, "font mismatch on the EIN"))
+        recs[0].findings.append(("low_extraction_confidence", True, "confidence: 0.55"))
         return recs
     outcomes, *_ = _run(case_1042, records_1042, evidence)
-    assert any(o.hard_fail_reason == "document_tampered" for o in outcomes.values())
+    assert not any(o.status == "HARD_FAIL" for o in outcomes.values())
+
+
+def _case_4401(**app_changes):
+    raw = json.loads((FIXTURES / "ec4" / "case_4401" / "case.json").read_text(encoding="utf-8"))
+    raw["application"].update(app_changes)
+    return raw
+
+
+def _records_with_status(status, formed="2026-11-09"):
+    return lambda task: [registry_entity("CO-20261488", "JUNIPER & PINE CANDLE CO. LLC", status=status,
+                                         formed=formed, state="CO")]
+
+
+def test_pending_registry_filing_of_a_new_business_is_explained():
+    """world.EntityStatus 'pending' is the pending filing: no separate (unfeedable) pending_filing fact."""
+    outcomes, *_ = _run(_case_4401(), _records_with_status("pending"), lambda task: [])
+    o = outcomes["EC4.registry_presence"]
+    assert o.expected_absence and o.status == "EXPLAINED" and "pending" in o.explanation
+    assert o.explanation_evidence == ["R1"]
+
+
+def test_pending_registry_filing_of_an_old_business_stays_open():
+    raw = _case_4401(formation_date="2019-01-15")
+    raw["documents"] = [d for d in raw["documents"] if d["type"] != "articles"]
+    outcomes, *_ = _run(raw, _records_with_status("pending", formed="2019-01-15"), lambda task: [])
+    o = outcomes["EC4.registry_presence"]
+    assert not o.expected_absence and o.status == "GAP"
+
+
+def test_operating_needs_no_domain_age():
+    """EC4.operating closes on what the tools report: a verified bank plus a license or website."""
+    def evidence(task):
+        return [bank("JUNIPER & PINE CANDLE CO LLC"), website(legal_name="Juniper & Pine Candle Co. LLC")]
+    raw = _case_4401()
+    raw["flag_reasons"] = ["NO_COMMERCIAL_RECORD"]
+    raw["bank_verification"] = {"id": "B1", "account_holder": "JUNIPER & PINE CANDLE CO LLC", "status": "verified",
+                                "verified_at": "2026-11-15"}
+    raw["web_snapshot"] = [{"id": "W1", "url": "https://juniper.example", "captured_at": "2026-11-15",
+                            "extracted": {"legal_name": "Juniper & Pine Candle Co. LLC"}}]
+    outcomes, *_ = _run(raw, _records_with_status("active"), evidence)
+    assert outcomes["EC4.operating"].status == "AGREE"
 
 
 def _tin_not_issued(letter_date):

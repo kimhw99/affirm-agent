@@ -38,7 +38,8 @@ RECORDS_TASKS = {
     "registry_by_entity_id": "Fetch the registry entity by its state entity number",
     "dba_filing": "Find the DBA / assumed-name filing and its registered owner",
     "filing_history": "Read the entity's filing history (formation, amendments, name changes)",
-    "pending_filings": "Look for pending or very recent filings not yet in the registry",
+    "pending_filings": "Read the registry entity's status ('pending' = formation filed, not yet approved) "
+                       "and its filing history",
     "tin_match": "Run the IRS TIN match for the submitted name and TIN pair",
     "name_control": "Work out the IRS name control the IRS likely has on file",
     "owner_kyc": "Read the owner KYC result",

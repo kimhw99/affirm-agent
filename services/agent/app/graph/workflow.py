@@ -46,6 +46,7 @@ from app.graph.memo_writer import MemoProse, Revision, build_memo
 from app.graph.orchestrator import AutoResolved, RoutingDecision, route_case
 from app.graph.plan import Plan, build_plan, initial_tasks
 from app.graph.reconcile import reconcile
+from app.graph.worker_notes import notes_by_check, worker_issues, worker_reports
 from kyb_contracts.case_input import CaseInput, FlagReason
 from kyb_contracts.decision import STATUS_AFTER, DecisionInput, DecisionRecord, is_override
 from kyb_contracts.memo import CheckedMemo, CheckResult, Memo
@@ -263,7 +264,10 @@ def build_graph(deps: Deps, checkpointer=None):
         if reason:
             return {"stop_reason": reason, "pending_follow_ups": []}
         facts = _facts(state, case)
-        pending = next_follow_ups(case, outcomes, facts, history, state.get("internal_rounds", 0) + 1, deps.clock())
+        # What the workers left unresolved or couldn't find steers which step goes next.
+        check_notes, _ = notes_by_check(_plan(state), [r for _, r in _results(state)], history)
+        pending = next_follow_ups(case, outcomes, facts, history, state.get("internal_rounds", 0) + 1, deps.clock(),
+                                  notes=check_notes)
         for p in pending:
             p.ask = safe_ask(deps.llm.reword_ask(p.check_id, p.ask, p.reason), p.ask)
         if not pending:
@@ -294,6 +298,9 @@ def build_graph(deps: Deps, checkpointer=None):
         attempts = state.get("memo_attempts", 0)
         revision = _revision(state.get("check_result"), state.get("lead_check_failures")) if attempts else None
         history = [FollowUpRecord.model_validate(h) for h in state.get("follow_up_history") or []]
+        results = [r for _, r in _results(state)]
+        worker_errors, worker_warnings = worker_issues(results)
+        check_notes, loose_notes = notes_by_check(plan, results, state.get("follow_up_history") or [])
         prose: Optional[MemoProse] = None
         if routing.route == "reviewed" and case is not None:
             prose = deps.llm.memo_prose({
@@ -302,12 +309,15 @@ def build_graph(deps: Deps, checkpointer=None):
                 "checks": [_dump(o) for o in outcomes.values()],
                 "follow_ups": [_dump(h) for h in history],
                 "findings": finding_view(facts) if facts else [],
+                # Each worker's own reading: answer, hypothesis signals, not found, unresolved, status.
+                "worker_reports": worker_reports(results, plan),
             }, revision.failures if revision else [])
         build = build_memo(
             case_id=routing.case_id or state["raw_case"].get("case_id"), case=case, routing=routing,
             plan=plan, outcomes=outcomes, follow_ups=history, facts=facts, prose=prose,
             now=deps.clock(), today=today(), version=attempts + 1, revision=revision,
-            worker_errors=[f"{r.task_id}: {r.error}" for _, r in _results(state) if r.status == "failed"],
+            worker_errors=worker_errors, worker_warnings=worker_warnings,
+            check_notes=check_notes, loose_notes=loose_notes,
         )
         return {"memo": _dump(build.memo) if build.memo else None, "report": _dump(build.report),
                 "memo_attempts": attempts + 1, "tin_redacted": build.tin_redacted}

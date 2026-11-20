@@ -32,15 +32,13 @@
         {
           "field": "registrant_type",
           "value": "individual"
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "subject": "owner:P1",
-          "value": {
-            "name_field": "R2.registrant",
-            "against": "owner:P1",
-            "label": "normalized_equal"
-          }
+          "name_field": "R2.registrant",
+          "against": "owner:P1",
+          "label": "normalized_equal"
         }
       ]
     },
@@ -110,14 +108,13 @@
         {
           "field": "registrant",
           "value": "Mark Hemlock"
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "name_field": "D1.registrant",
-            "against": "owner:P1",
-            "label": "exact"
-          }
+          "name_field": "D1.registrant",
+          "against": "owner:P1",
+          "label": "exact"
         }
       ]
     },
@@ -127,14 +124,13 @@
       "sources": [
         "B1"
       ],
-      "expect": [
+      "expect": [],
+      "name_checks": [
         {
-          "field": "account_legal_name",
-          "value": "MARK HEMLOCK"
+          "name_field": "B1.account_holder (legal part)"
         },
         {
-          "field": "account_dba",
-          "value": "SUNSHINE CAFE"
+          "name_field": "B1.account_holder (DBA part)"
         }
       ]
     },
@@ -157,12 +153,9 @@
           "confidence": "low"
         }
       ],
-      "absent": [
+      "name_checks_absent": [
         {
-          "field": "name_comparison",
-          "value": {
-            "name_field": "website_dba"
-          }
+          "name_field": "website_dba"
         }
       ]
     }

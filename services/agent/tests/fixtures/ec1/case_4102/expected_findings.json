@@ -25,22 +25,18 @@
         {
           "field": "dba_status",
           "value": "active"
+        }
+      ],
+      "name_checks": [
+        {
+          "name_field": "R1.registrant",
+          "against": "application.legal_name",
+          "label": "normalized_equal"
         },
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "normalized_equal",
-            "name_field": "R1.registrant"
-          }
-        },
-        {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.dba",
-            "label": "normalized_equal",
-            "name_field": "R1.dba"
-          }
+          "name_field": "R1.dba",
+          "against": "application.dba",
+          "label": "normalized_equal"
         }
       ]
     },
@@ -78,14 +74,13 @@
         {
           "field": "document_expired",
           "value": false
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "exact",
-            "name_field": "D1.registrant"
-          }
+          "name_field": "D1.registrant",
+          "against": "application.legal_name",
+          "label": "exact"
         }
       ]
     },
@@ -95,22 +90,18 @@
       "sources": [
         "B1"
       ],
-      "expect": [
+      "expect": [],
+      "name_checks": [
         {
-          "field": "account_legal_name",
-          "value": "RIVERBEND COFFEE ROASTERS LLC"
+          "name_field": "B1.account_holder (legal part)"
         },
         {
-          "field": "account_dba",
-          "value": "BEND STREET COFFEE"
+          "name_field": "B1.account_holder (DBA part)"
         },
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.dba",
-            "label": "normalized_equal",
-            "name_field": "B1.account_dba"
-          }
+          "name_field": "B1.account_holder (DBA part)",
+          "against": "application.dba",
+          "label": "normalized_equal"
         }
       ]
     }

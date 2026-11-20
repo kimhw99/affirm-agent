@@ -32,6 +32,7 @@ For uvicorn, install them: `pip install -e ../../contracts`.
 | `app/graph/facts.py` | – | Index over worker findings by logical field and source kind | No |
 | `app/graph/reconcile.py` | 6 | One comparator per check → AGREE / EXPLAINED / GAP / CONFLICT / HARD_FAIL; hard-fail sweep; decision rules | Judges EXPLAINED only, with citations |
 | `app/graph/followup.py` | 7 | Follow-up playbook (internal steps, then a merchant document), stopping rules | Rewords asks |
+| `app/graph/worker_notes.py` | 6–8 | What the workers say about their own results (`not_found`, `unresolved`, status, answer, signals), tied to checks | No |
 | `app/graph/memo_writer.py` | 8 | Builds the `Memo`; recommendation and confidence are code | Writes root causes, ruled-out causes, notes |
 | `app/graph/guardrails.py` | 9 | Builds `evidence_index` from saved data; enforces the hard rules | No |
 | `app/graph/workflow.py` | all | The LangGraph graph, `Deps` (injected workers, LLM, clock, result sink) | – |
@@ -82,7 +83,7 @@ every template check is still there and still required. `EC4.registry_presence` 
 explainer, and `apply_explanation` accepts an explanation only when it cites real
 findings and doesn't rest on the website alone; otherwise it stays a CONFLICT. HARD_FAILs
 (TIN never issued, entity dissolved or revoked, KYC failed, EIN letter ≠ submitted EIN,
-EIN belongs to another entity, tampered document) are never sent to the LLM. Decision
+EIN belongs to another entity) are never sent to the LLM. Decision
 rules, in order: any HARD_FAIL → escalate; an open required check → follow-up; else →
 clear. Confidence is the weakest required check (enforced by the `LeadReport` contract).
 Trust: when bank or documents and the registry agree, the website is ignored; when the
@@ -90,13 +91,41 @@ website is the only support, confidence is capped at low.
 
 **Follow-ups.** `PLAYBOOK` lists, per check, the internal steps (rerun the TIN match
 with the letter's or the owner's name; search county DBA records; read the filing
-history; check pending filings) and the merchant document (147C, DBA certificate,
+history; read the registry status for a pending formation) and the merchant document (147C, DBA certificate,
 stamped articles, a current business license). Each follow-up targets one check and one worker; only
 that worker runs, and only that check is re-reconciled. The loop stops on: nothing open,
 a HARD_FAIL, `MAX_INTERNAL_ROUNDS` (3), a round with no new findings, or no internal step
 left. What's still open becomes one merchant round (`request_documents`), and the
 playbook never asks for a document type the case already has. If a worker failed, the
 memo says `insufficient_evidence` instead of asking the merchant.
+
+**What the workers say about their own results.** Verdicts come only from findings, but
+the Lead also reads the rest of each `WorkerResult` (`app/graph/worker_notes.py`). A
+`not_found` or `unresolved` item is tied to a check when it came from a follow-up for
+that check or names one of the check's focus fields. An `unresolved` item sends the
+check's next follow-up to that worker first, and every follow-up question carries what
+the worker left open and what it already searched for in vain. Each follow-up records
+the playbook `step` it ran, so steps are skipped by name, not by count. In the memo, an
+open check says why it is open in the workers' words, `failed` tasks are worker
+failures, and `partial` tasks (a lookup or the summary failed, or the budget ran out)
+are listed as warnings. `answer` and `hypothesis_signals` go to the memo-prose LLM; they
+come from the same summary call as `not_found` and `unresolved`, so they cost nothing
+extra.
+
+**Name matching has one owner: the Lead.** Whether a records name and an evidence name
+are the same business is decided in `reconcile.py`, the only place that sees both
+sides. The tools still compare names with the application, but only as `name_checks`
+hints in the tool reply the worker's model reads (field names and labels, never the
+merchant's text), to choose its next lookup. They write no `name_comparison`,
+`account_legal_name` or `account_dba` findings.
+
+**Only checks the data can close.** Every fact a check reads is one some tool reports.
+The case service and `world.json` have no pending-filing record, domain age or
+tampering signal, so no check depends on them. A filed but unapproved formation is the
+registry's `entity_status: pending`: `EC4.registry_presence` is EXPLAINED when the plan
+expected a new business, and a GAP otherwise. `EC4.operating` needs a verified bank
+account plus an active license, a website naming the business, or a DBA certificate.
+`document_tampered` stays in `HardFailReason` for the API's sake, but nothing sets it.
 
 **Memo and checks.** Code fills the structured parts; the LLM writes prose, which is
 scrubbed for full TINs. Step 9 builds `evidence_index` from `CaseInput` and saved

@@ -102,7 +102,7 @@ HardFailReason = Literal[
     "kyc_failed",
     "ein_letter_mismatch",
     "ein_belongs_to_other_entity",
-    "document_tampered",
+    "document_tampered",        # reserved: no worker reports tampering yet, so nothing sets it today
     "other",
 ]
 
@@ -188,6 +188,7 @@ class FollowUpRecord(_Model):
     ask: str = Field(min_length=1)
     reason: str = Field(min_length=1)
     task_id: Optional[str] = None
+    step: Optional[str] = None          # the playbook step (followup.PLAYBOOK) an internal follow-up ran
     status_before: CheckStatusValue
     status_after: Optional[CheckStatusValue] = None
     new_evidence: list[str] = Field(default_factory=list)

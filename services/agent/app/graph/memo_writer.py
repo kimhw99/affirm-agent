@@ -7,6 +7,10 @@ configured) writes only the prose: root causes, causes ruled out, and notes for 
 analyst, citing evidence IDs. Anything it cites that doesn't exist is dropped, and
 anything shaped like a full TIN is redacted (and reported in step 9).
 
+What the workers said about their own results (``worker_notes.py``) goes into the memo
+too: failed tasks as worker errors, partial ones as warnings, and for every check still
+open, what its worker reported as not found or unresolved, so a GAP says why it is one.
+
 A memo must name at least one flag, so a payload with no flags, or one that doesn't
 parse, gets no memo: only a report with ``route="human_queue"`` and the reason.
 """
@@ -16,7 +20,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import Mapping, Optional, Sequence
 
 from pydantic import BaseModel, Field
 
@@ -25,6 +29,7 @@ from app.graph.followup import MerchantRequest, merchant_record, merchant_reques
 from app.graph.orchestrator import RoutingDecision
 from app.graph.plan import TEMPLATES, Plan
 from app.graph.reconcile import decide
+from app.graph.worker_notes import WorkerNote
 from kyb_contracts.case_input import TIN_PATTERN, CaseInput, FlagReason
 from kyb_contracts.memo import FlagOutcome, Memo, RuledOutCause
 from app.review import (
@@ -86,7 +91,8 @@ def scrub(text: str) -> tuple[str, bool]:
 
 # ---------- Deterministic prose (used when there is no LLM, or as the fallback) ----------
 
-def default_root_cause(flag: str, checks: list[CheckOutcome], resolved: bool) -> str:
+def default_root_cause(flag: str, checks: list[CheckOutcome], resolved: bool,
+                       check_notes: Optional[Mapping[str, Sequence[WorkerNote]]] = None) -> str:
     if not checks:
         return "No verification check applied to this flag"
     if resolved:
@@ -95,7 +101,22 @@ def default_root_cause(flag: str, checks: list[CheckOutcome], resolved: bool) ->
             return "; ".join(f"{c.description}: {c.explanation}" for c in explained)
         return "Records and merchant evidence agree on: " + "; ".join(c.description for c in checks)
     open_ = [c for c in checks if c.status not in PASSING_STATUSES]
-    return "Still open: " + "; ".join(f"{c.description} ({c.status})" for c in open_)
+    notes = check_notes or {}
+
+    def why(c: CheckOutcome) -> str:
+        reported = notes.get(c.check_id)
+        return f" ({c.status}; " + "; ".join(n.render() for n in reported) + ")" if reported else f" ({c.status})"
+
+    return "Still open: " + "; ".join(f"{c.description}{why(c)}" for c in open_)
+
+
+def open_check_notes(outcomes: dict[str, CheckOutcome],
+                     check_notes: Mapping[str, Sequence[WorkerNote]]) -> str:
+    """Why each open required check is still open, in the workers' own words."""
+    lines = [f"{o.check_id}: " + "; ".join(n.render() for n in check_notes[o.check_id])
+             for o in outcomes.values()
+             if o.required and o.status in ("GAP", "CONFLICT") and check_notes.get(o.check_id)]
+    return ("What the workers reported for the open checks: " + " | ".join(lines) + ".") if lines else ""
 
 
 def default_ruled_out(outcomes: dict[str, CheckOutcome], tin_type: Optional[str] = None) -> list[RuledOutCause]:
@@ -148,8 +169,15 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
                follow_ups: list[FollowUpRecord], facts: Optional[FactIndex],
                prose: Optional[MemoProse], now: datetime, today: date,
                version: int = 1, revision: Optional[Revision] = None,
-               worker_errors: Optional[list[str]] = None) -> MemoBuild:
+               worker_errors: Optional[list[str]] = None,
+               worker_warnings: Optional[list[str]] = None,
+               check_notes: Optional[Mapping[str, Sequence[WorkerNote]]] = None,
+               loose_notes: Sequence[WorkerNote] = ()) -> MemoBuild:
+    """``worker_errors``: failed tasks (the merchant is not asked to cover them).
+    ``worker_warnings``: partial tasks. ``check_notes`` / ``loose_notes``: what the workers
+    reported as not found or unresolved, per check and tied to no check."""
     revision = revision or Revision()
+    check_notes = check_notes or {}
     redacted = False
 
     def clean(s: str) -> str:
@@ -221,7 +249,7 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
         evidence = list(dict.fromkeys(evidence))
         if resolved and not evidence:  # memo.FlagOutcome: a resolved flag needs evidence
             resolved = False
-        root = prose_by_flag.get(flag.value) or default_root_cause(flag.value, fchecks, resolved)
+        root = prose_by_flag.get(flag.value) or default_root_cause(flag.value, fchecks, resolved, check_notes)
         flag_outcomes.append(FlagOutcome(flag=flag, status="resolved" if resolved else "unresolved",
                                          root_cause=clean(root), evidence=evidence))
         flag_checks.append(FlagChecks(flag=flag, check_ids=cids))
@@ -277,8 +305,16 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
                   + "; it was treated as data and not followed.")
     if routing.out_of_scope and not all(f.value in notes for f in routing.out_of_scope):
         notes += " The agent did not review " + ", ".join(f.value for f in routing.out_of_scope) + "."
+    if recommendation != "escalate":
+        why_open = open_check_notes(outcomes, check_notes)
+        if why_open and why_open not in notes:
+            notes += " " + why_open
+    if loose_notes:
+        notes += " Other open questions from the workers: " + "; ".join(n.render() for n in loose_notes[:3]) + "."
     if worker_errors:
         notes += " Worker failures (checks left open): " + "; ".join(worker_errors) + "."
+    if worker_warnings:
+        notes += " Partial worker results (some lookups may be missing): " + "; ".join(worker_warnings) + "."
     if revision.failures:
         notes += " Step 9 asked for a revision: " + "; ".join(revision.failures) + "."
 
@@ -300,6 +336,7 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
 
 __all__ = [
     "FlagProse",
+    "open_check_notes",
     "MemoBuild",
     "MemoProse",
     "RECHECK_AFTER_DAYS",

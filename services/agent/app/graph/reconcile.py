@@ -78,6 +78,7 @@ class Explainer(Protocol):
 
 ACTIVE = {"active", "good standing", "in good standing", "current", "good_standing"}
 DEAD = {"dissolved", "revoked", "cancelled", "canceled", "forfeited", "terminated"}
+PENDING = "pending"     # world.EntityStatus: filed with the state, not yet approved
 MATCH = "Match"
 DBA_DEAD = {"expired", "withdrawn"}     # world.DbaFiling.status values that no longer tie a DBA to anyone
 
@@ -517,7 +518,6 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
     found_f = latest(ctx.facts.records("registry_found"))
     status_f = latest(ctx.facts.records("entity_status"))
     reg_name, name_facts = _registry_name(ctx)
-    pending = ctx.facts.records("pending_filing")
     formation = ctx.facts.evidence("formation_date", kinds=FORMATION_DOCS) + \
         ctx.facts.evidence("date", kinds=FORMATION_DOCS)
     # Applicant entity facts win over a search that came back empty (the entity may be
@@ -529,10 +529,19 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
             return Assessment("HARD_FAIL", status, None, [status_f], "high",
                               hard_fail_reason="entity_dissolved_or_revoked", explainable=False)
         used = name_facts + ([status_f] if status_f else []) + formation
-        return Assessment("AGREE", f"{reg_name or 'found'}, {status or 'status unknown'}",
-                          _ev_value(formation), used, weakest_conf(used, "high"))
-    rec_facts = ([found_f] if found_f and not truthy(found_f.value) else []) + pending
-    records_value = "not found" + (" (pending filing)" if pending else "")
+        records_value = f"{reg_name or 'found'}, {status or 'status unknown'}"
+        if status == PENDING:
+            # The pending filing is the registry's own record: the formation is filed, not yet approved.
+            if ctx.check.expected_absence:
+                return Assessment("EXPLAINED", records_value, _ev_value(formation), used, "medium",
+                                  explanation="The formation is filed and pending at the registry; "
+                                              "a new business was expected in the plan",
+                                  explanation_evidence=ids(used), explanation_facts=used, explainable=False)
+            return Assessment("GAP", records_value, _ev_value(formation), used, "low",
+                              diff="the registry filing is still pending", explainable=False)
+        return Assessment("AGREE", records_value, _ev_value(formation), used, weakest_conf(used, "high"))
+    rec_facts = [found_f] if found_f and not truthy(found_f.value) else []
+    records_value = "not found"
     if ctx.check.expected_absence:
         if is_individual(ctx.case):
             support = rec_facts + ctx.facts.records("kyc_result") + ctx.facts.evidence("registrant") \
@@ -544,9 +553,9 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
                                   explanation_evidence=ids(support), explanation_facts=support,
                                   explainable=False)
         recent = [f for f in formation if as_date(f.value) and (ctx.today - as_date(f.value)).days <= REGISTRY_LAG_DAYS]
-        if recent or pending:
+        if recent:
             support = rec_facts + recent
-            when = as_date(recent[-1].value).isoformat() if recent else "recently"
+            when = as_date(recent[-1].value).isoformat()
             return Assessment("EXPLAINED", records_value, _ev_value(recent), support, "medium",
                               explanation=f"Formed {when}, within the registry's filing lag; "
                                           "the absence was expected in the plan",
@@ -557,7 +566,7 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
                           diff="not in the registry and no formation documents", explainable=False)
     return Assessment("CONFLICT", records_value, _ev_value(formation), rec_facts + formation, "low",
                       diff="formation documents exist but the registry has no entity and the "
-                           "formation is not recent", candidates=pending)
+                           "formation is not recent")
 
 
 def cmp_ein_age(ctx: Ctx) -> Assessment:
@@ -617,7 +626,7 @@ def cmp_operating(ctx: Ctx) -> Assessment:
             if (text(f.value) or "").lower() == "verified"]
     lic = [f for f in ctx.facts.evidence("license_status", kinds={"business_license"})
            if (text(f.value) or "").lower() in ACTIVE]
-    web = ctx.facts.evidence("domain_age_days") + ctx.facts.evidence("name", kinds={"website"})
+    web = ctx.facts.evidence("name", kinds={"website"})        # a website snapshot that names the business
     dba_cert = ctx.facts.evidence("registrant", kinds={"dba_certificate"})
     signals = bank + lic + web + dba_cert
     value = ", ".join(filter(None, ["bank verified" if bank else None, "license active" if lic else None,
@@ -760,15 +769,13 @@ def apply_explanation(check: PlannedCheck, a: Assessment, facts: FactIndex,
 
 
 def _hard_fail_sweep(case, facts: FactIndex, plan: Plan, out: dict[str, Assessment]) -> None:
-    """Facts that block approval wherever they show up: tampering, failed KYC, dissolution."""
+    """Facts that block approval wherever they show up: failed KYC, dissolution.
+
+    (No worker reports document tampering: the case service only stores extracted fields
+    and an extraction confidence, and a low confidence is a misread as often as an edit.)"""
     if not out:
         return
     first = next(iter(out))
-    for f in facts.evidence("tampered"):
-        if truthy(f.value):
-            target = next((cid for cid, a in out.items() if f.source_id in ids(a.used)), first)
-            out[target] = Assessment("HARD_FAIL", out[target].records_value, text(f.value), [f], "high",
-                                     hard_fail_reason="document_tampered", explainable=False)
     for f in facts.records("kyc_result"):
         if (text(f.value) or "").lower() == "fail" and not any(a.hard_fail_reason == "kyc_failed" for a in out.values()):
             target = "EC4.sole_prop_owner" if "EC4.sole_prop_owner" in out else first

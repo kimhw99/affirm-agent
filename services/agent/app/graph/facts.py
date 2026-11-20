@@ -26,9 +26,17 @@ What the BEAC-7 Evidence worker writes
     get_document -> each extracted field under its own name (name, legal_name,
         business_name, holder, dba, registrant, ein_last4, name_control, date, status,
         formation_date, ...), plus derived checks and injection_suspected
-    get_bank_verification -> account_holder, bank_status, account_legal_name, account_dba
+    get_bank_verification -> account_holder (the Lead splits "LEGAL DBA TRADE" itself), bank_status
     get_site_identity -> website_legal_name, website_dba, website_address,
         injection_suspected (true or false)
+
+Name matching is the Lead's: reconcile.py compares records against evidence with
+app/shared/name_norm.py. The tools only show the worker's model name_checks hints
+(which lookup next); they never write name-comparison findings.
+
+Only facts some tool can report are listed here. There is no pending-filing,
+domain-age or tampering fact: the case service and world.json carry no such data. A
+filed-but-unapproved formation shows up as the registry's entity_status "pending".
 
 A W-9's business_name is line 2 ("business name / disregarded entity name"), i.e. a
 trade name, so it counts as a DBA, not a legal name.
@@ -58,7 +66,6 @@ RECORDS_FIELDS: dict[str, frozenset[str]] = {
     "name_control": frozenset({"irs_name_control", "name_control"}),
     "kyc_result": frozenset({"kyc_result", "kyc"}),
     "registry_found": frozenset({"registry_match", "registry_entity", "registry_found", "entity_found"}),
-    "pending_filing": frozenset({"pending_filing", "pending_filings"}),
     "separate_entity": frozenset({"separate_entity", "ein_owner_entity", "unrelated_entity"}),
     "name_tested": frozenset({"name_control_tested"}),
     "dba_owner_entity_id": frozenset({"registrant_state_entity_id"}),
@@ -83,8 +90,6 @@ EVIDENCE_FIELDS: dict[str, frozenset[str]] = {
     "bank_status": frozenset({"bank_status", "status", "verification_status"}),
     "license_status": frozenset({"license_status", "status"}),
     "tin_type": frozenset({"tin_type"}),
-    "domain_age_days": frozenset({"domain_age_days", "domain_age"}),
-    "tampered": frozenset({"document_tampered", "tampered", "tamper_signal"}),
     "suspicious": frozenset({"injection_suspected", "suspicious_content", "instruction_like_text", "suspicious"}),
     "old_name": frozenset({"old_name"}),
 }
