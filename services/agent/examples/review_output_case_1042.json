@@ -1,0 +1,278 @@
+{
+  "checked_memo": {
+    "memo": {
+      "case_id": "case_1042",
+      "flags": [
+        {
+          "flag": "DBA_UNVERIFIED",
+          "status": "resolved",
+          "root_cause": "Records and merchant evidence agree on: The legal entity exists and is active; The DBA belongs to the legal entity; The bank account holder is the legal name or 'legal name DBA name'",
+          "evidence": [
+            "R1",
+            "B1",
+            "R3"
+          ]
+        },
+        {
+          "flag": "TIN_MISMATCH",
+          "status": "resolved",
+          "root_cause": "The IRS accepts the submitted name and TIN pair: 'HARBOR LIGHT CYCLES LLC' is a former legal name of the entity (official filing history)",
+          "evidence": [
+            "R4",
+            "R5",
+            "R6",
+            "R7",
+            "D1",
+            "R1"
+          ]
+        }
+      ],
+      "auto_resolved": [
+        "NAME_SIMILAR_MATCH"
+      ],
+      "out_of_scope": [
+        "PRODUCT_CATEGORY_REVIEW"
+      ],
+      "ruled_out": [
+        {
+          "cause": "The EIN belongs to an unrelated company",
+          "evidence": [
+            "R1",
+            "R6"
+          ]
+        }
+      ],
+      "recommendation": "recommend_clear",
+      "document_request": [],
+      "notes_for_analyst": "The agent did not review PRODUCT_CATEGORY_REVIEW."
+    },
+    "evidence_index": {
+      "B1": {
+        "source": "Bank verification",
+        "type": "bank_verification",
+        "excerpt": "Account holder: NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES (verified)",
+        "as_of": "2026-11-10"
+      },
+      "D1": {
+        "source": "Merchant upload",
+        "type": "merchant_document",
+        "excerpt": "IRS CP 575: name: HARBOR LIGHT CYCLES LLC, date: 2023-06-08, ein_last4: 4567",
+        "as_of": "2023-06-08"
+      },
+      "R1": {
+        "source": "Secretary of State registry (IL SOS IL-0458821)",
+        "type": "official_record",
+        "excerpt": "legal_name: NORTHLINE BICYCLE WORKS, L.L.C.; state_entity_id: IL-0458821; entity_type: LLC; entity_status: active",
+        "as_of": "2026-11-19"
+      },
+      "R3": {
+        "source": "State DBA records (IL-AN-2024-0115)",
+        "type": "official_record",
+        "excerpt": "dba: NORTHLINE CYCLES; registrant: HARBOR LIGHT CYCLES LLC; registrant_type: entity; filed: 2024-01-15",
+        "as_of": "2026-11-19"
+      },
+      "R4": {
+        "source": "IRS TIN match (tin-record:case_1042 name=Northline Bicycle Works LLC)",
+        "type": "official_record",
+        "excerpt": "result: Mismatch; name_control_tested: NORT; tin_type: EIN; tin_last4: 4567",
+        "as_of": "2026-11-19"
+      },
+      "R5": {
+        "source": "IRS TIN match (tin-record:case_1042 name=NORTHLINE BICYCLE WORKS, L.L.C.)",
+        "type": "official_record",
+        "excerpt": "result: Mismatch; name_control_tested: NORT; tin_type: EIN; tin_last4: 4567",
+        "as_of": "2026-11-19"
+      },
+      "R6": {
+        "source": "IRS TIN match (tin-record:case_1042 name=HARBOR LIGHT CYCLES LLC)",
+        "type": "official_record",
+        "excerpt": "result: Match; name_control_tested: HARB; tin_type: EIN; tin_last4: 4567",
+        "as_of": "2026-11-19"
+      },
+      "R7": {
+        "source": "IRS TIN match (tin-record:case_1042 name=Northline Cycles)",
+        "type": "official_record",
+        "excerpt": "result: Mismatch; name_control_tested: NORT; tin_type: EIN; tin_last4: 4567",
+        "as_of": "2026-11-19"
+      }
+    },
+    "check_result": {
+      "passed": true,
+      "failures": []
+    }
+  },
+  "lead": {
+    "case_id": "case_1042",
+    "version": 1,
+    "generated_at": "2026-11-19T12:00:00Z",
+    "route": "reviewed",
+    "route_reason": null,
+    "checks": [
+      {
+        "check_id": "EC1.entity_active",
+        "edge_case": "EC-1",
+        "description": "The legal entity exists and is active",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "NORTHLINE BICYCLE WORKS, L.L.C., active",
+        "evidence_value": "NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES",
+        "status": "AGREE",
+        "confidence": "high",
+        "evidence": [
+          "R1",
+          "B1"
+        ],
+        "explanation": null,
+        "explanation_evidence": [],
+        "hard_fail_reason": null
+      },
+      {
+        "check_id": "EC1.dba_owner",
+        "edge_case": "EC-1",
+        "description": "The DBA belongs to the legal entity",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "Northline Cycles, filed by HARBOR LIGHT CYCLES LLC",
+        "evidence_value": "NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES",
+        "status": "AGREE",
+        "confidence": "high",
+        "evidence": [
+          "R3",
+          "R1",
+          "B1"
+        ],
+        "explanation": null,
+        "explanation_evidence": [],
+        "hard_fail_reason": null
+      },
+      {
+        "check_id": "EC1.bank_account_holder",
+        "edge_case": "EC-1",
+        "description": "The bank account holder is the legal name or 'legal name DBA name'",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "NORTHLINE BICYCLE WORKS, L.L.C.",
+        "evidence_value": "NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES",
+        "status": "AGREE",
+        "confidence": "high",
+        "evidence": [
+          "R1",
+          "B1"
+        ],
+        "explanation": null,
+        "explanation_evidence": [],
+        "hard_fail_reason": null
+      },
+      {
+        "check_id": "EC2.tin_match",
+        "edge_case": "EC-2",
+        "description": "The IRS accepts the submitted name and TIN pair",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "Mismatch on Northline Bicycle Works LLC; Mismatch on NORTHLINE BICYCLE WORKS, L.L.C.; Match on HARBOR LIGHT CYCLES LLC; Mismatch on Northline Cycles",
+        "evidence_value": "HARBOR LIGHT CYCLES LLC",
+        "status": "EXPLAINED",
+        "confidence": "high",
+        "evidence": [
+          "R4",
+          "R5",
+          "R6",
+          "R7",
+          "D1"
+        ],
+        "explanation": "'HARBOR LIGHT CYCLES LLC' is a former legal name of the entity (official filing history)",
+        "explanation_evidence": [
+          "R1",
+          "R6"
+        ],
+        "hard_fail_reason": null
+      },
+      {
+        "check_id": "EC2.name_control",
+        "edge_case": "EC-2",
+        "description": "The IRS name control fits the EIN letter",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "HARB",
+        "evidence_value": "HARB",
+        "status": "AGREE",
+        "confidence": "medium",
+        "evidence": [
+          "R6",
+          "D1"
+        ],
+        "explanation": null,
+        "explanation_evidence": [],
+        "hard_fail_reason": null
+      },
+      {
+        "check_id": "EC2.ein_letter_matches",
+        "edge_case": "EC-2",
+        "description": "The EIN on the letter is the submitted EIN",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "4567",
+        "evidence_value": "4567",
+        "status": "AGREE",
+        "confidence": "high",
+        "evidence": [
+          "R7",
+          "D1"
+        ],
+        "explanation": null,
+        "explanation_evidence": [],
+        "hard_fail_reason": null
+      },
+      {
+        "check_id": "EC2.tin_type_fits",
+        "edge_case": "EC-2",
+        "description": "The TIN type fits the entity type",
+        "origin": "template",
+        "required": true,
+        "expected_absence": false,
+        "records_value": "LLC / EIN",
+        "evidence_value": "EIN",
+        "status": "AGREE",
+        "confidence": "high",
+        "evidence": [],
+        "explanation": null,
+        "explanation_evidence": [],
+        "hard_fail_reason": null
+      }
+    ],
+    "confidence": "medium",
+    "provisional": false,
+    "recheck_after": null,
+    "recheck_targets": [],
+    "follow_ups": [],
+    "flag_checks": [
+      {
+        "flag": "DBA_UNVERIFIED",
+        "check_ids": [
+          "EC1.entity_active",
+          "EC1.dba_owner",
+          "EC1.bank_account_holder"
+        ]
+      },
+      {
+        "flag": "TIN_MISMATCH",
+        "check_ids": [
+          "EC2.tin_match",
+          "EC2.name_control",
+          "EC2.ein_letter_matches",
+          "EC2.tin_type_fits"
+        ]
+      }
+    ],
+    "document_checks": []
+  },
+  "lead_check_failures": [],
+  "check_attempts": 1,
+  "report_evidence_index": {}
+}

@@ -5,3 +5,6 @@ __pycache__/
 
 # macOS Finder metadata
 .DS_Store
+
+.venv/
+.pytest_cache/
