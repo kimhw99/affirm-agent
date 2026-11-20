@@ -37,7 +37,7 @@ docker compose up -d                            # the database's first start run
 docker compose run --rm case python seed.py     # loads data/golden into case_db
 ```
 
-The browser's entry point is then the gateway, at `http://localhost:8080` ([auth.md](auth.md)). For development, the case service is also published, at `http://localhost:8001` (`CASE_HOST_PORT`); every endpoint except `/health` needs `Authorization: Bearer <CASE_SERVICE_TOKEN>`. To run `seed.py` on this machine instead of in the container: `pip install -r services/case/requirements.txt`, then `python services/case/seed.py`.
+Then open the review app at `http://localhost:3000` and log in as `analyst` or `senior`, with the demo passwords from `.env` ([auth.md](auth.md)). The gateway behind it is at `http://localhost:8080`. For development, the case service is also published, at `http://localhost:8001` (`CASE_HOST_PORT`); every endpoint except `/health` needs `Authorization: Bearer <CASE_SERVICE_TOKEN>`. To run `seed.py` on this machine instead of in the container: `pip install -r services/case/requirements.txt`, then `python services/case/seed.py`.
 
 Both `seed.py` and the case service run `schema.sql` when they start. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. Running `seed.py` again replaces each case's rows; `--reset` empties `case_db` first. To change a table, edit `schema.sql`, delete the database volume with `docker compose down -v` (all three databases), then start the database and run `seed.py` again. The data always comes from `data/golden/`, so nothing is lost.
 

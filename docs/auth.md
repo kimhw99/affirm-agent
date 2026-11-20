@@ -34,15 +34,16 @@ Signed with HS256 and `JWT_SECRET` (at least 32 characters), which the auth serv
 
 ## What the gateway lets through
 
-The gateway is the only service the browser talks to: `http://localhost:8080` (`GATEWAY_HOST_PORT`).
+The browser loads the review app from `http://localhost:3000` (`APP_HOST_PORT`), and the app's nginx forwards every `/api/...` request to the gateway, without the `/api` prefix. The gateway, at `http://localhost:8080` (`GATEWAY_HOST_PORT`), is the only backend service the browser reaches.
 
 | Path | Goes to | Needs a JWT | Methods |
 |---|---|---|---|
 | `/auth/...` | Auth service | No: the auth service checks its own credentials | GET, POST |
 | `/cases/...` | Case service | Yes | GET |
+| `/metrics/...` | Case service | Yes | GET |
 | `/reviews/...` | Agent service | Yes | GET, POST |
 
-For `/cases` and `/reviews`, the gateway:
+For `/cases`, `/metrics` and `/reviews`, the gateway:
 
 1. Verifies the JWT: 401 if it's missing, invalid or expired, and 403 if its role isn't one of the two above.
 2. Drops any `X-User-*` header the client sent, and sets `X-User-Id` (the `sub`) and `X-User-Role`.
