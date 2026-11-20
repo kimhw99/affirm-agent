@@ -1,8 +1,11 @@
 """HTTP client for the case service (BEAC-5): fetch a case, send the final decision back.
 
-``GET /cases/{case_id}`` is agreed (docs/case-service-endpoints.md). The decision
-endpoint is still to confirm with the case-service owner; it is
-``POST /cases/{case_id}/decisions`` here, with ``{decision_record, case_status}``.
+Endpoints (services/case/app/main.py): ``GET /cases/{case_id}`` and
+``POST /cases/{case_id}/decisions`` with ``{decision_record, case_status}``.
+
+The workers read the case service through ``app.clients.case_client.HttpCaseClient``;
+both clients use ``CASE_SERVICE_URL`` (default ``DEFAULT_CASE_SERVICE_URL``) and
+``CASE_SERVICE_TOKEN``.
 """
 
 from __future__ import annotations
@@ -12,10 +15,12 @@ from typing import Any, Optional
 
 import httpx
 
+from app.clients.case_client import DEFAULT_CASE_SERVICE_URL
+
 
 class CaseServiceClient:
     def __init__(self, base_url: Optional[str] = None, token: Optional[str] = None, timeout: float = 10.0):
-        self.base_url = (base_url or os.getenv("CASE_SERVICE_URL", "http://case:8000")).rstrip("/")
+        self.base_url = (base_url or os.getenv("CASE_SERVICE_URL") or DEFAULT_CASE_SERVICE_URL).rstrip("/")
         self.token = token or os.getenv("CASE_SERVICE_TOKEN")
         self.timeout = timeout
 

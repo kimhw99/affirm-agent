@@ -154,10 +154,14 @@ def test_bad_shape_raises():
         client(Recorder(body={"not": "a list"})).search_registry("IL", name="x")
 
 
-def test_missing_base_url(monkeypatch):
+def test_both_clients_share_the_default_base_url(monkeypatch):
+    from app.clients.case_client import DEFAULT_CASE_SERVICE_URL
+    from app.clients.case_service import CaseServiceClient
+
     monkeypatch.delenv("CASE_SERVICE_URL", raising=False)
-    with pytest.raises(CaseServiceError):
-        HttpCaseClient()
+    with HttpCaseClient() as worker_client:
+        assert str(worker_client._http.base_url).rstrip("/") == DEFAULT_CASE_SERVICE_URL
+    assert CaseServiceClient().base_url == DEFAULT_CASE_SERVICE_URL == "http://case:8000"
 
 
 # ---------------------------------------------------------------- FakeCaseClient

@@ -2,8 +2,9 @@
 
 Two implementations of one ``CaseDataClient`` protocol:
 
-- ``HttpCaseClient`` calls the real case service (``CASE_SERVICE_URL``, Bearer
-  ``CASE_SERVICE_TOKEN``).
+- ``HttpCaseClient`` calls the real case service (``CASE_SERVICE_URL``, default
+  ``DEFAULT_CASE_SERVICE_URL``; Bearer ``CASE_SERVICE_TOKEN``). The lead's
+  ``CaseServiceClient`` uses the same default.
 - ``FakeCaseClient`` reads golden-case folders (``case.json`` + ``world.json``) from
   disk, so the offline tests see the same data the case service seeds from. Other
   files in a case folder (``worker_tasks.json``, ``expected_findings.json``) are ignored.
@@ -30,6 +31,9 @@ from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEn
 M = TypeVar("M", bound=BaseModel)
 
 SEARCH_LIMIT = 20
+
+# The case service's address inside Docker Compose (docker-compose.yml, .env.example).
+DEFAULT_CASE_SERVICE_URL = "http://case:8000"
 
 
 class CaseServiceError(RuntimeError):
@@ -66,9 +70,7 @@ class HttpCaseClient:
 
     def __init__(self, base_url: Optional[str] = None, token: Optional[str] = None,
                  timeout: float = 5.0, transport: Optional[httpx.BaseTransport] = None):
-        base_url = base_url or os.environ.get("CASE_SERVICE_URL")
-        if not base_url:
-            raise CaseServiceError("CASE_SERVICE_URL is not set")
+        base_url = base_url or os.environ.get("CASE_SERVICE_URL") or DEFAULT_CASE_SERVICE_URL
         token = token if token is not None else os.environ.get("CASE_SERVICE_TOKEN", "")
         headers = {"Accept": "application/json"}
         if token:
