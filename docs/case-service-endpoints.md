@@ -10,7 +10,7 @@ These 10 endpoints are read-only, and only the agent service calls them. `GET /c
 
 ## Common rules
 
-- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role is read-only and gets only these endpoints plus `GET /cases/{case_id}`. Until the auth service exists (BEAC-14), the token is a shared secret: both services read `CASE_SERVICE_TOKEN`.
+- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role gets only these endpoints, `GET /cases/{case_id}`, and one write: `POST /cases/{case_id}/decisions` for step 11 (at the end). Until the auth service exists (BEAC-14), the token is a shared secret: both services read `CASE_SERVICE_TOKEN`.
 - **Base URL:** the agent reads it from `CASE_SERVICE_URL`, for example `http://case:8000` inside Docker Compose. These calls go service to service, not through the gateway.
 - **Not found:**
   - An unknown key in a path returns **404**, including an evidence ID that belongs to a different case.
@@ -170,6 +170,28 @@ One saved website snapshot: `CaseInput.web_snapshot[]`, unchanged.
 ```
 - The keys inside `extracted` are limited to `WEB_FIELDS`: `legal_name`, `dba`, `address`. Any may be missing.
 - No page text. Some golden cases put instruction-like text aimed at AI into these values to test prompt injection; store them as they are.
+
+### Step 11: saving the analyst's decision
+
+#### `POST /cases/{case_id}/decisions`
+The agent service calls this once the analyst has decided. The body is the `DecisionRecord` (`decision.py`) and, optionally, the case status the sender expects:
+
+```json
+{
+  "decision_record": {
+    "review_id": "rv_7f3a", "case_id": "case_1042", "decision": "approve",
+    "note": "Name change confirmed by the SoS amendment.", "analyst_id": "u_analyst_02",
+    "agent_recommendation": "recommend_clear", "overridden": false,
+    "decided_at": "2026-11-17T16:05:00-06:00"
+  },
+  "case_status": "approved"
+}
+```
+- In one transaction, the case service saves the record, sets the case status to `STATUS_AFTER[decision]`, and writes an audit log entry: who (`analyst_id`), from which status to which, and when. Nothing else changes a case's status.
+- **201** with the same body, `case_status` filled in. **200** if this review's decision was already saved with the same content, so a retry is safe.
+- **404** for an unknown case.
+- **409** if the review already has a different decision, or the case can't take a decision now. Only `pending_review` and `escalated` cases can: an approved or denied case is done, and a `docs_requested` case waits for the merchant's new evidence.
+- **422** if `decision_record.case_id` isn't the path's case, `case_status` isn't the status the decision leads to, or the record is invalid (for example, `overridden` doesn't match `AGREES_WITH`).
 
 ## Seed data
 

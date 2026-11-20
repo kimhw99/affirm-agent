@@ -197,7 +197,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Item | Details |
 |---|---|
 | Tasks | Save the decision record (who, when, which decision, the note, the agent's recommendation, whether they agree); update the case status, only through this flow; write the audit log |
-| Input | `DecisionInput` + the memo's recommendation |
+| Input | `DecisionInput` + the memo's recommendation; the agent service sends the resulting `DecisionRecord` to the case service with `POST /cases/{case_id}/decisions` (`docs/case-service-endpoints.md`) |
 | Output | `DecisionRecord`, the updated case status, the audit log |
 | Owner | XL |
 | Handoffs | To evaluation: `DecisionRecord` is used to compute the override rate |
@@ -704,7 +704,7 @@ After resuming, the graph reaches END. The agent service calls the case service 
 }
 ```
 
-At the same time, the case status changes from `pending_review` to `approved`, and the audit log records who changed the status, from what to what, and when. After that, `GET /reviews/rv_7f3a` returns the status `done`.
+It sends the record as `decision_record` in `POST /cases/case_1042/decisions`, with `case_status: approved`. In the same transaction, the case status changes from `pending_review` to `approved`, and the audit log records who changed the status, from what to what, and when. After that, `GET /reviews/rv_7f3a` returns the status `done`.
 
 How `overridden` is computed (proposal, to confirm):
 

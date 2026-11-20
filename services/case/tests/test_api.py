@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from app import main, store
 from kyb_contracts.case_input import CaseInput
+from kyb_contracts.decision import DecisionRecord
 from kyb_contracts.world import CommercialProfile, RegistryEntity, World
 
 EXAMPLES = Path(__file__).resolve().parents[3] / "contracts" / "examples"
@@ -129,3 +130,85 @@ def test_search_words_drop_designators_and_joiners():
     assert store.search_words("The Smith & Sons Co") == ["smith", "sons"]
     assert store.search_words("LLC") == ["llc"]  # nothing else to match on, so it's kept
     assert store.search_words(None) == []
+
+
+# ---------- POST /cases/{case_id}/decisions (step 11) ----------
+
+DECISIONS = "/cases/case_1042/decisions"
+
+
+def _record(**changes) -> dict:
+    """case_1042's decision from the walkthrough (docs/workflow-handoffs.md 7.15), with changes."""
+    return {"review_id": "rv_7f3a", "case_id": "case_1042", "decision": "approve",
+            "note": "Name change confirmed by the SoS amendment.", "analyst_id": "u_analyst_02",
+            "agent_recommendation": "recommend_clear", "overridden": False,
+            "decided_at": "2026-11-17T16:05:00-06:00"} | changes
+
+
+def _save(monkeypatch, outcome) -> list:
+    """Replaces store.save_decision: it returns outcome, or raises it if it's an exception."""
+    calls = []
+
+    def fake(conn, record):
+        calls.append(record)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+    monkeypatch.setattr(store, "save_decision", fake)
+    return calls
+
+
+def test_a_new_decision_is_saved_with_its_status(client, monkeypatch):
+    calls = _save(monkeypatch, True)
+    response = client.post(DECISIONS, json={"decision_record": _record(), "case_status": "approved"}, headers=AUTH)
+    assert response.status_code == 201
+    assert response.json()["case_status"] == "approved"
+    assert [record.review_id for record in calls] == ["rv_7f3a"]
+
+
+def test_the_case_status_is_worked_out_when_it_isnt_sent(client, monkeypatch):
+    _save(monkeypatch, True)
+    body = {"decision_record": _record(decision="escalate", overridden=True)}
+    response = client.post(DECISIONS, json=body, headers=AUTH)
+    assert response.status_code == 201
+    assert response.json()["case_status"] == "escalated"
+
+
+def test_the_same_decision_again_is_200(client, monkeypatch):
+    _save(monkeypatch, False)
+    assert client.post(DECISIONS, json={"decision_record": _record()}, headers=AUTH).status_code == 200
+
+
+@pytest.mark.parametrize("error, status", [
+    (store.CaseNotFound("case_1042"), 404),
+    (store.DecisionConflict("case case_1042 is approved, so it can't take a decision"), 409),
+])
+def test_the_store_refusing_is_404_or_409(client, monkeypatch, error, status):
+    _save(monkeypatch, error)
+    response = client.post(DECISIONS, json={"decision_record": _record()}, headers=AUTH)
+    assert response.status_code == status
+
+
+@pytest.mark.parametrize("body", [
+    {"decision_record": _record(case_id="case_2001")},        # not the path's case
+    {"decision_record": _record(), "case_status": "denied"},  # approve leads to approved
+    {"decision_record": _record(overridden=True)},            # approve agrees with recommend_clear
+    {"decision_record": _record(), "note": "misplaced"},      # unknown field
+])
+def test_a_wrong_body_is_422_and_saves_nothing(client, monkeypatch, body):
+    calls = _save(monkeypatch, True)
+    assert client.post(DECISIONS, json=body, headers=AUTH).status_code == 422
+    assert calls == []
+
+
+def test_saving_needs_the_token(client, monkeypatch):
+    calls = _save(monkeypatch, True)
+    assert client.post(DECISIONS, json={"decision_record": _record()}).status_code == 401
+    assert calls == []
+
+
+def test_a_time_without_a_time_zone_counts_as_utc():
+    utc = DecisionRecord.model_validate(_record(decided_at="2026-11-17T22:05:00"))
+    chicago = DecisionRecord.model_validate(_record())
+    assert store.same_decision(utc, chicago)
+    assert not store.same_decision(utc, DecisionRecord.model_validate(_record(note="Another note.")))
