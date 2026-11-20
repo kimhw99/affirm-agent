@@ -4,6 +4,7 @@ One PostgreSQL server holds three databases, one per service. This doc covers wh
 
 - Databases and accounts: [db/init.sql](../db/init.sql)
 - `case_db` tables: [services/case/schema.sql](../services/case/schema.sql)
+- Loading the golden cases: [services/case/seed.py](../services/case/seed.py)
 - What the case service serves from them: [case-service-endpoints.md](case-service-endpoints.md)
 
 ## Three databases
@@ -18,16 +19,26 @@ Each database admits only its own account. The agent service has no account on `
 
 ## Setting up
 
-`db/init.sql` creates the databases and accounts. PostgreSQL runs it once, the first time the database container starts with an empty data folder (mounted in `/docker-entrypoint-initdb.d/`). It reads the passwords from the environment, so set these in `.env` (see `.env.example`):
+`docker-compose.yml` runs PostgreSQL 16 as the `db` service. The first time it starts with an empty data volume, it runs `db/init.sql`, which creates the databases and accounts. Both read their settings from `.env` (see `.env.example`):
 
 | Variable | Used for |
 |---|---|
 | `POSTGRES_PASSWORD` | The postgres image's superuser |
 | `AUTH_DB_PASSWORD`, `CASE_DB_PASSWORD`, `AGENT_DB_PASSWORD` | Each service's account; `init.sql` creates it with this password, and the service connects with it |
+| `POSTGRES_HOST_PORT` | The port on this machine where the database is published, 55432 by default. Only this machine can connect |
 
-If one is missing, the container stops with an error that names it.
+If a password is missing, `docker compose` stops with an error that names it.
 
-The case service runs `schema.sql` when it starts. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. To change a table, edit `schema.sql`, drop the database and load the golden cases again. The data always comes from `data/golden/`, so nothing is lost.
+To start the database and load the golden cases, from the repo root:
+
+```bash
+cp .env.example .env                            # then replace each change-me
+docker compose up -d db                         # the first start runs db/init.sql
+pip install -r services/case/requirements.txt
+python services/case/seed.py                    # creates the case_db tables and loads data/golden
+```
+
+`seed.py` runs `schema.sql` before loading, and the case service will too when it starts. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. Running `seed.py` again replaces each case's rows; `--reset` empties `case_db` first. To change a table, edit `schema.sql`, delete the database volume with `docker compose down -v` (all three databases), then start the database and run `seed.py` again. The data always comes from `data/golden/`, so nothing is lost.
 
 ## case_db
 

@@ -1,2 +1,27 @@
-# Runs all services together.
-services: {}
+# Runs all services together. Copy .env.example to .env and fill it in first.
+# So far it runs the database; each service joins as it gets built.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      # db/init.sql reads these three when it creates each service's account.
+      AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD:?set AUTH_DB_PASSWORD in .env}
+      CASE_DB_PASSWORD: ${CASE_DB_PASSWORD:?set CASE_DB_PASSWORD in .env}
+      AGENT_DB_PASSWORD: ${AGENT_DB_PASSWORD:?set AGENT_DB_PASSWORD in .env}
+    volumes:
+      # Runs once, the first time the container starts with an empty data volume.
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - db-data:/var/lib/postgresql/data
+    ports:
+      # Published on this machine only. 5432 is often taken by a local PostgreSQL.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-55432}:5432"
+    healthcheck:
+      # Over TCP, so it passes only once db/init.sql has run and the real server is up.
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  db-data:
