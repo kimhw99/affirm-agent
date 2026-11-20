@@ -1,5 +1,19 @@
 # affirm-agent
 
+## Running locally
+
+With Docker running, from the repo root:
+
+```bash
+cp .env.example .env                           # then fill it in (docs/local-testing.md, step 1)
+docker compose up -d --build --wait            # the database, the four services and the review app
+docker compose run --rm case python seed.py    # loads the golden cases into case_db
+```
+
+Then open http://localhost:3000 and log in as `analyst` or `senior`, with the demo passwords from `.env`. `docker compose down` stops everything and keeps the data.
+
+What to put in `.env`, what to check in the browser, how to start over, fixes for common problems, and how to run each part's tests: [docs/local-testing.md](docs/local-testing.md).
+
 ## Repository layout
 
 ```text
@@ -14,6 +28,7 @@ affirm-agent/
 │   ├── auth.md                   # Roles, the JWT, and what the gateway lets through
 │   ├── case-service-endpoints.md # The case service's endpoints, for the agent and the review app
 │   ├── database.md               # The three databases and the case_db tables
+│   ├── local-testing.md          # Run the whole app on one machine and check it end to end
 │   └── workflow-handoffs.md      # Workflow steps, owners and handoffs
 ├── contracts/                    # Shared data formats (Pydantic); each producer maintains its own
 │   ├── kyb_contracts/
