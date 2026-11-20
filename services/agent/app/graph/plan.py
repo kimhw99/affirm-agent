@@ -20,6 +20,7 @@ from typing import Callable, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from app.graph.facts import worker_fields
 from app.graph.orchestrator import EVIDENCE_TASKS, RECORDS_TASKS, RoutingDecision
 from kyb_contracts.case_input import CaseInput, FlagReason
 from kyb_contracts.worker_io import (
@@ -390,7 +391,7 @@ def initial_tasks(case: CaseInput, decision: RoutingDecision, plan: Plan) -> lis
             task_id=f"{case.case_id}-{worker}-1",
             worker=worker,
             question=question,
-            focus_fields=list(dict.fromkeys(focus)) or list(tasks),
+            focus_fields=worker_fields(worker, focus) or list(tasks),
             hypotheses=plan.hypotheses,
             context=ctx,
             max_tool_calls=tool_budget(len(tasks), len(plan.checks)),

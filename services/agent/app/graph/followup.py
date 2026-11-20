@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal, Mapping, Optional, Sequence
 
-from app.graph.facts import EIN_LETTERS, FactIndex, text
+from app.graph.facts import EIN_LETTERS, FactIndex, text, worker_fields
 from app.graph.plan import Plan, case_context
 from app.graph.reconcile import decide, open_required
 from app.graph.worker_notes import WorkerNote, follow_up_context, unresolved_workers
@@ -301,16 +301,17 @@ def follow_up_task(case: CaseInput, plan: Plan, fu: PendingFollowUp, results: li
                    facts: FactIndex, initial_task_ids: dict[str, str], slot: int) -> WorkerInput:
     """A FollowUp for one worker and one check. Prior findings come from the same worker only,
     so records are never shaped by what the merchant said, and vice versa."""
+    focus = worker_fields(fu.target, fu.focus)
     prior: list[Finding] = []
     for r in results:
         if r.worker == fu.target:
-            prior += [f for f in r.findings if f.field in fu.focus]
+            prior += [f for f in r.findings if f.field in focus]
     base = facts.max_record_number() + 1
     return WorkerInput(
         task_id=fu.task_id,
         worker=fu.target,
         question=f"[{fu.check_id}] {fu.ask}" + (f" {fu.context}" if fu.context else ""),
-        focus_fields=list(fu.focus),
+        focus_fields=focus,
         hypotheses=plan.hypotheses,
         context=case_context(case),
         prior_findings=prior[-10:],

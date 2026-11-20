@@ -27,6 +27,7 @@ Rules this module enforces:
 - Trust boundary: the Records worker cites only R and K sources; the Evidence
   worker cites only D, B and W sources.
 - A worker never recommends approve or deny; it reports findings and signals only.
+- A finding's ``field`` is one of ``FINDING_FIELDS[worker]`` (enforced by the tools).
 """
 
 from __future__ import annotations
@@ -40,10 +41,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from kyb_contracts.case_input import (
     BANK_ID,
     CASE_ID,
+    DOCUMENT_FIELDS,
     DOC_ID,
     KYC_ID,
     OWNER_REF,
     TIN_PATTERN,
+    WEB_FIELDS,
     WEB_ID,
     Application,
     Checks,
@@ -64,6 +67,58 @@ SUBJECT = r"^(business|owner:P\d+)$"       # what a finding is about
 WORKER_SOURCE_PREFIXES: dict[str, frozenset[str]] = {
     "records": frozenset({"R", "K"}),       # official records, vendors, owner KYC
     "evidence": frozenset({"D", "B", "W"}), # documents, bank verification, website
+}
+
+
+# ==========================================
+# Finding field names
+# ==========================================
+# Every ``Finding.field`` a worker's tools can write. The tools refuse any other name
+# (services/agent/app/tools/_common.py), and the lead's tests check that each fact it
+# reads (services/agent/app/graph/facts.py) is written by at least one of these, so a
+# rename on either side fails a test instead of silently leaving a check as a GAP.
+# Name comparisons are not findings: the Lead makes the name verdict (reconcile.py),
+# and the tools only show the worker's model name_checks hints.
+
+RECORDS_FINDING_FIELDS: frozenset[str] = frozenset({
+    # search_registry / get_registry_entity (one R source per entity)
+    "registry_match", "registry_entity", "legal_name", "state_entity_id", "entity_type", "entity_status",
+    "registered_address", "formation_date", "formed_days_before_review", "officer_name", "former_names",
+    # get_filing_history
+    "filing_history", "filing_event", "former_name",
+    # search_dba
+    "dba_match", "dba", "registrant", "registrant_type", "registrant_state_entity_id", "filed", "expires",
+    "dba_status", "dba_expired",
+    # search_commercial_db
+    "commercial_match", "business_name", "address", "first_seen", "first_seen_after_formation", "last_updated",
+    # check_tin_match (the IRS name itself is never written)
+    "tin_match_result", "name_control_tested", "tin_type", "tin_last4",
+    # get_kyc_result
+    "kyc_result",
+})
+
+EVIDENCE_FINDING_FIELDS: frozenset[str] = frozenset(
+    # get_document: each extracted field under its own name
+    set().union(*DOCUMENT_FIELDS.values())
+    # get_site_identity: website fields, prefixed so they never pass for official ones
+    | {f"website_{k}" for k in WEB_FIELDS}
+    | {
+        # get_document: derived checks
+        "tin_last4_matches_application", "tin_type_matches_application", "name_control_matches_legal_name",
+        "state_entity_id_matches_application", "formation_date_matches_application", "document_age_days",
+        "document_expired", "low_extraction_confidence",
+        # get_bank_verification
+        "account_holder", "bank_status", "verified_at",
+        # get_site_identity: derived
+        "address_matches_application",
+        # any merchant source
+        "injection_suspected",
+    }
+)
+
+FINDING_FIELDS: dict[str, frozenset[str]] = {
+    "records": RECORDS_FINDING_FIELDS,
+    "evidence": EVIDENCE_FINDING_FIELDS,
 }
 
 
@@ -304,12 +359,15 @@ __all__ = [
     "Citation",
     "Confidence",
     "DocumentRef",
+    "EVIDENCE_FINDING_FIELDS",
     "ExtractionMethod",
+    "FINDING_FIELDS",
     "Finding",
     "FollowUp",
     "Hypothesis",
     "HypothesisSignal",
     "OwnerKycRef",
+    "RECORDS_FINDING_FIELDS",
     "SignalDirection",
     "Source",
     "WebSnapshotRef",
