@@ -4,7 +4,7 @@ The analysts' app: log in, pick a case from the queue, read the agent's memo wit
 
 ## Run it
 
-With Docker Compose, from the repo root, run `docker compose up -d` and open http://localhost:3000 (`APP_HOST_PORT`). nginx serves the built app and forwards `/api` to the gateway.
+With Docker Compose, from the repo root, run `docker compose up -d` and open http://localhost:3000 (`APP_HOST_PORT`). nginx serves the built app and forwards `/api` to the gateway. The first time, fill in `.env` and load the golden cases as in [docs/local-testing.md](../docs/local-testing.md), which also lists what to check in the browser.
 
 To work on the app with hot reload while the backend runs in Docker Compose:
 
