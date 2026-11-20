@@ -1,0 +1,145 @@
+{
+  "records": [
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Bluefin Supply"
+      },
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Mismatch"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "BLUE"
+        }
+      ]
+    },
+    {
+      "tool": "get_registry_entity",
+      "args": {},
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "legal_name",
+          "value": "HARWICK MARINE SUPPLY LLC"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "different"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "search_dba",
+      "args": {
+        "name": "Bluefin Supply"
+      },
+      "sources": [
+        "R3"
+      ],
+      "expect": [
+        {
+          "field": "registrant",
+          "value": "HARWICK MARINE SUPPLY LLC"
+        },
+        {
+          "field": "dba_expired",
+          "value": false
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "normalized_equal",
+            "name_field": "R3.dba"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "HARWICK MARINE SUPPLY LLC"
+      },
+      "sources": [
+        "R4"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Match"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "HARW"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "name",
+          "value": "HARWICK MARINE SUPPLY LLC"
+        },
+        {
+          "field": "name_control",
+          "value": "HARW"
+        },
+        {
+          "field": "tin_last4_matches_application",
+          "value": true
+        },
+        {
+          "field": "name_control_matches_legal_name",
+          "value": false
+        },
+        {
+          "field": "document_age_days",
+          "value": 48
+        }
+      ]
+    },
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D2"
+      },
+      "sources": [
+        "D2"
+      ],
+      "expect": [
+        {
+          "field": "business_name",
+          "value": "Bluefin Supply"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "exact",
+            "name_field": "D2.business_name"
+          }
+        }
+      ]
+    }
+  ]
+}

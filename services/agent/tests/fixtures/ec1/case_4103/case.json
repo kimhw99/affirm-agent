@@ -1,0 +1,74 @@
+{
+  "case_id": "case_4103",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Greenleaf Organics LLC",
+    "dba": null,
+    "address": "715 SE Ash St, Portland, OR 97214",
+    "tin_type": "EIN",
+    "tin_last4": "8402",
+    "state": "OR",
+    "state_entity_id": "OR-1188402",
+    "entity_type": "LLC",
+    "formation_date": "2024-09-03",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Priya Natarajan",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "GREEN LEAF ORGANIC LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "confidence": 0.94,
+      "extracted": {
+        "legal_name": "Greenleaf Organics, LLC",
+        "state": "OR",
+        "state_entity_id": "OR-1188402",
+        "formation_date": "2024-09-03"
+      }
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GREENLEAF ORGANICS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://greenleaforganics.example",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Greenleaf Organics LLC",
+        "address": "715 SE Ash St, Portland, OR 97214"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

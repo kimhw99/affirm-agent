@@ -1,0 +1,253 @@
+"""The worker loop shared by the Records and Evidence workers (LangGraph).
+
+    agent (chat model + bound tools) --tool calls?--> tools (permission + key + budget guard) --> agent
+          '-- no calls / budget used up ------------> summarize (structured WorkerSummary)
+          '-- LLM error ----------------------------> end
+    then assemble_result() turns the findings and the summary into one WorkerResult.
+
+The model picks tools and interprets results; code writes every finding. ``run_worker``
+never raises: a tool or case-service error gives ``partial``, an LLM or graph failure
+gives ``failed``, and either way the lead gets a valid ``WorkerResult``.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+from datetime import datetime
+from typing import Annotated, Any, Literal, Optional, TypedDict
+
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langgraph.graph import END, START, StateGraph
+from langgraph.graph.message import add_messages
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
+from kyb_contracts.worker_io import HypothesisSignal, WorkerInput, WorkerResult
+
+from app.clients.case_client import CaseDataClient
+from app.tools import TOOLS_FOR
+from app.tools._common import ToolContext, ToolSpec, redact
+
+from .prompts import SUMMARY_INSTRUCTIONS, render_findings, render_task, system_prompt
+
+log = logging.getLogger(__name__)
+
+
+# --------------------------------------------------------------------------
+# Structured summary (valid for OpenAI strict mode: every field required, no extras)
+# --------------------------------------------------------------------------
+
+class SignalOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    hypothesis_id: str
+    direction: Literal["supports", "contradicts", "neutral"]
+    finding_ids: list[str]
+
+
+class WorkerSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str = Field(description="2-4 sentences answering the question, citing finding ids.")
+    hypothesis_signals: list[SignalOut]
+    not_found: list[str]
+    unresolved: list[str]
+
+
+# --------------------------------------------------------------------------
+# Graph
+# --------------------------------------------------------------------------
+
+class WorkerState(TypedDict, total=False):
+    messages: Annotated[list[AnyMessage], add_messages]
+    tool_calls_used: int
+    budget_hit: bool
+    llm_error: Optional[str]
+    summary: Optional[WorkerSummary]
+    summary_error: Optional[str]
+
+
+def _error_text(error: BaseException) -> str:
+    return redact(f"{type(error).__name__}: {error}")[:500]
+
+
+def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: ToolContext):
+    """Compile the agent -> tools -> ... -> summarize graph for one task."""
+    task = ctx.task
+    budget = task.max_tool_calls
+    bound = llm.bind_tools([spec.openai_schema() for spec in tools.values()])
+
+    def agent(state: WorkerState, config) -> dict:
+        if state.get("tool_calls_used", 0) >= budget:
+            return {"budget_hit": True}
+        try:
+            reply = bound.invoke(state["messages"], config=config)
+        except Exception as error:  # the model or the network failed
+            log.warning("%s worker LLM call failed: %s", worker, error)
+            return {"llm_error": f"LLM call failed: {_error_text(error)}"}
+        return {"messages": [reply]}
+
+    def after_agent(state: WorkerState) -> str:
+        if state.get("llm_error"):
+            return END
+        if state.get("budget_hit"):
+            return "summarize"
+        last = state["messages"][-1]
+        return "tools" if isinstance(last, AIMessage) and last.tool_calls else "summarize"
+
+    def run_tools(state: WorkerState) -> dict:
+        used = state.get("tool_calls_used", 0)
+        budget_hit = state.get("budget_hit", False)
+        replies = []
+        for call in state["messages"][-1].tool_calls:
+            if used >= budget:
+                budget_hit = True
+                content = json.dumps({"tool": call["name"], "rejected": "not run: the tool-call budget is used up"})
+            else:
+                used += 1  # every requested call counts, including rejected ones
+                spec = tools.get(call["name"])
+                if spec is None:
+                    content = json.dumps({"tool": call["name"],
+                                          "rejected": f"{call['name']} is not available to the {worker} worker; "
+                                                      f"available: {sorted(tools)}"})
+                else:
+                    content = spec.run(ctx, call.get("args") or {}).llm_view()
+                content += f"\n[budget: {budget - used} tool call(s) left]"
+            replies.append(ToolMessage(content=content, tool_call_id=call["id"], name=call["name"]))
+        ctx.tool_calls_used = used
+        return {"messages": replies, "tool_calls_used": used, "budget_hit": budget_hit or used >= budget}
+
+    def after_tools(state: WorkerState) -> str:
+        return "summarize" if state.get("tool_calls_used", 0) >= budget else "agent"
+
+    def summarize(state: WorkerState, config) -> dict:
+        note = ""
+        if state.get("budget_hit"):
+            note = "\nThe tool-call budget ran out; list what you could not check under unresolved.\n"
+        prompt = (render_task(task) + "\n\nFindings (the only ones you may cite):\n"
+                  + render_findings(ctx.findings) + "\n\n" + SUMMARY_INSTRUCTIONS + note)
+        try:
+            structured = llm.with_structured_output(WorkerSummary, method="json_schema", strict=True)
+            out = structured.invoke([SystemMessage(content=system_prompt(worker)), HumanMessage(content=prompt)],
+                                    config=config)
+            summary = out if isinstance(out, WorkerSummary) else WorkerSummary.model_validate(out)
+        except Exception as error:
+            log.warning("%s worker summary failed: %s", worker, error)
+            return {"summary_error": f"summary failed: {_error_text(error)}"}
+        return {"summary": summary}
+
+    graph = StateGraph(WorkerState)
+    graph.add_node("agent", agent)
+    graph.add_node("tools", run_tools)
+    graph.add_node("summarize", summarize)
+    graph.add_edge(START, "agent")
+    graph.add_conditional_edges("agent", after_agent, ["tools", "summarize", END])
+    graph.add_conditional_edges("tools", after_tools, ["agent", "summarize"])
+    graph.add_edge("summarize", END)
+    return graph.compile()
+
+
+# --------------------------------------------------------------------------
+# Result assembly
+# --------------------------------------------------------------------------
+
+_RECOMMENDATION = re.compile(r"\b(approv\w*|den(?:y|ies|ied|ial)|declin\w*|reject\w*)\b", re.IGNORECASE)
+_SENTENCES = re.compile(r"(?<=[.!?])\s+")
+RECOMMENDATION_REMOVED = ("A recommendation to approve or deny was removed from the answer; "
+                          "workers report findings only.")
+
+
+def strip_recommendation(answer: Optional[str]) -> tuple[Optional[str], bool]:
+    """Drop sentences that recommend approving or denying. Returns (answer, removed?)."""
+    if not answer:
+        return answer, False
+    sentences = _SENTENCES.split(answer.strip())
+    kept = [s for s in sentences if not _RECOMMENDATION.search(s)]
+    if len(kept) == len(sentences):
+        return answer.strip(), False
+    return (" ".join(kept).strip() or None), True
+
+
+def assemble_result(task: WorkerInput, ctx: ToolContext, state: Optional[WorkerState] = None,
+                    error: Optional[str] = None) -> WorkerResult:
+    state = state or {}
+    summary: Optional[WorkerSummary] = state.get("summary")
+    finding_ids = {f.finding_id for f in ctx.findings}
+    hypothesis_ids = {h.hypothesis_id for h in task.hypotheses}
+
+    signals: list[HypothesisSignal] = []
+    answer, not_found, unresolved = None, [], []
+    if summary is not None:
+        for sig in summary.hypothesis_signals:
+            cited = [fid for fid in dict.fromkeys(sig.finding_ids) if fid in finding_ids]
+            if sig.hypothesis_id in hypothesis_ids and cited:
+                signals.append(HypothesisSignal(hypothesis_id=sig.hypothesis_id, direction=sig.direction,
+                                                finding_ids=cited))
+        answer, removed = strip_recommendation(summary.answer)
+        not_found = [redact(s) for s in summary.not_found]
+        unresolved = [redact(s) for s in summary.unresolved]
+        if removed:
+            unresolved.append(RECOMMENDATION_REMOVED)
+        answer = redact(answer) if answer else None
+    elif state.get("summary_error") or error or state.get("llm_error"):
+        unresolved.append("No summary was produced; the findings are listed without interpretation.")
+
+    fatal = [e for e in (error, state.get("llm_error")) if e]
+    soft = list(ctx.errors) + ([state["summary_error"]] if state.get("summary_error") else [])
+    if fatal:
+        status = "failed"
+    elif soft or summary is None or (state.get("budget_hit") and unresolved):
+        status = "partial"
+    else:
+        status = "completed"
+    message = "; ".join(fatal + soft) or None
+
+    fields = dict(task_id=task.task_id, case_id=task.context.case_id, worker=task.worker, status=status,
+                  findings=list(ctx.findings), sources=list(ctx.sources.values()), hypothesis_signals=signals,
+                  not_found=not_found, unresolved=unresolved, answer=answer,
+                  tool_calls_used=max(state.get("tool_calls_used", 0), ctx.tool_calls_used), error=message)
+    try:
+        return WorkerResult(**fields)
+    except ValidationError as invalid:  # should not happen; still hand the lead something valid
+        log.error("worker result failed validation: %s", invalid)
+        return WorkerResult(task_id=task.task_id, case_id=task.context.case_id, worker=task.worker,
+                            status="failed", findings=[], sources=[], hypothesis_signals=[],
+                            unresolved=["The worker's result failed validation; no findings are reported."],
+                            tool_calls_used=ctx.tool_calls_used,
+                            error=f"invalid result: {_error_text(invalid)}")
+
+
+# --------------------------------------------------------------------------
+# Entry point
+# --------------------------------------------------------------------------
+
+def run_worker(task: WorkerInput, client: CaseDataClient, llm: Any = None, config: Optional[dict] = None,
+               now: Optional[datetime] = None) -> WorkerResult:
+    """Run one worker task to a ``WorkerResult``. Never raises."""
+    worker = task.worker
+    ctx = ToolContext(client, task, now=now)
+    state: Optional[WorkerState] = None
+    try:
+        if llm is None:
+            from app.llm import get_chat_model
+            llm = get_chat_model()
+        graph = build_worker_graph(worker, TOOLS_FOR[worker], llm, ctx)
+        config = dict(config or {})
+        run_config = {
+            **config,
+            "recursion_limit": 2 * task.max_tool_calls + 6,
+            "run_name": f"{worker}_worker",
+            "tags": [*config.get("tags", []), f"worker:{worker}"],
+            "metadata": {**config.get("metadata", {}), "case_id": task.context.case_id,
+                         "task_id": task.task_id, "worker": worker},
+        }
+        initial: WorkerState = {
+            "messages": [SystemMessage(content=system_prompt(worker)), HumanMessage(content=render_task(task))],
+            "tool_calls_used": 0, "budget_hit": False,
+        }
+        state = graph.invoke(initial, config=run_config)
+        return assemble_result(task, ctx, state)
+    except Exception as error:  # graph, recursion limit, model setup
+        log.exception("%s worker failed on %s", worker, task.task_id)
+        return assemble_result(task, ctx, state, error=f"worker failed: {_error_text(error)}")

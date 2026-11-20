@@ -1,0 +1,184 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Is Juniper & Pine Candle Co. LLC a real, newly formed Colorado LLC, and are the Not Issued EIN and missing commercial record consistent with that?",
+    "focus_fields": [
+      "entity_status",
+      "formation_date",
+      "formed_days_before_review",
+      "tin_match_result",
+      "commercial_match",
+      "kyc_result"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "A legitimate brand-new LLC"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "A shell or fabricated entity"
+      }
+    ],
+    "context": {
+      "case_id": "case_4401",
+      "flag_reasons": [
+        "NO_COMMERCIAL_RECORD",
+        "TIN_NOT_ISSUED"
+      ],
+      "application": {
+        "legal_name": "Juniper & Pine Candle Co. LLC",
+        "dba": null,
+        "address": "41 Pearl St, Boulder, CO 80302",
+        "tin_type": "EIN",
+        "tin_last4": "9031",
+        "state": "CO",
+        "state_entity_id": "CO-20261488",
+        "entity_type": "LLC",
+        "formation_date": "2026-11-09",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Avery Collins",
+            "role": "Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Verified",
+          "matched_name": "JUNIPER & PINE CANDLE CO. LLC"
+        },
+        "tin": {
+          "result": "Not Issued"
+        },
+        "commercial_db": {
+          "result": "Not Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_cp575"
+        },
+        {
+          "id": "D2",
+          "type": "articles"
+        },
+        {
+          "id": "D3",
+          "type": "business_license"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://juniperandpine.example",
+          "captured_at": "2026-11-16"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 6,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "What do the CP 575, articles and business license show about when and how the LLC was set up?",
+    "focus_fields": [
+      "formation_date",
+      "date",
+      "status",
+      "ein_last4"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "A legitimate brand-new LLC"
+      }
+    ],
+    "context": {
+      "case_id": "case_4401",
+      "flag_reasons": [
+        "NO_COMMERCIAL_RECORD",
+        "TIN_NOT_ISSUED"
+      ],
+      "application": {
+        "legal_name": "Juniper & Pine Candle Co. LLC",
+        "dba": null,
+        "address": "41 Pearl St, Boulder, CO 80302",
+        "tin_type": "EIN",
+        "tin_last4": "9031",
+        "state": "CO",
+        "state_entity_id": "CO-20261488",
+        "entity_type": "LLC",
+        "formation_date": "2026-11-09",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Avery Collins",
+            "role": "Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Verified",
+          "matched_name": "JUNIPER & PINE CANDLE CO. LLC"
+        },
+        "tin": {
+          "result": "Not Issued"
+        },
+        "commercial_db": {
+          "result": "Not Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_cp575"
+        },
+        {
+          "id": "D2",
+          "type": "articles"
+        },
+        {
+          "id": "D3",
+          "type": "business_license"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://juniperandpine.example",
+          "captured_at": "2026-11-16"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 5,
+    "record_id_start": 1
+  }
+}

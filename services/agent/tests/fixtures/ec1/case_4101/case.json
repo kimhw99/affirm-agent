@@ -1,0 +1,84 @@
+{
+  "case_id": "case_4101",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Smith & Sons Inc.",
+    "dba": null,
+    "address": "88 Elm St, Austin, TX 78701",
+    "tin_type": "EIN",
+    "tin_last4": "2231",
+    "state": "TX",
+    "state_entity_id": "TX-802231",
+    "entity_type": "CORPORATION",
+    "formation_date": "2015-04-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Robert Smith",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "SMITH AND SONS, INCORPORATED"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "confidence": 0.95,
+      "extracted": {
+        "legal_name": "Smith and Sons, Incorporated",
+        "state": "TX",
+        "state_entity_id": "TX-802231",
+        "formation_date": "2015-04-02"
+      }
+    },
+    {
+      "id": "D2",
+      "type": "w9",
+      "confidence": 0.93,
+      "extracted": {
+        "legal_name": "Smith & Sons Inc.",
+        "tin_type": "EIN",
+        "tin_last4": "2231"
+      }
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "SMITH AND SONS INC",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://smithandsons.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Smith & Sons Inc.",
+        "address": "88 Elm Street, Austin, TX 78701"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

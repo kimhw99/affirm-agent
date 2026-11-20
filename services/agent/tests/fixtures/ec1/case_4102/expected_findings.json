@@ -1,0 +1,118 @@
+{
+  "records": [
+    {
+      "tool": "search_dba",
+      "args": {
+        "name": "Bend Street Coffee",
+        "county": "Montgomery"
+      },
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "dba",
+          "value": "BEND STREET COFFEE"
+        },
+        {
+          "field": "registrant",
+          "value": "RIVERBEND COFFEE ROASTERS LLC"
+        },
+        {
+          "field": "registrant_state_entity_id",
+          "value": "OH-4471902"
+        },
+        {
+          "field": "dba_status",
+          "value": "active"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "normalized_equal",
+            "name_field": "R1.registrant"
+          }
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.dba",
+            "label": "normalized_equal",
+            "name_field": "R1.dba"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "search_dba",
+      "args": {
+        "name": "Bend Street Coffee",
+        "county": "Franklin"
+      },
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "dba_match",
+          "value": "none"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "registrant",
+          "value": "Riverbend Coffee Roasters LLC"
+        },
+        {
+          "field": "document_expired",
+          "value": false
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "exact",
+            "name_field": "D1.registrant"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "get_bank_verification",
+      "args": {},
+      "sources": [
+        "B1"
+      ],
+      "expect": [
+        {
+          "field": "account_legal_name",
+          "value": "RIVERBEND COFFEE ROASTERS LLC"
+        },
+        {
+          "field": "account_dba",
+          "value": "BEND STREET COFFEE"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.dba",
+            "label": "normalized_equal",
+            "name_field": "B1.account_dba"
+          }
+        }
+      ]
+    }
+  ]
+}

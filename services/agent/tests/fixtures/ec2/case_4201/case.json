@@ -1,0 +1,88 @@
+{
+  "case_id": "case_4201",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH",
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Bluefin Supply",
+    "dba": null,
+    "address": "1900 Bayshore Dr, Tampa, FL 33606",
+    "tin_type": "EIN",
+    "tin_last4": "5120",
+    "state": "FL",
+    "state_entity_id": "FL-L19000412",
+    "entity_type": "LLC",
+    "formation_date": "2019-01-22",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Tom Harwick",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "confidence": 0.95,
+      "extracted": {
+        "name": "HARWICK MARINE SUPPLY LLC",
+        "ein_last4": "5120",
+        "name_control": "HARW",
+        "address": "1900 Bayshore Dr, Tampa, FL 33606",
+        "date": "2026-10-02"
+      }
+    },
+    {
+      "id": "D2",
+      "type": "w9",
+      "confidence": 0.9,
+      "extracted": {
+        "legal_name": "Harwick Marine Supply LLC",
+        "business_name": "Bluefin Supply",
+        "tin_type": "EIN",
+        "tin_last4": "5120"
+      }
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "HARWICK MARINE SUPPLY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://bluefinsupply.example/legal",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Harwick Marine Supply LLC",
+        "dba": "Bluefin Supply",
+        "address": "1900 Bayshore Dr, Tampa, FL 33606"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -36,7 +36,7 @@ These 10 endpoints are read-only, and only the agent service calls them. `GET /c
 | 5 | `GET /commercial/search` | state + name / address | `search_commercial_db` | R |
 | 6 | `GET /cases/{case_id}/tin-record` | `case_id` | `check_tin_match` | R |
 | 7 | `GET /cases/{case_id}/owner-kyc/{kyc_id}` | `K1` | `get_kyc_result` | K (as given) |
-| 8 | `GET /cases/{case_id}/documents/{doc_id}` | `D1` | `extract_*` document tools | D (as given) |
+| 8 | `GET /cases/{case_id}/documents/{doc_id}` | `D1` | `get_document` | D (as given) |
 | 9 | `GET /cases/{case_id}/bank-verification/{bank_id}` | `B1` | `get_bank_verification` | B (as given) |
 | 10 | `GET /cases/{case_id}/web-snapshots/{web_id}` | `W1` | `get_site_identity` | W (as given) |
 

@@ -1,0 +1,69 @@
+{
+  "case_id": "case_1042",
+  "registry": [
+    {
+      "state": "IL",
+      "state_entity_id": "IL-0458821",
+      "legal_name": "NORTHLINE BICYCLE WORKS, L.L.C.",
+      "former_names": [
+        "HARBOR LIGHT CYCLES LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-05-30",
+      "registered_address": "1450 W Fulton St, Chicago, IL 60607",
+      "officers": [
+        {
+          "name": "Dana Park",
+          "title": "Manager"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "IL-0458821-1",
+          "event_type": "formation",
+          "effective_date": "2023-05-30",
+          "old_value": null,
+          "new_value": "HARBOR LIGHT CYCLES LLC"
+        },
+        {
+          "event_id": "IL-0458821-2",
+          "event_type": "name_change",
+          "effective_date": "2025-03-12",
+          "old_value": "HARBOR LIGHT CYCLES LLC",
+          "new_value": "NORTHLINE BICYCLE WORKS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "IL-AN-2024-0115",
+      "state": "IL",
+      "county": null,
+      "dba": "NORTHLINE CYCLES",
+      "registrant": "HARBOR LIGHT CYCLES LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "IL-0458821",
+      "filed": "2024-01-15",
+      "expires": "2029-01-15",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-88213",
+      "state": "IL",
+      "business_name": "NORTHLINE CYCLES",
+      "address": "1450 W Fulton St, Chicago, IL 60607",
+      "first_seen": "2024-02-01",
+      "last_updated": "2026-09-30"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "4567",
+    "irs_status": "issued",
+    "irs_name": "HARBOR LIGHT CYCLES LLC"
+  }
+}

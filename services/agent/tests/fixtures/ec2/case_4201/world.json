@@ -1,0 +1,60 @@
+{
+  "case_id": "case_4201",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-L19000412",
+      "legal_name": "HARWICK MARINE SUPPLY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-01-22",
+      "registered_address": "1900 Bayshore Dr, Tampa, FL 33606",
+      "officers": [
+        {
+          "name": "Tom Harwick",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-L19000412-1",
+          "event_type": "formation",
+          "effective_date": "2019-01-22",
+          "old_value": null,
+          "new_value": "HARWICK MARINE SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "FL-G21000077",
+      "state": "FL",
+      "county": null,
+      "dba": "BLUEFIN SUPPLY",
+      "registrant": "HARWICK MARINE SUPPLY LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "FL-L19000412",
+      "filed": "2021-06-14",
+      "expires": "2026-12-31",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-50120",
+      "state": "FL",
+      "business_name": "BLUEFIN SUPPLY",
+      "address": "1900 Bayshore Dr, Tampa, FL 33606",
+      "first_seen": "2021-08-01",
+      "last_updated": "2026-09-12"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5120",
+    "irs_status": "issued",
+    "irs_name": "HARWICK MARINE SUPPLY LLC"
+  }
+}

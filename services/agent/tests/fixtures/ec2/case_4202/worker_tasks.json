@@ -1,0 +1,171 @@
+{
+  "records": {
+    "task_id": "t1",
+    "worker": "records",
+    "question": "Does the submitted EIN match 'Stonegate Tile & Stone LLC' or any other name tied to this business?",
+    "focus_fields": [
+      "tin_match_result",
+      "name_control_tested",
+      "former_name"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h1",
+        "text": "The business changed its name and the IRS has the old one"
+      },
+      {
+        "hypothesis_id": "h2",
+        "text": "The EIN belongs to an unrelated business"
+      }
+    ],
+    "context": {
+      "case_id": "case_4202",
+      "flag_reasons": [
+        "TIN_MISMATCH"
+      ],
+      "application": {
+        "legal_name": "Stonegate Tile & Stone LLC",
+        "dba": null,
+        "address": "4410 N 7th St, Phoenix, AZ 85014",
+        "tin_type": "EIN",
+        "tin_last4": "3301",
+        "state": "AZ",
+        "state_entity_id": "AZ-2341987",
+        "entity_type": "LLC",
+        "formation_date": "2019-03-11",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Luis Ortega",
+            "role": "Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Verified",
+          "matched_name": "STONEGATE TILE & STONE LLC"
+        },
+        "tin": {
+          "result": "Mismatch"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_147c"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://stonegatetile.example",
+          "captured_at": "2026-11-08"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 6,
+    "record_id_start": 1
+  },
+  "evidence": {
+    "task_id": "t2",
+    "worker": "evidence",
+    "question": "What do the IRS letter and the W-9 say about the EIN, and how reliable is each?",
+    "focus_fields": [
+      "name",
+      "ein_last4",
+      "name_control",
+      "tin_last4"
+    ],
+    "hypotheses": [
+      {
+        "hypothesis_id": "h2",
+        "text": "The EIN belongs to an unrelated business"
+      }
+    ],
+    "context": {
+      "case_id": "case_4202",
+      "flag_reasons": [
+        "TIN_MISMATCH"
+      ],
+      "application": {
+        "legal_name": "Stonegate Tile & Stone LLC",
+        "dba": null,
+        "address": "4410 N 7th St, Phoenix, AZ 85014",
+        "tin_type": "EIN",
+        "tin_last4": "3301",
+        "state": "AZ",
+        "state_entity_id": "AZ-2341987",
+        "entity_type": "LLC",
+        "formation_date": "2019-03-11",
+        "owners": [
+          {
+            "ref": "owner:P1",
+            "name": "Luis Ortega",
+            "role": "Member"
+          }
+        ]
+      },
+      "checks": {
+        "sos_name": {
+          "result": "Verified",
+          "matched_name": "STONEGATE TILE & STONE LLC"
+        },
+        "tin": {
+          "result": "Mismatch"
+        },
+        "commercial_db": {
+          "result": "Found"
+        }
+      },
+      "documents": [
+        {
+          "id": "D1",
+          "type": "irs_147c"
+        },
+        {
+          "id": "D2",
+          "type": "w9"
+        }
+      ],
+      "bank_verification": {
+        "id": "B1"
+      },
+      "web_snapshot": [
+        {
+          "id": "W1",
+          "url": "https://stonegatetile.example",
+          "captured_at": "2026-11-08"
+        }
+      ],
+      "owner_kyc": [
+        {
+          "id": "K1",
+          "owner_ref": "owner:P1"
+        }
+      ]
+    },
+    "prior_findings": [],
+    "follow_up_of": null,
+    "max_tool_calls": 4,
+    "record_id_start": 1
+  }
+}

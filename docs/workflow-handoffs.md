@@ -116,7 +116,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 
 | Item | Details |
 |---|---|
-| Tasks | Decide which tools to call within the budget: sos_search, sos_get_entity, sos_filing_history, dba_lookup, commercial_db_search, tin_match, get_kyc, normalize_name, name_control. Pin down the legal entity, find which entity owns the DBA, any name changes, and why the TIN doesn't match; answer the lead's questions |
+| Tasks | Decide which tools to call within the budget: search_registry, get_registry_entity, get_filing_history, search_dba, search_commercial_db, check_tin_match, get_kyc_result (name normalization and the IRS name control run inside the tools, in code). Pin down the legal entity, find which entity owns the DBA, any name changes, and why the TIN doesn't match; answer the lead's questions |
 | Input | `WorkerInput`; identifiers (applied name, DBA, address, state entity number, state, formation date, entity type, TIN type and last 4, owner refs, KYC IDs); upstream check result codes. Cannot see: document, bank or website contents; full SSNs or EINs |
 | Output | `WorkerResult`; every finding cites a source with an R or K ID, a locator and a verbatim excerpt |
 | Owner | E. The mock official records (state registry, DBA, filing history, TIN matching, commercial database) are written in each golden case's `world.json` and served by the case service (`docs/case-service-endpoints.md`) |

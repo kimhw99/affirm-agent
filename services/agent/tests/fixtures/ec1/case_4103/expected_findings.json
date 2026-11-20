@@ -1,0 +1,90 @@
+{
+  "records": [
+    {
+      "tool": "search_registry",
+      "args": {
+        "name": "Greenleaf Organics"
+      },
+      "sources": [
+        "R1",
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "legal_name",
+          "value": "GREENLEAF ORGANICS, LLC"
+        },
+        {
+          "field": "legal_name",
+          "value": "GREEN LEAF ORGANIC LLC"
+        },
+        {
+          "field": "entity_status",
+          "value": "dissolved"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "name": "GREEN LEAF ORGANIC LLC",
+            "label": "similar"
+          },
+          "confidence": "medium"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "name": "GREENLEAF ORGANICS, LLC",
+            "label": "normalized_equal"
+          }
+        }
+      ],
+      "absent": [
+        {
+          "field": "name_comparison",
+          "value": {
+            "name": "GREEN LEAF ORGANIC LLC",
+            "label": "normalized_equal"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "get_registry_entity",
+      "args": {},
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "state_entity_id",
+          "value": "OR-1188402"
+        },
+        {
+          "field": "entity_status",
+          "value": "active"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "state_entity_id",
+          "value": "OR-1188402"
+        },
+        {
+          "field": "state_entity_id_matches_application",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "case_id": "case_4202",
+  "registry": [
+    {
+      "state": "AZ",
+      "state_entity_id": "AZ-2341987",
+      "legal_name": "STONEGATE TILE & STONE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-03-11",
+      "registered_address": "4410 N 7th St, Phoenix, AZ 85014",
+      "officers": [
+        {
+          "name": "Luis Ortega",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "AZ-2341987-1",
+          "event_type": "formation",
+          "effective_date": "2019-03-11",
+          "old_value": null,
+          "new_value": "STONEGATE TILE & STONE LLC"
+        }
+      ]
+    },
+    {
+      "state": "AZ",
+      "state_entity_id": "AZ-1100458",
+      "legal_name": "DESERT VIEW AUTO GLASS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2008-07-01",
+      "registered_address": "9020 W Glendale Ave, Glendale, AZ 85305",
+      "officers": [
+        {
+          "name": "Karen Whitlow",
+          "title": "President"
+        }
+      ],
+      "filings": []
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-23419",
+      "state": "AZ",
+      "business_name": "STONEGATE TILE & STONE",
+      "address": "4410 N 7th St, Phoenix, AZ 85014",
+      "first_seen": "2019-05-01",
+      "last_updated": "2026-07-30"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3301",
+    "irs_status": "issued",
+    "irs_name": "DESERT VIEW AUTO GLASS INC"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "case_id": "case_4103",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-0731150",
+      "legal_name": "GREEN LEAF ORGANIC LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "dissolved",
+      "formation_date": "2012-05-21",
+      "registered_address": "300 W 11th Ave, Eugene, OR 97401",
+      "officers": [
+        {
+          "name": "Gary Fenwick",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-0731150-1",
+          "event_type": "formation",
+          "effective_date": "2012-05-21",
+          "old_value": null,
+          "new_value": "GREEN LEAF ORGANIC LLC"
+        },
+        {
+          "event_id": "OR-0731150-2",
+          "event_type": "dissolution",
+          "effective_date": "2019-12-31",
+          "old_value": null,
+          "new_value": null
+        }
+      ]
+    },
+    {
+      "state": "OR",
+      "state_entity_id": "OR-1188402",
+      "legal_name": "GREENLEAF ORGANICS, LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-09-03",
+      "registered_address": "715 SE Ash St, Portland, OR 97214",
+      "officers": [
+        {
+          "name": "Priya Natarajan",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-1188402-1",
+          "event_type": "formation",
+          "effective_date": "2024-09-03",
+          "old_value": null,
+          "new_value": "GREENLEAF ORGANICS, LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-31150",
+      "state": "OR",
+      "business_name": "GREEN LEAF ORGANIC",
+      "address": "300 W 11th Ave, Eugene, OR 97401",
+      "first_seen": "2012-08-01",
+      "last_updated": "2019-12-31"
+    },
+    {
+      "profile_id": "CDB-41188",
+      "state": "OR",
+      "business_name": "GREENLEAF ORGANICS LLC",
+      "address": "715 SE Ash St, Portland, OR 97214",
+      "first_seen": "2024-11-01",
+      "last_updated": "2026-10-20"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8402",
+    "irs_status": "issued",
+    "irs_name": "GREENLEAF ORGANICS LLC"
+  }
+}

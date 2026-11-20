@@ -46,8 +46,8 @@ services/agent/app/
 ├── api/                 # POST /reviews, GET /reviews/{id}, POST /reviews/{id}/decision
 ├── graph/               # State, orchestration, lead nodes, reconcile, checks
 ├── workers/             # Records worker, evidence worker
-├── tools/               # sos_search, dba_lookup, tin_match, etc., plus the world.json loader
-├── clients/             # HTTP client for calling the case service
+├── tools/               # one tool per case-service read endpoint (registry, DBA, TIN match, documents...)
+├── clients/             # case-service client (HTTP) and a fake one over golden-case files
 └── observability/       # LangFuse
 ```
 

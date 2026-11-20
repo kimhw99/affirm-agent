@@ -1,0 +1,129 @@
+{
+  "records": [
+    {
+      "tool": "get_registry_entity",
+      "args": {},
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "formation_date",
+          "value": "2026-11-09"
+        },
+        {
+          "field": "formed_days_before_review",
+          "value": 10
+        },
+        {
+          "field": "entity_status",
+          "value": "active"
+        }
+      ]
+    },
+    {
+      "tool": "get_filing_history",
+      "args": {},
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "filing_history",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Juniper & Pine Candle Co. LLC"
+      },
+      "sources": [
+        "R3"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Not Issued"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "JUNI"
+        }
+      ]
+    },
+    {
+      "tool": "search_commercial_db",
+      "args": {},
+      "sources": [
+        "R4"
+      ],
+      "expect": [
+        {
+          "field": "commercial_match",
+          "value": "none"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "document_age_days",
+          "value": 7
+        },
+        {
+          "field": "name_control_matches_legal_name",
+          "value": true
+        }
+      ]
+    },
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D2"
+      },
+      "sources": [
+        "D2"
+      ],
+      "expect": [
+        {
+          "field": "formation_date",
+          "value": "2026-11-09"
+        },
+        {
+          "field": "formation_date_matches_application",
+          "value": true
+        }
+      ]
+    },
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D3"
+      },
+      "sources": [
+        "D3"
+      ],
+      "expect": [
+        {
+          "field": "status",
+          "value": "pending"
+        },
+        {
+          "field": "holder",
+          "value": "Juniper & Pine Candle Co. LLC"
+        }
+      ]
+    }
+  ]
+}

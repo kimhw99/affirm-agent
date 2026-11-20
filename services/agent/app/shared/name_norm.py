@@ -200,9 +200,10 @@ def best_comparison(a: str, b: str) -> NameComparison:
 
 
 def _get_dba_name(record: Any) -> Optional[str]:
+    """The trade name of a DBA record: ``dba`` (``DbaFiling``) or ``dba_name`` (older dicts)."""
     if isinstance(record, Mapping):
-        return record.get("dba_name")
-    return getattr(record, "dba_name", None)
+        return record.get("dba") or record.get("dba_name")
+    return getattr(record, "dba", None) or getattr(record, "dba_name", None)
 
 
 def match_dba(
@@ -210,7 +211,7 @@ def match_dba(
     dba_records: Iterable[Any],
     min_label: CompareLabel = "normalized_equal",
 ) -> list[Any]:
-    """Return the DBA records (dicts or objects with ``dba_name``) whose name matches.
+    """Return the DBA records (dicts or objects with ``dba`` or ``dba_name``) whose name matches.
 
     ``name`` may embed a trade name ("Mark Hemlock dba Sunshine Cafe"); both
     parts are tried.
@@ -234,7 +235,7 @@ def _name_control_chars(text: str) -> str:
 
 
 def _individual_last_name(name: str) -> str:
-    name = _ascii_fold(name).strip()
+    name = _ascii_fold(split_dba(name)[0]).strip()  # "Mark Hemlock dba Sunshine Cafe" -> "Mark Hemlock"
     if "," in name:  # "Hemlock, Mark" or "Hemlock, Mark Jr"
         return name.split(",", 1)[0]
     words = [w for w in re.split(r"\s+", name) if w]

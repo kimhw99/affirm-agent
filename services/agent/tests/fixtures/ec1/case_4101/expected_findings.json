@@ -1,0 +1,128 @@
+{
+  "records": [
+    {
+      "tool": "get_registry_entity",
+      "args": {},
+      "sources": [
+        "R1"
+      ],
+      "expect": [
+        {
+          "field": "legal_name",
+          "value": "SMITH AND SONS, INCORPORATED"
+        },
+        {
+          "field": "entity_status",
+          "value": "active"
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "normalized_equal"
+          }
+        }
+      ],
+      "absent": [
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "similar"
+          }
+        },
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "different"
+          }
+        }
+      ]
+    },
+    {
+      "tool": "check_tin_match",
+      "args": {
+        "name": "Smith & Sons Inc."
+      },
+      "sources": [
+        "R2"
+      ],
+      "expect": [
+        {
+          "field": "tin_match_result",
+          "value": "Match"
+        },
+        {
+          "field": "name_control_tested",
+          "value": "SMIT"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D1"
+      },
+      "sources": [
+        "D1"
+      ],
+      "expect": [
+        {
+          "field": "name_comparison",
+          "value": {
+            "against": "application.legal_name",
+            "label": "normalized_equal",
+            "name_field": "D1.legal_name"
+          }
+        },
+        {
+          "field": "state_entity_id_matches_application",
+          "value": true
+        },
+        {
+          "field": "formation_date_matches_application",
+          "value": true
+        }
+      ]
+    },
+    {
+      "tool": "get_document",
+      "args": {
+        "doc_id": "D2"
+      },
+      "sources": [
+        "D2"
+      ],
+      "expect": [
+        {
+          "field": "tin_last4_matches_application",
+          "value": true
+        },
+        {
+          "field": "tin_type_matches_application",
+          "value": true
+        }
+      ]
+    },
+    {
+      "tool": "get_site_identity",
+      "args": {},
+      "sources": [
+        "W1"
+      ],
+      "expect": [
+        {
+          "field": "address_matches_application",
+          "value": true
+        },
+        {
+          "field": "injection_suspected",
+          "value": false
+        }
+      ]
+    }
+  ]
+}
