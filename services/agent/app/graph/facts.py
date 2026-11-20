@@ -1,36 +1,24 @@
 """A read-only index over the workers' findings, used by reconcile and the guardrails.
 
-Workers report findings with a ``field`` name (``worker_io.Finding.field``). Each
-logical fact below lists the field names it accepts: first the names the BEAC-7
-workers' tools write (``app/tools``), then older spellings kept for compatibility.
-Evidence is also told apart by *where* it came from (the source kind: an R record's
-``source_type``, or the case document type for a D ID).
+Workers report findings with a free-form ``field`` name (``worker_io.Finding.field``).
+The Lead never trusts a single spelling: each logical fact below lists the field
+names it accepts, and evidence is also told apart by *where* it came from (the
+source kind: an R record's ``source_type``, or the case document type for a D ID).
 
-What the BEAC-7 Records worker writes, and how the Lead reads it
-    get_registry_entity / search_registry -> legal_name, entity_status, state_entity_id,
-        formation_date, former_names (a list), officer_name; one R source per entity.
-        A search can return look-alike entities, so registry facts are split by entity:
-        the applicant's entity (its state_entity_id, or the closest name) feeds the
-        registry checks; any other entity is a "separate entity", never the applicant.
-        Nothing found -> registry_match "none" / registry_entity "not_found".
-    get_filing_history -> filing_event, former_name (one per name change)
-    search_dba -> dba, registrant, registrant_state_entity_id, dba_status
-    check_tin_match -> tin_match_result ("Match" | "Mismatch" | "Not Issued" |
-        "Not Found"); the name tested is in the R source's locator ("... name=<name>")
-        and in the name_control_tested finding's note. name_control_tested is the
-        control of the *tested* name, not the IRS's, so it isn't irs_name_control.
-    get_kyc_result -> kyc_result (subject owner:Pn)
+Field names the Lead looks for (handoff to the workers, BEAC-4):
 
-What the BEAC-7 Evidence worker writes
-    get_document -> each extracted field under its own name (name, legal_name,
-        business_name, holder, dba, registrant, ein_last4, name_control, date, status,
-        formation_date, ...), plus derived checks and injection_suspected
-    get_bank_verification -> account_holder, bank_status, account_legal_name, account_dba
-    get_site_identity -> website_legal_name, website_dba, website_address,
-        injection_suspected (true or false)
+Records worker (R and K sources)
+    legal_name, entity_status, state_entity_id, formation_date, former_name,
+    name_change ({"old_name", "new_name", "date"}), dba_name, dba_owner,
+    tin_match (a result string, an IRS code, or {"result", "name_tested"}),
+    irs_name_control, kyc_result, registry_found, pending_filing,
+    separate_entity ({"name", "state_entity_id"} for an unrelated company)
 
-A W-9's business_name is line 2 ("business name / disregarded entity name"), i.e. a
-trade name, so it counts as a DBA, not a legal name.
+Evidence worker (D, B and W sources)
+    name / legal_name / business_name / holder, dba, registrant, ein_last4,
+    name_control, date / issue_date, formation_date, account_holder,
+    bank_status, license_status, tin_type, domain_age_days, document_tampered,
+    suspicious_content
 """
 
 from __future__ import annotations
@@ -39,7 +27,6 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any, Iterable, Optional
 
-from app.shared.name_norm import LABEL_RANK, best_comparison
 from kyb_contracts.case_input import CaseInput
 from kyb_contracts.worker_io import WorkerResult
 
@@ -56,21 +43,14 @@ RECORDS_FIELDS: dict[str, frozenset[str]] = {
     "tin_match": frozenset({"tin_match", "tin_match_result"}),
     "name_control": frozenset({"irs_name_control", "name_control"}),
     "kyc_result": frozenset({"kyc_result", "kyc"}),
-    "registry_found": frozenset({"registry_match", "registry_entity", "registry_found", "entity_found"}),
+    "registry_found": frozenset({"registry_found", "entity_found"}),
     "pending_filing": frozenset({"pending_filing", "pending_filings"}),
     "separate_entity": frozenset({"separate_entity", "ein_owner_entity", "unrelated_entity"}),
-    "name_tested": frozenset({"name_control_tested"}),
-    "dba_owner_entity_id": frozenset({"registrant_state_entity_id"}),
 }
 
-# Facts that describe one registry entity. A search can return several entities; only
-# the applicant's feed these facts, and other entities' legal names become separate_entity.
-ENTITY_FACTS = frozenset({"legal_name", "entity_status", "entity_id", "formation_date", "former_name"})
-_REGISTRY_ENTITY_TYPES = frozenset({"sos_registry"})
-
 EVIDENCE_FIELDS: dict[str, frozenset[str]] = {
-    "name": frozenset({"name", "legal_name", "holder", "website_legal_name", "new_name"}),
-    "dba": frozenset({"dba", "dba_name", "website_dba", "business_name"}),
+    "name": frozenset({"name", "legal_name", "business_name", "holder", "website_legal_name", "new_name"}),
+    "dba": frozenset({"dba", "dba_name", "website_dba"}),
     "registrant": frozenset({"registrant", "dba_owner"}),
     "ein_last4": frozenset({"ein_last4", "tin_last4"}),
     "name_control": frozenset({"name_control", "ein_letter_name_control"}),
@@ -82,7 +62,7 @@ EVIDENCE_FIELDS: dict[str, frozenset[str]] = {
     "tin_type": frozenset({"tin_type"}),
     "domain_age_days": frozenset({"domain_age_days", "domain_age"}),
     "tampered": frozenset({"document_tampered", "tampered", "tamper_signal"}),
-    "suspicious": frozenset({"injection_suspected", "suspicious_content", "instruction_like_text", "suspicious"}),
+    "suspicious": frozenset({"suspicious_content", "instruction_like_text", "suspicious"}),
     "old_name": frozenset({"old_name"}),
 }
 
@@ -158,54 +138,12 @@ class FactIndex:
                     note=f.note,
                     round=round_no,
                 ))
-        self.applicant_entities, self.other_entities = self._split_entities()
-
-    # ----- registry entities -----
-
-    def _split_entities(self) -> tuple[set[str], set[str]]:
-        """R sources that are registry entities: the applicant's, and everyone else's."""
-        entities: dict[str, dict[str, Fact]] = {}
-        for f in self.facts:
-            if f.worker == "records" and f.source_id.startswith("R") \
-                    and self.source_types.get(f.source_id) in _REGISTRY_ENTITY_TYPES \
-                    and f.field in ("legal_name", "state_entity_id", "former_names"):
-                entities.setdefault(f.source_id, {})[f.field] = f
-        if not entities:
-            return set(), set()
-        app = self.case.application
-        wanted_id = (app.state_entity_id or "").strip().upper()
-        if wanted_id:
-            by_id = {sid for sid, d in entities.items()
-                     if "state_entity_id" in d and str(d["state_entity_id"].value).strip().upper() == wanted_id}
-            if by_id:
-                return by_id, set(entities) - by_id
-        # No entity number (or none found by it): the entity whose name is the applied one.
-        names = [n for n in (app.legal_name, app.dba) if n]
-
-        def rank(d: dict[str, Fact]) -> int:
-            cands = [str(d["legal_name"].value)] if "legal_name" in d else []
-            former = d.get("former_names")
-            if former is not None:
-                cands += [str(x) for x in (former.value if isinstance(former.value, list) else [former.value])]
-            return max((LABEL_RANK[best_comparison(c, n).label] for c in cands for n in names), default=0)
-
-        close = {sid for sid, d in entities.items() if rank(d) >= LABEL_RANK["core_equal_suffix_differs"]}
-        return close, set(entities) - close
-
-    def _entity_ok(self, f: Fact) -> bool:
-        return f.source_id not in self.other_entities
 
     # ----- queries -----
 
     def records(self, fact: str, *, subject: Optional[str] = None,
                 kinds: Optional[Iterable[str]] = None) -> list[Fact]:
-        found = self._find("records", RECORDS_FIELDS[fact], subject, kinds)
-        if fact in ENTITY_FACTS:
-            found = [f for f in found if self._entity_ok(f)]
-        if fact == "separate_entity":  # look-alike or unrelated companies the registry returned
-            found += [f for f in self._find("records", RECORDS_FIELDS["legal_name"], subject, kinds)
-                      if f.source_id in self.other_entities]
-        return found
+        return self._find("records", RECORDS_FIELDS[fact], subject, kinds)
 
     def evidence(self, fact: str, *, subject: Optional[str] = None,
                  kinds: Optional[Iterable[str]] = None) -> list[Fact]:

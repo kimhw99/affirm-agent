@@ -25,9 +25,8 @@ from typing import Any, Literal, Optional
 from app.graph.facts import EIN_LETTERS, FactIndex, text
 from app.graph.plan import Plan, case_context
 from app.graph.reconcile import decide, open_required
-from kyb_contracts.case_input import TIN_PATTERN, CaseInput, DocumentType
-from kyb_contracts.memo import DocumentRequest
-from kyb_contracts.review import CheckOutcome, FollowUpRecord
+from kyb_contracts.case_input import TIN_PATTERN, CaseInput
+from kyb_contracts.memo import CheckOutcome, DocumentRequest, FollowUpRecord
 from kyb_contracts.worker_io import Finding, WorkerInput, WorkerResult
 
 MAX_INTERNAL_ROUNDS = 3
@@ -44,74 +43,56 @@ class InternalStep:
 
 @dataclass(frozen=True)
 class MerchantAsk:
-    documents: tuple[DocumentType, ...]   # the first one not already in the case wins
+    documents: tuple[str, ...]   # RequestableDocument values, first one not already in the case wins
     ask: str
-
-
-@dataclass(frozen=True)
-class MerchantRequest:
-    """One document to ask the merchant for, and the check it would settle.
-
-    The memo carries the ``DocumentRequest`` (type, reason); the check goes in the
-    Lead's report (``review.DocumentCheck``)."""
-
-    document_type: DocumentType
-    check_id: str
-    reason: str
-
-    def to_memo(self) -> DocumentRequest:
-        return DocumentRequest(type=self.document_type, reason=self.reason)
 
 
 _REGISTRY_RETRY = InternalStep(
     "records",
     "Search the {state} registry by the DBA '{dba}' and by entity number {entity_id}, "
     "and check for registrations of '{legal_name}' in other states.",
-    ("legal_name", "entity_status", "state_entity_id", "former_names", "former_name", "registry_match"),
+    ("legal_name", "entity_status", "state_entity_id", "former_name"),
 )
 _FILING_HISTORY = InternalStep(
     "records",
     "Read the filing history of entity {entity_id}: is '{other_name}' a former name of it, "
     "or a separate company?",
-    ("former_name", "former_names", "filing_event", "name_change", "separate_entity"),
+    ("former_name", "name_change", "separate_entity"),
 )
 _COUNTY_DBA = InternalStep(
     "records",
     "Search county-level DBA records in {state} for '{dba}' and report the registered owner.",
-    ("dba", "registrant", "registrant_state_entity_id", "dba_name", "dba_owner"),
+    ("dba_name", "dba_owner"),
 )
 _TIN_RETRY = InternalStep(
     "records",
     "Run the TIN match again with the name '{retry_name}' and report the result and the name control.",
-    ("tin_match_result", "name_control_tested", "former_names", "former_name", "tin_match", "irs_name_control"),
+    ("tin_match", "irs_name_control"),
 )
 _PENDING = InternalStep(
     "records",
     "Check the filing history and pending filings in {state} for '{legal_name}'.",
-    ("registry_match", "registry_entity", "filing_history", "formation_date", "entity_status",
-     "registry_found", "pending_filing"),
+    ("registry_found", "pending_filing", "formation_date"),
 )
 _KYC = InternalStep(
     "records",
     "Read the owner KYC result for {owner_ref} and run the TIN match with the owner's name '{owner}'.",
-    ("kyc_result", "tin_match_result", "name_control_tested", "tin_match"),
+    ("kyc_result", "tin_match"),
 )
 _EVIDENCE_EIN = InternalStep(
     "evidence",
     "Re-read the IRS letters (CP 575 / 147C) and the W-9: report the name, EIN last 4, name control and date.",
-    ("name", "ein_last4", "name_control", "date", "tin_type", "tin_last4", "legal_name", "business_name"),
+    ("name", "ein_last4", "name_control", "date", "tin_type"),
 )
 _EVIDENCE_OPERATING = InternalStep(
     "evidence",
     "Report the bank verification status, any business license status, and the website's domain age.",
-    ("bank_status", "account_holder", "status", "holder", "website_legal_name", "license_status",
-     "domain_age_days"),
+    ("bank_status", "license_status", "domain_age_days"),
 )
 _EVIDENCE_NAMES = InternalStep(
     "evidence",
     "Report the exact legal name and DBA each document, the bank account and the website show.",
-    ("legal_name", "name", "holder", "dba", "registrant", "account_holder", "website_legal_name",
-     "website_dba"),
+    ("legal_name", "dba", "registrant", "account_holder"),
 )
 
 PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
@@ -121,9 +102,8 @@ PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
                             MerchantAsk(("articles_of_amendment", "good_standing"),
                                         "Articles of amendment or a good standing certificate showing the current legal name")),
     "EC1.bank_account_holder": ((_REGISTRY_RETRY, _EVIDENCE_NAMES),
-                                MerchantAsk(("dba_certificate", "articles_of_amendment"),
-                                            "The DBA certificate or articles of amendment that tie the bank account "
-                                            "holder's name to the legal entity")),
+                                MerchantAsk(("bank_letter", "dba_certificate"),
+                                            "A bank letter showing the account holder, or the DBA certificate")),
     "EC1.dba_owner": ((_COUNTY_DBA, _FILING_HISTORY),
                       MerchantAsk(("dba_certificate",), "The DBA filing showing the owner")),
     "EC2.tin_match": ((_TIN_RETRY, _FILING_HISTORY),
@@ -139,10 +119,9 @@ PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
     "EC4.sole_prop_owner": ((_KYC,), MerchantAsk(("w9",), "A W-9 in the owner's name with the owner's TIN")),
     "EC4.sole_prop_dba": ((_COUNTY_DBA,), MerchantAsk(("dba_certificate",), "The DBA filing showing the owner")),
     "EC4.operating": ((_EVIDENCE_OPERATING,),
-                      MerchantAsk(("business_license",), "A current business license")),
+                      MerchantAsk(("business_license", "bank_letter"), "A current business license")),
 }
-# Lead-added checks are optional, so they never reach the merchant round.
-_GENERIC = ((_EVIDENCE_NAMES,), MerchantAsk((), "No merchant document for a lead-added check"))
+_GENERIC = ((_EVIDENCE_NAMES,), MerchantAsk(("bank_letter",), "A bank letter showing the account holder"))
 
 
 @dataclass
@@ -305,10 +284,10 @@ def to_record(fu: PendingFollowUp, status_after: str, new_evidence: list[str],
 # ---------- The merchant round ----------
 
 def merchant_requests(case: CaseInput, open_checks: list[CheckOutcome],
-                      drop: frozenset[str] = frozenset()) -> list[MerchantRequest]:
+                      drop: frozenset[str] = frozenset()) -> list[DocumentRequest]:
     """One document per open check, never one the case already has."""
     have = {d.type for d in case.documents}
-    out: list[MerchantRequest] = []
+    out: list[DocumentRequest] = []
     seen: set[str] = set()
     for o in open_checks:
         _, merchant = PLAYBOOK.get(o.check_id, _GENERIC)
@@ -316,12 +295,12 @@ def merchant_requests(case: CaseInput, open_checks: list[CheckOutcome],
         if doc is None or doc in seen:
             continue
         seen.add(doc)
-        out.append(MerchantRequest(document_type=doc, check_id=o.check_id,
+        out.append(DocumentRequest(document_type=doc, check_id=o.check_id,
                                    reason=f"{merchant.ask} would settle {o.check_id} ({o.status})"))
     return out
 
 
-def merchant_record(requests: list[MerchantRequest], outcomes: dict[str, CheckOutcome],
+def merchant_record(requests: list[DocumentRequest], outcomes: dict[str, CheckOutcome],
                     follow_up_number: int, now: datetime) -> Optional[FollowUpRecord]:
     if not requests:
         return None
@@ -346,7 +325,6 @@ __all__ = [
     "PLAYBOOK",
     "InternalStep",
     "MerchantAsk",
-    "MerchantRequest",
     "PendingFollowUp",
     "follow_up_task",
     "has_internal_candidates",

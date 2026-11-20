@@ -84,7 +84,7 @@ class OpenAILeadLLM:
         from langchain_openai import ChatOpenAI  # imported lazily: tests don't need a key
 
         api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPAI_API_KEY")
-        self._llm = ChatOpenAI(model=model or os.getenv("LEAD_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini",
+        self._llm = ChatOpenAI(model=model or os.getenv("LEAD_MODEL", "gpt-4o-mini"),
                                temperature=0, api_key=api_key, timeout=60)
         self._callbacks = callbacks or []
 

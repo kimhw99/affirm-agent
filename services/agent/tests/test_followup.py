@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import pytest
 
 from kyb_contracts.case_input import CaseInput
-from kyb_contracts.review import CheckOutcome
+from kyb_contracts.memo import CheckOutcome
 
 from app.graph.facts import FactIndex
 from app.graph.followup import (

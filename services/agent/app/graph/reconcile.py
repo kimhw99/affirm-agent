@@ -27,7 +27,6 @@ from typing import Any, Callable, Iterable, Optional, Protocol
 
 from app.graph.facts import (
     EIN_LETTERS,
-    RECORDS_FIELDS,
     FORMATION_DOCS,
     NAME_DOCS,
     Fact,
@@ -41,9 +40,7 @@ from app.graph.facts import (
 )
 from app.graph.plan import EIN_LAG_DAYS, REGISTRY_LAG_DAYS, Plan, PlannedCheck
 from app.shared.name_norm import best_comparison, irs_name_control, split_dba
-from kyb_contracts.review import CheckOutcome
-
-RECORDS_NAME_TESTED = RECORDS_FIELDS["name_tested"]
+from kyb_contracts.memo import CheckOutcome
 
 # ---------- Assessment ----------
 
@@ -127,9 +124,6 @@ class TinResult:
     fact: Fact
 
 
-_LOCATOR_NAME = re.compile(r"\bname=(.+)$")
-_NOTE_NAME = re.compile(r"^name tested: (.+)$")
-
 _IRS_CODES = {"0": MATCH, "6": MATCH, "7": MATCH, "8": MATCH,
               "1": "Error", "2": "Not Issued", "3": "Mismatch", "4": "Error", "5": "Error"}
 _QUOTED = re.compile(r"['\"]([^'\"]{2,})['\"]")
@@ -153,32 +147,17 @@ def _norm_result(raw: Any) -> str:
     return "Error"
 
 
-def _name_tested(f: Fact, facts: FactIndex) -> Optional[str]:
-    """The name a TIN match was run with: the value itself, the source's locator
-    ("tin-record:<case> name=<name>"), its name_control_tested note, or a quoted name."""
-    if isinstance(f.value, dict):
-        name = f.value.get("name_tested") or f.value.get("name")
-        if name:
-            return str(name)
-    src = facts.sources.get(f.source_id)
-    m = _LOCATOR_NAME.search(getattr(src, "locator", "") or "")
-    if m:
-        return m.group(1).strip()
-    for g in facts.facts:
-        if g.source_id == f.source_id and g.field in RECORDS_NAME_TESTED and g.note:
-            m = _NOTE_NAME.match(g.note)
-            if m:
-                return m.group(1).strip()
-    m = _QUOTED.search(f.excerpt or "") or _QUOTED.search(f.note or "")
-    return m.group(1) if m else None
-
-
 def tin_results(facts: FactIndex, case) -> list[TinResult]:
     out = []
     for f in facts.records("tin_match"):
         v = f.value
-        result = _norm_result(v.get("result", v.get("code", "")) if isinstance(v, dict) else v)
-        name = _name_tested(f, facts)
+        if isinstance(v, dict):
+            result = _norm_result(v.get("result", v.get("code", "")))
+            name = v.get("name_tested") or v.get("name")
+        else:
+            result = _norm_result(v)
+            m = _QUOTED.search(f.excerpt or "") or _QUOTED.search(f.note or "")
+            name = m.group(1) if m else None
         if not name:
             if f.subject.startswith("owner:"):
                 owner = next((o for o in case.application.owners if o.ref == f.subject), None)
@@ -335,19 +314,15 @@ def cmp_dba_owner(ctx: Ctx, owner_ref_names: Optional[list[str]] = None) -> Asse
     filing = latest(filings)
     owner = text(filing.value)
     records_value = f"{dba}, filed by {owner}"
-    # A DBA filing that names the applicant's entity number belongs to it, whatever name it was filed under.
-    entity_id = (ctx.app.state_entity_id or "").strip().upper()
-    by_number = [f for f in ctx.facts.records("dba_owner_entity_id")
-                 if entity_id and owner_ref_names is None and (text(f.value) or "").strip().upper() == entity_id]
     if not ev:
         return Assessment("GAP", records_value, None, [filing], "low",
                           diff="no merchant evidence ties the DBA to an entity")
     strong, weak = strong_and_weak(ev)
     deciding = strong or weak
     ev_owners = [legal_part(text(f.value)) for f in deciding]
-    owner_ok = any(same_name(owner, n) for n in expected_owners) or bool(by_number)
+    owner_ok = any(same_name(owner, n) for n in expected_owners)
     ev_ok = all(any(same_name(e, n) for n in expected_owners) for e in ev_owners)
-    used = [filing] + by_number[-1:] + name_facts + deciding
+    used = [filing] + name_facts + deciding
     conf = weakest_conf(used)
     if not strong:
         conf = cap_conf(conf, "low")
@@ -503,9 +478,7 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
     pending = ctx.facts.records("pending_filing")
     formation = ctx.facts.evidence("formation_date", kinds=FORMATION_DOCS) + \
         ctx.facts.evidence("date", kinds=FORMATION_DOCS)
-    # Applicant entity facts win over a search that came back empty (the entity may be
-    # found by its number but not by name); look-alike entities never count.
-    found = bool(status_f or reg_name) or (found_f is not None and truthy(found_f.value))
+    found = bool(status_f or reg_name) and not (found_f and not truthy(found_f.value))
     if found:
         status = (text(status_f.value) or "").lower() if status_f else ""
         if status in DEAD:
@@ -514,7 +487,7 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
         used = name_facts + ([status_f] if status_f else []) + formation
         return Assessment("AGREE", f"{reg_name or 'found'}, {status or 'status unknown'}",
                           _ev_value(formation), used, weakest_conf(used, "high"))
-    rec_facts = ([found_f] if found_f and not truthy(found_f.value) else []) + pending
+    rec_facts = ([found_f] if found_f else []) + pending
     records_value = "not found" + (" (pending filing)" if pending else "")
     if ctx.check.expected_absence:
         if is_individual(ctx.case):
@@ -658,10 +631,6 @@ def rule_explainer(check: PlannedCheck, a: Assessment, facts: FactIndex) -> Opti
         name = text(f.value)
         if name and name.upper() in diff_text.upper():
             return Explanation(f"Articles of amendment show '{name}' as the former name", [f.key])
-    if check.check_id == "EC2.tin_match":
-        exp = _registered_name_explains_tin(facts, case)
-        if exp:
-            return exp
     if is_individual(case) and check.check_id in ("EC2.tin_match", "EC2.name_control"):
         owners = owner_names(case)
         hits = [r for r in tin_results(facts, case)
@@ -669,36 +638,6 @@ def rule_explainer(check: PlannedCheck, a: Assessment, facts: FactIndex) -> Opti
         if hits:
             return Explanation("Sole proprietor: the TIN is the owner's and the IRS matches it on the "
                                "owner's name, not the business name", [hits[-1].fact.key])
-    return None
-
-
-def _registered_name_explains_tin(facts: FactIndex, case) -> Optional[Explanation]:
-    """The IRS matches the TIN to the registered legal name of the entity at the submitted
-    entity number, and the applied name is an assumed name (DBA) that entity filed.
-
-    Both links must be official records: without the DBA filing, an applied name that
-    differs from the entity whose EIN was submitted is exactly what EIN misuse looks like.
-    """
-    applied = case.application.legal_name
-    registry = facts.records("legal_name")       # the applicant's entity only
-    if not registry or not case.application.state_entity_id:
-        return None
-    for r in reversed(tin_results(facts, case)):
-        if r.result != MATCH or same_name(r.name_tested, applied):
-            continue
-        reg = [g for g in registry if same_name(r.name_tested, text(g.value))]
-        if not reg:
-            continue
-        dba = [g for g in facts.records("dba_name") if same_name(text(g.value), applied)]
-        owners = [g for g in facts.records("dba_owner") if same_name(text(g.value), text(reg[-1].value))]
-        owners += [g for g in facts.records("dba_owner_entity_id")
-                   if (text(g.value) or "").upper() == case.application.state_entity_id.upper()]
-        if dba and owners:
-            return Explanation(
-                f"The IRS matches the TIN to '{r.name_tested}', the registered legal name of entity "
-                f"{case.application.state_entity_id}; the applied name '{applied}' is an assumed name (DBA) "
-                f"that entity filed",
-                [r.fact.key, reg[-1].key, dba[-1].key, owners[-1].key])
     return None
 
 

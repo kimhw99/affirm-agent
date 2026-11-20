@@ -1,125 +1,175 @@
-"""memo.py: the example validates, the structure rules hold, and the hard rules are left to Checks."""
+"""The memo example validates, and the memo's consistency rules reject bad memos."""
 
+import copy
 import json
 from pathlib import Path
-from typing import get_args
 
 import pytest
 from pydantic import ValidationError
 
 from kyb_contracts.decision import AGREES_WITH
-from kyb_contracts.decision import Recommendation as DecisionRecommendation
-from kyb_contracts.memo import CheckedMemo, CheckResult, Memo, Recommendation
+from kyb_contracts.memo import CheckResult, Memo, ReviewOutput, weakest
 
-EXAMPLE = Path(__file__).resolve().parents[3] / "contracts" / "examples" / "checked_memo.json"
+EXAMPLE = Path(__file__).resolve().parents[3] / "contracts" / "examples" / "review_output_case_1042.json"
 
 
-def _example() -> dict:
+@pytest.fixture
+def data() -> dict:
     return json.loads(EXAMPLE.read_text(encoding="utf-8"))
 
 
-def test_example_validates():
-    checked = CheckedMemo.model_validate(_example())
-    assert checked.check_result.passed
-    assert checked.memo.cited_ids() == set(checked.evidence_index)
+def _memo_error(memo: dict, match: str) -> None:
+    with pytest.raises(ValidationError, match=match):
+        Memo.model_validate(memo)
 
 
-def test_recommendation_moved_here_and_decision_still_uses_it():
-    assert DecisionRecommendation is Recommendation
-    assert set(AGREES_WITH) == set(get_args(Recommendation))
+def test_example_validates_and_round_trips(data):
+    out = ReviewOutput.model_validate(data)
+    assert out.memo.recommendation == "recommend_clear"
+    assert out.memo.cited_ids() == set(out.evidence_index)
+    assert ReviewOutput.model_validate_json(out.model_dump_json()) == out
 
 
-def test_hard_rules_are_left_to_checks():
-    """Official records only: CLEAR_NEEDS_TWO_SOURCES fails in Checks, but the memo is valid."""
-    data = _example()["memo"]
-    data["flags"][0]["evidence"] = ["R3", "R5"]
-    Memo.model_validate(data)
+def test_every_recommendation_has_an_agreement_rule():
+    from typing import get_args
+    from kyb_contracts.memo import Recommendation
+    assert set(get_args(Recommendation)) == set(AGREES_WITH)
 
 
-def test_a_resolved_flag_needs_a_cause_and_evidence():
-    data = _example()["memo"]
-    data["flags"][0]["evidence"] = []
-    with pytest.raises(ValidationError, match="resolved flag needs"):
-        Memo.model_validate(data)
+def test_weakest_confidence():
+    assert weakest(["high", "low", "medium"]) == "low"
+    assert weakest(["high", "high"]) == "high"
 
 
-def test_an_unresolved_flag_may_lack_a_cause():
-    data = _example()["memo"]
-    data["flags"][0].update(status="unresolved", root_cause=None)
-    data["recommendation"] = "insufficient_evidence"
-    Memo.model_validate(data)
+def test_confidence_is_the_weakest_not_an_average(data):
+    memo = data["memo"]
+    memo["confidence"] = "high"          # one required check is medium
+    _memo_error(memo, "weakest required check")
 
 
-def test_each_flag_goes_in_one_place():
-    data = _example()["memo"]
-    data["out_of_scope"].append("TIN_MISMATCH")
-    with pytest.raises(ValidationError, match="one place only"):
-        Memo.model_validate(data)
+def test_hard_fail_forces_escalate(data):
+    memo = data["memo"]
+    memo["checks"][5].update(status="HARD_FAIL", hard_fail_reason="ein_letter_mismatch",
+                             evidence_value="9999")
+    _memo_error(memo, "HARD_FAIL")
+    memo["recommendation"] = "escalate"
+    Memo.model_validate(memo)
 
 
-def test_evidence_ids_must_look_like_evidence_ids():
-    data = _example()["memo"]
-    data["flags"][0]["evidence"].append("X9")
-    with pytest.raises(ValidationError):
-        Memo.model_validate(data)
+def test_hard_fail_needs_a_reason(data):
+    memo = data["memo"]
+    memo["checks"][5]["status"] = "HARD_FAIL"
+    memo["recommendation"] = "escalate"
+    _memo_error(memo, "hard_fail_reason")
 
 
-def test_request_documents_needs_a_document():
-    data = _example()["memo"]
-    data["recommendation"] = "request_documents"
-    with pytest.raises(ValidationError, match="document_request"):
-        Memo.model_validate(data)
-    data["document_request"] = [{"type": "irs_147c", "reason": "Shows the name the IRS has on file for the EIN"}]
-    Memo.model_validate(data)
+def test_explained_without_citation_is_rejected(data):
+    memo = data["memo"]
+    memo["checks"][1]["explanation_evidence"] = []
+    _memo_error(memo, "CONFLICT")
 
 
-def test_an_unknown_recommendation_is_rejected():
-    data = _example()["memo"]
-    data["recommendation"] = "approve"   # a decision, not a recommendation
-    with pytest.raises(ValidationError):
-        Memo.model_validate(data)
+def test_clear_with_an_open_required_check_is_rejected(data):
+    memo = data["memo"]
+    memo["checks"][2]["status"] = "GAP"
+    _memo_error(memo, "AGREE or EXPLAINED")
 
 
-def test_the_failed_check_from_the_walkthrough():
-    result = CheckResult.model_validate({
-        "passed": False,
-        "failures": [{
-            "rule": "CLEAR_NEEDS_TWO_SOURCES", "flag": "DBA_UNVERIFIED", "evidence": ["R3", "R5"],
-            "detail": "Resolved with official records only (R3, R5). Also cite merchant evidence (D, B or W).",
-        }],
+def test_open_optional_check_does_not_block_clear(data):
+    memo = data["memo"]
+    memo["checks"].append({
+        "check_id": "ADD.second_dba", "edge_case": "EC-1", "origin": "lead_added",
+        "description": "The website names a second DBA", "required": False,
+        "status": "GAP", "confidence": "low", "evidence": ["W1"],
     })
-    assert not result.passed
+    assert Memo.model_validate(memo).confidence == "medium"
 
 
-@pytest.mark.parametrize("passed, failures", [
-    (True, [{"rule": "NO_FULL_TAX_ID", "detail": "A full EIN appears in notes_for_analyst"}]),
-    (False, []),
-])
-def test_passed_must_match_the_failures(passed, failures):
-    with pytest.raises(ValidationError, match="passed must be true"):
-        CheckResult.model_validate({"passed": passed, "failures": failures})
+def test_lead_added_checks_use_the_add_prefix(data):
+    memo = data["memo"]
+    memo["checks"][0]["origin"] = "lead_added"
+    _memo_error(memo, "ADD. prefix")
 
 
-def test_index_types_must_fit_their_ids():
-    data = _example()
-    data["evidence_index"]["D1"]["type"] = "website"
-    with pytest.raises(ValidationError, match="don't fit"):
-        CheckedMemo.model_validate(data)
+def test_references_to_unknown_checks_are_rejected(data):
+    memo = data["memo"]
+    memo["flags"][0]["check_ids"].append("EC1.nope")
+    _memo_error(memo, "aren't in checks")
 
 
-def test_the_index_holds_only_cited_ids():
-    data = _example()
-    data["evidence_index"]["K1"] = {"source": "KYC vendor", "type": "owner_kyc", "excerpt": "owner:P1: pass"}
+def test_provisional_clear_needs_recheck_and_expected_absence(data):
+    memo = data["memo"]
+    memo["provisional"] = True
+    _memo_error(memo, "recheck_after")
+    memo.update(recheck_after="2026-12-17", recheck_targets=["registry"])
+    _memo_error(memo, "expected_absence")
+    memo["checks"][0]["expected_absence"] = True
+    Memo.model_validate(memo)
+
+
+def test_request_documents_needs_a_request(data):
+    memo = data["memo"]
+    memo["recommendation"] = "request_documents"
+    _memo_error(memo, "document_request")
+
+
+def test_intake_routes():
+    base = {"case_id": "case_9", "generated_at": "2026-11-19T10:00:00Z", "confidence": "low"}
+    with pytest.raises(ValidationError, match="route_reason"):
+        Memo.model_validate({**base, "route": "human_queue", "recommendation": "insufficient_evidence"})
+    Memo.model_validate({**base, "route": "human_queue", "route_reason": "no in-scope flags",
+                         "recommendation": "insufficient_evidence"})
+    with pytest.raises(ValidationError, match="needs_info recommends"):
+        Memo.model_validate({**base, "route": "needs_info", "route_reason": "EC-2 without a TIN",
+                             "recommendation": "escalate"})
+
+
+def test_out_of_scope_flag_cannot_be_worked(data):
+    memo = data["memo"]
+    memo["flags"][0]["flag"] = "OFAC_POTENTIAL_MATCH"
+    _memo_error(memo, "out of scope")
+
+
+def test_only_one_merchant_follow_up(data):
+    memo = data["memo"]
+    merchant = {
+        "check_id": "EC2.tin_match", "target": "merchant", "round": 1, "ask": "IRS 147C",
+        "reason": "r", "status_before": "CONFLICT", "sent_at": "2026-11-17T15:41:00-06:00",
+    }
+    memo["follow_ups"] += [{**merchant, "follow_up_id": "F2"}, {**merchant, "follow_up_id": "F3"}]
+    _memo_error(memo, "one merchant")
+
+
+def test_internal_follow_up_needs_task_and_result(data):
+    memo = data["memo"]
+    del memo["follow_ups"][0]["task_id"]
+    _memo_error(memo, "task_id")
+
+
+def test_full_tin_is_rejected(data):
+    memo = data["memo"]
+    memo["notes_for_analyst"] = "EIN 00-1234567"
+    _memo_error(memo, "full SSN or EIN")
+
+
+def test_evidence_index_must_match_citations(data):
+    extra = copy.deepcopy(data)
+    extra["evidence_index"]["K1"] = {**extra["evidence_index"]["R2"], "type": "owner_kyc"}
     with pytest.raises(ValidationError, match="doesn't cite"):
-        CheckedMemo.model_validate(data)
+        ReviewOutput.model_validate(extra)
+
+    missing = copy.deepcopy(data)
+    del missing["evidence_index"]["W1"]
+    with pytest.raises(ValidationError, match="CITATION_NOT_FOUND"):
+        ReviewOutput.model_validate(missing)
+    missing["check_result"] = {"passed": False, "attempts": 2, "failures": [
+        {"rule": "CITATION_NOT_FOUND", "detail": "W1 is not in the case"}]}
+    ReviewOutput.model_validate(missing)
 
 
-def test_a_missing_citation_must_fail_the_checks():
-    data = _example()
-    del data["evidence_index"]["W1"]
-    with pytest.raises(ValidationError, match="CITED_ID_MUST_EXIST"):
-        CheckedMemo.model_validate(data)
-    data["check_result"] = {"passed": False, "failures": [
-        {"rule": "CITED_ID_MUST_EXIST", "evidence": ["W1"], "detail": "W1 isn't in the case or the workers' sources"},
-    ]}
-    CheckedMemo.model_validate(data)
+def test_check_result_passed_matches_failures():
+    with pytest.raises(ValidationError, match="no failures"):
+        CheckResult.model_validate({"passed": True, "failures": [
+            {"rule": "FULL_TIN_IN_MEMO", "detail": "x"}]})
+    with pytest.raises(ValidationError, match="no failures"):
+        CheckResult.model_validate({"passed": False})
