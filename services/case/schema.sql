@@ -10,19 +10,20 @@
 -- DecisionRecord. This schema adds keys, references and NOT NULL, plus a check on the
 -- case status, the one value the case service changes itself.
 --
--- Three schemas:
+-- Two schemas:
 --   public   the cases, served as CaseInput (GET /cases/{case_id} and endpoints 7-10),
 --            and the decisions and audit log that step 11 writes
---   mock     the mocked registry, DBA and commercial records from world.json (endpoints 1-5)
---   private  every full TIN and SSN: secrets.json, and the mocked IRS records, which are
---            keyed by full TIN like the real IRS. Endpoint 6 reads the IRS records but
---            returns only tin_type, the last 4 digits, irs_status and irs_name. No
---            response ever contains a full number.
+--   mock     the mocked registry, DBA, commercial and IRS records from world.json
+--            (endpoints 1-6)
+--
+-- No table holds a full TIN or SSN. Like CaseInput and world.json, the tables carry
+-- only a TIN's type and last 4 digits, and owners appear as owner:P1. The full numbers
+-- stay with the existing KYB system; in the golden cases they're in secrets.json,
+-- which the seed script doesn't load.
 --
 -- The endpoint numbers are those in docs/case-service-endpoints.md.
 
 CREATE SCHEMA IF NOT EXISTS mock;
-CREATE SCHEMA IF NOT EXISTS private;
 
 
 -- ---------- Cases (case.json, served as CaseInput) ----------
@@ -36,7 +37,7 @@ CREATE TABLE IF NOT EXISTS cases (
     legal_name       text NOT NULL,
     dba              text,
     address          text NOT NULL,
-    tin_type         text,                                  -- EIN or SSN; the full number is in private.case_tins
+    tin_type         text,                                  -- EIN or SSN; null when no TIN was submitted
     tin_last4        text,
     state            text NOT NULL,
     state_entity_id  text,
@@ -129,9 +130,10 @@ CREATE TABLE IF NOT EXISTS audit_log (                      -- who changed a cas
 CREATE INDEX IF NOT EXISTS audit_log_case_idx ON audit_log (case_id);
 
 
--- ---------- mock: the mocked registry, DBA and commercial records (world.json) ----------
+-- ---------- mock: the mocked registry, DBA, commercial and IRS records (world.json) ----------
 -- Every golden case's world.json goes into these same tables. source_case records which
 -- case a row came from (never returned), so reloading one case replaces only its rows.
+-- The IRS record belongs to one case, so mock.tin_records is keyed by case_id instead.
 
 CREATE TABLE IF NOT EXISTS mock.registry_entities (         -- endpoints 1 and 2
     state               text NOT NULL,
@@ -184,28 +186,15 @@ CREATE TABLE IF NOT EXISTS mock.commercial_profiles (       -- endpoint 5
     source_case    text NOT NULL REFERENCES cases ON DELETE CASCADE
 );
 
-
--- ---------- private: every full TIN and SSN ----------
-
-CREATE TABLE IF NOT EXISTS private.case_tins (              -- secrets.json: the TIN the merchant submitted
-    case_id  text PRIMARY KEY REFERENCES cases ON DELETE CASCADE,
-    tin      text NOT NULL                                  -- full number with dashes, e.g. 00-1234567
-);
-
-CREATE TABLE IF NOT EXISTS private.owner_ssns (             -- secrets.json: each owner's SSN
-    case_id    text NOT NULL,
-    owner_ref  text NOT NULL,
-    ssn        text NOT NULL,
-    PRIMARY KEY (case_id, owner_ref),
-    FOREIGN KEY (case_id, owner_ref) REFERENCES case_owners ON DELETE CASCADE
-);
-
--- world.json's tin_record, stored under the full number from secrets.json. A TIN the
--- IRS doesn't know (irs_status not_found) has no row; endpoint 6 reports not_found
--- when it finds none.
-CREATE TABLE IF NOT EXISTS private.irs_records (            -- endpoint 6
-    tin          text PRIMARY KEY,
-    irs_status   text NOT NULL,                             -- issued or not_issued
-    irs_name     text,                                      -- null unless issued
-    source_case  text NOT NULL REFERENCES cases ON DELETE CASCADE
+-- world.json's tin_record: what the IRS has on file for the TIN the merchant submitted,
+-- as endpoint 6 returns it. tin_type and tin_last4 repeat the case's own
+-- (validate_golden.py checks that they agree), so endpoint 6 reads only this table.
+-- A TIN the IRS doesn't know is a row with irs_status not_found. A case with no TIN
+-- has no row, and endpoint 6 returns 404.
+CREATE TABLE IF NOT EXISTS mock.tin_records (               -- endpoint 6
+    case_id     text PRIMARY KEY REFERENCES cases ON DELETE CASCADE,
+    tin_type    text NOT NULL,
+    tin_last4   text NOT NULL,
+    irs_status  text NOT NULL,                              -- issued, not_issued or not_found
+    irs_name    text                                        -- null unless issued
 );

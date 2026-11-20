@@ -84,7 +84,7 @@ What case-service endpoints 1–6 return ([case-service-endpoints.md](docs/case-
 | `CommercialProfile` | 5 | `profile_id`, `business_name`, `address`, `first_seen`, `last_updated` |
 | `TinRecord` | 6 | `tin_type`, `tin_last4`, `irs_status`, `irs_name` |
 
-The full numbers live only in each golden case's `secrets.json` (`CaseSecrets`, [case_secrets.py](contracts/kyb_contracts/case_secrets.py)); the case service keeps them in private tables and never returns them. How to write a golden case: [data/golden/README.md](data/golden/README.md).
+The full numbers live only in each golden case's `secrets.json` (`CaseSecrets`, [case_secrets.py](contracts/kyb_contracts/case_secrets.py)). Only `scripts/validate_golden.py` reads them: the case service doesn't load `secrets.json`, so `case_db` never holds a full number. How to write a golden case: [data/golden/README.md](data/golden/README.md).
 
 ### Lead and sub-agents: `WorkerInput` / `WorkerResult` ([worker_io.py](contracts/kyb_contracts/worker_io.py))
 

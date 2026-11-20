@@ -11,10 +11,10 @@ One PostgreSQL server holds three databases, one per service. This doc covers wh
 | Database | Account | Service | Holds | Tables created by |
 |---|---|---|---|---|
 | `auth_db` | `auth_svc` | Auth service (XL) | Users, password hashes and roles, for login and the JWT | The auth service (to add, BEAC-14) |
-| `case_db` | `case_svc` | Case service (XL) | The cases, the mocked official and vendor records, the full TINs and SSNs, and the decisions, case statuses and audit log from step 11 | The case service, from `schema.sql` |
+| `case_db` | `case_svc` | Case service (XL) | The cases, the mocked official and vendor records, and the decisions, case statuses and audit log from step 11 | The case service, from `schema.sql` |
 | `agent_db` | `agent_svc` | Agent service (H) | The graph's checkpoints, so a review paused at step 10 survives a restart. The review records (review_id, status) probably go here too; to agree in BEAC-13 | LangGraph's `PostgresSaver.setup()` |
 
-Each database admits only its own account. The agent service has no account on `case_db`: it reads cases and records only through the case service's endpoints, which never return a full TIN or SSN. This is what keeps full numbers away from the model.
+Each database admits only its own account. The agent service has no account on `case_db`: it reads cases and records only through the case service's endpoints, which never return raw OCR or page text. No database holds a full TIN or SSN (see Rules below).
 
 ## Setting up
 
@@ -34,39 +34,35 @@ The case service runs `schema.sql` when it starts. Every statement uses `IF NOT 
 | Schema | Holds | Loaded from |
 |---|---|---|
 | `public` | The cases, served as `CaseInput` (`GET /cases/{case_id}`, endpoints 7–10), and the decisions and audit log | `case.json`; step 11 writes the rest |
-| `mock` | The mocked registry, DBA and commercial records (endpoints 1–5) | `world.json` |
-| `private` | Every full TIN and SSN, and the mocked IRS records, keyed by full TIN like the real IRS (endpoint 6) | `secrets.json`, and `world.json`'s `tin_record` |
+| `mock` | The mocked registry, DBA, commercial and IRS records (endpoints 1–6) | `world.json` |
 
 Every table hangs off `cases`. Each indented line references the one above it, and primary keys are in parentheses:
 
 ```text
 cases (case_id)                                    <- case.json
 ├── case_owners (case_id, owner_ref)
-│   ├── owner_kyc (case_id, kyc_id)                endpoint 7
-│   └── private.owner_ssns (case_id, owner_ref)    <- secrets.json
+│   └── owner_kyc (case_id, kyc_id)                endpoint 7
 ├── documents (case_id, doc_id)                    endpoint 8
 ├── bank_verifications (case_id, bank_id)          endpoint 9
 ├── web_snapshots (case_id, web_id)                endpoint 10
-├── private.case_tins (case_id)                    <- secrets.json
 ├── decisions (review_id)                          step 11
 ├── audit_log (id)                                 step 11
-└── via source_case: every row from world.json     <- world.json
+├── mock.tin_records (case_id)                     endpoint 6 (world.json's tin_record)
+└── via source_case: the rest of world.json        <- world.json
     ├── mock.registry_entities (state, state_entity_id)   endpoints 1, 2
     │   └── mock.registry_filings (event_id)              endpoint 3
     ├── mock.dba_filings (filing_id)                      endpoint 4
-    ├── mock.commercial_profiles (profile_id)             endpoint 5
-    └── private.irs_records (tin)                         endpoint 6
+    └── mock.commercial_profiles (profile_id)             endpoint 5
 ```
 
-Endpoint 6 finds the case's full TIN in `private.case_tins` and looks it up in `private.irs_records`. A TIN the IRS doesn't know has no row, and the endpoint reports `not_found`.
+Endpoint 6 returns the case's row in `mock.tin_records` as a `TinRecord`. The other `mock` tables are searched across all cases, like one real registry; this one is read only by `case_id`, one row per case. A TIN the IRS doesn't know is a row with `irs_status` = `not_found`. A case with no TIN has no row, and endpoint 6 returns 404.
 
 ### Tables and contracts
 
 | Tables | Contract |
 |---|---|
 | `cases`, `case_owners`, `documents`, `bank_verifications`, `web_snapshots`, `owner_kyc` | `CaseInput` (`case_input.py`) |
-| `mock.*`, `private.irs_records` | `World` (`world.py`) |
-| `private.case_tins`, `private.owner_ssns` | `CaseSecrets` (`case_secrets.py`) |
+| `mock.*` | `World` (`world.py`) |
 | `decisions` | `DecisionRecord` (`decision.py`) |
 | `audit_log` | None; only the case service uses it |
 
@@ -76,6 +72,7 @@ The tables aren't a copy of the contracts. A contract describes what crosses a s
 
 - **Values are checked by the contracts, not the database.** The seed script loads only golden cases that pass `scripts/validate_golden.py`, and step 11 saves a validated `DecisionRecord`. The database adds keys, references and `NOT NULL`, plus a check on the case status, the one value the case service changes itself. So most contract changes need no table change: new keys in `extracted`, a new document type, a new flag. A new application field, evidence type or kind of world record does.
 - **Evidence IDs are unique only within a case**, so the keys of those tables start with `case_id`.
-- **Deleting a case deletes all its rows**, including its rows in `mock` and `private`, so one case can be reloaded on its own. A case that has decisions or audit log entries can't be deleted, so its history can't disappear by accident. A full reload empties everything with `TRUNCATE cases CASCADE`.
-- **Never returned by any endpoint**: `documents.raw_text` and `web_snapshots.page_text` (raw merchant text; nothing fills them yet), every `source_case`, and the full numbers in `private`.
+- **Deleting a case deletes all its rows**, including its rows in `mock`, so one case can be reloaded on its own. A case that has decisions or audit log entries can't be deleted, so its history can't disappear by accident. A full reload empties everything with `TRUNCATE cases CASCADE`.
+- **No full TIN or SSN in any table.** The tables hold what `CaseInput` and `world.json` hold: a TIN's type and last 4 digits, and owners as `owner:P1`. The full numbers stay with the existing KYB system; in the golden cases they're in `secrets.json`, which the seed script doesn't load.
+- **Never returned by any endpoint**: `documents.raw_text` and `web_snapshots.page_text` (raw merchant text; nothing fills them yet), and every `source_case`.
 - **All golden cases share the `mock` tables**, like one real registry, so their record IDs must be unique across cases. `validate_golden.py` checks this.

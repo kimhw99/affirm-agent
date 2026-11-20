@@ -82,7 +82,7 @@ What happens after a document request is still to decide: the case either goes b
 - Clearing a flag needs both an official record and independent evidence from the merchant.
 - An EIN that belongs to an unrelated company forces an escalation.
 - A TIN flag can't be cleared while the IRS says the EIN is `Not Issued`.
-- No SSN may appear in a case or a memo. Owners appear as references such as `owner:P1`, and code fills in the real number for TIN matching, so SSNs never reach the model provider.
+- No SSN may appear in a case or a memo. Owners appear as references such as `owner:P1`, and our system never stores the full number (TIN matching uses the case's IRS record, looked up by case ID), so SSNs never reach the model provider.
 - Every evidence ID in the memo must exist in its saved source. Excerpts come from code, never from the model.
 
 **Why multiple agents:**
@@ -151,7 +151,7 @@ We use a golden dataset of about 28 flagged cases, 9–10 written by each team m
 ## 10. What the engineering team builds
 
 - **Auth service and API gateway:** JWT login, roles, and checks on every endpoint.
-- **Case service:** cases, owners' SSNs in a separate table, decisions and the audit log, plus the seed script that loads the golden cases.
+- **Case service:** cases, decisions and the audit log, plus the seed script that loads the golden cases.
 - **Agent service:** the LangGraph workflow (intake, lead, two workers, reconcile, checks and the human-approval interrupt) with saved checkpoints, and the `/reviews` API.
 - **Worker tools and mock records:** read-only tools over the mocked official records.
 - **Review app:** a queue filtered by role, the memo with clickable evidence, and the decision form.

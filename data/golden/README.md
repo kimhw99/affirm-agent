@@ -2,7 +2,7 @@
 
 The test cases for the whole system. Each case holds the case the existing KYB system hands over, the official and vendor records the agent can look up, and the full tax IDs behind them. Everything is made up: no tool in this project calls a real registry, the IRS or a data vendor.
 
-The case service's seed script loads every case into its database, the agent's offline tests read the same files through a fake client, and the evaluation compares the agent's results with each case's expected answer.
+The case service's seed script loads every case's `case.json` and `world.json` into its database (never `secrets.json`), the agent's offline tests read the same two files through a fake client, and the evaluation compares the agent's results with each case's expected answer.
 
 ## Layout
 

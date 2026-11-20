@@ -4,11 +4,11 @@ Holds the numbers that CaseInput and world.json carry only as last 4 digits: the
 TIN the merchant submitted, and each owner's SSN. It sits next to case.json and
 world.json in data/golden/<ec>/<case_id>/.
 
-The case service loads this file into its private tables only. No endpoint returns
-these values, and they never reach the agent or the model. Endpoint 6 (tin-record)
-doesn't use them: it returns the case's tin_record from world.json by case_id.
-They're kept only so a golden case can be checked for consistency (the last 4
-digits of tin must match case.json and world.json).
+The case service doesn't load this file, so these values never reach case_db, the
+agent or the model. Endpoint 6 (tin-record) doesn't use them: it returns the case's
+tin_record from world.json by case_id. They're kept only so a golden case can be
+checked for consistency (the last 4 digits of tin must match case.json and
+world.json).
 
 Every number here is fake. Following the test data convention in
 case_input_guide.md, fake EINs start with 00 and fake SSNs with 000; neither is ever

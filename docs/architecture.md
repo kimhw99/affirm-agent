@@ -26,7 +26,7 @@ flowchart TB
 
     subgraph store["PostgreSQL: one database per service"]
         authdb[("auth_db<br/>users and roles")]
-        casedb[("case_db<br/>cases, mock official records,<br/>full TINs and SSNs (private),<br/>decisions, audit log")]
+        casedb[("case_db<br/>cases, mock official records,<br/>decisions, audit log")]
         agentdb[("agent_db<br/>graph checkpoints")]
     end
 
@@ -53,9 +53,9 @@ flowchart TB
 | Review app | Login, a case queue filtered by role, the memo with clickable evidence IDs, the decision form. Polls the review status | XL |
 | API gateway | The only entry point for the browser. Verifies the JWT and routes `/auth`, `/cases` and `/reviews` to the right service | XL |
 | Auth service | Logs users in and issues JWTs that carry the user's role | XL |
-| Case service | Stores cases and serves them as `CaseInput` (`GET /cases/{case_id}`), plus the read endpoints the workers' tools call (`docs/case-service-endpoints.md`). Keeps full TINs and SSNs in private tables. Saves each decision, the new case status and the audit log in one transaction | XL |
+| Case service | Stores cases and serves them as `CaseInput` (`GET /cases/{case_id}`), plus the read endpoints the workers' tools call (`docs/case-service-endpoints.md`). Never stores a full TIN or SSN. Saves each decision, the new case status and the audit log in one transaction | XL |
 | Agent service | The `/reviews` API (XL) around the LangGraph workflow (H) and the two workers and their tools (E). Starts a review in the background, pauses it for the analyst, and resumes it with the decision | XL + H + E |
-| PostgreSQL | One database per service: `auth_db` (users and roles), `case_db` (cases, mock official records, full TINs and SSNs, decisions, audit log) and `agent_db` (the graph's checkpoints, so a paused review survives a restart). See `docs/database.md` | XL (auth_db, case_db), H (checkpoints) |
+| PostgreSQL | One database per service: `auth_db` (users and roles), `case_db` (cases, mock official records, decisions, audit log) and `agent_db` (the graph's checkpoints, so a paused review survives a restart). See `docs/database.md` | XL (auth_db, case_db), H (checkpoints) |
 | Mock official records | Tables in `case_db` that the Records worker's tools search, through case-service endpoints 1–6, in place of real state, DBA, IRS and commercial sources. Loaded from each golden case's `world.json` | XL (tables and endpoints); everyone writes the records in their golden cases |
 | LangFuse | A trace for every node, LLM call and tool call | H |
 
@@ -88,7 +88,7 @@ flowchart TD
 Who sees what:
 
 - **Lead (steps 3, 7, 8)** sees the case summary, the open flags and the workers' findings. It never sees document or website text, and it writes evidence IDs only, never excerpts.
-- **Records worker (step 4)** sees the application's identifiers (including the TIN's type and last 4 digits) and the existing system's check results, and reads owner KYC by its K ID. `tin_match` takes only a name; code looks up the case's submitted TIN and fills in the real number. It never sees documents, the website, bank data or full SSNs and EINs.
+- **Records worker (step 4)** sees the application's identifiers (including the TIN's type and last 4 digits) and the existing system's check results, and reads owner KYC by its K ID. `tin_match` takes only a name; the tool gets the case's IRS record by case ID and compares the names in code. It never sees documents, the website, bank data or full SSNs and EINs.
 - **Evidence worker (step 5)** fetches the merchant's already-extracted evidence (D, B, W) by ID, plus the applied name and TIN last 4 for comparison. Raw OCR and page text never reach it. It treats every extracted value as the merchant's claim, never as instructions, and it can't call the official-records tools.
 - **Code steps (2, 6 and 9)** are deterministic and unit-tested. Checks (step 9) builds the `evidence_index` from saved sources and enforces the hard rules from the proposal.
 
@@ -138,7 +138,7 @@ Every format that crosses a service or step boundary lives in the shared package
 |---|---|---|
 | `case_input.py` | `CaseInput` and its parts | Case service → intake and both workers |
 | `world.py` | `World` (a golden case's `world.json`), and the records case-service endpoints 1–6 return | Golden cases → case service → Records worker tools |
-| `case_secrets.py` | `CaseSecrets` (a golden case's `secrets.json`): the full TIN and SSNs | Golden cases → case service only |
+| `case_secrets.py` | `CaseSecrets` (a golden case's `secrets.json`): the full TIN and SSNs | Golden cases → `scripts/validate_golden.py` only; the case service doesn't load it |
 | `decision.py` | `DecisionInput`, `DecisionRecord`, `AGREES_WITH`, `STATUS_AFTER` | Review app → agent API → case service; evaluation reads the records |
 | `worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult` | Lead ↔ workers |
 | `memo.py` | `Memo`, `CheckResult`, `evidence_index` (to add) | Agent service → review app |
@@ -178,7 +178,7 @@ Branches, commits and pull requests start with the Jira key of the subtask they 
 
 ## 6. Security boundaries
 
-- **SSNs never reach the model.** Owners appear as references such as `owner:P1`. The real numbers stay in the `private` schema of `case_db`, which the agent service has no account for: it reads only through the case service's endpoints, which never return a full number. `tin_match` takes references and code fills in the values, and `CaseInput` rejects anything shaped like an SSN.
+- **Full SSNs and EINs never reach the model.** Owners appear as references such as `owner:P1`, and the application carries only the TIN's type and last 4 digits. The full numbers stay with the existing KYB system: `case_db` doesn't store them, so no endpoint can return one. `tin_match` takes only a name and compares it with the case's IRS record in code, and `CaseInput` and `World` reject anything shaped like an SSN or EIN.
 - **Merchant-written text stays in one place.** Only the Evidence worker reads document and website text. The lead gets structured findings, and Checks takes excerpts from the saved sources, not from the model.
 - **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body.
 - **Only step 11 changes a case's status**, in the same transaction as the decision record and the audit log entry.

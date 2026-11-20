@@ -11,8 +11,8 @@ Rules for this contract:
   extracted from each document, the bank verification, the website fields and the
   KYC results. The workers parse nothing; they fetch these stored records by ID.
 - Full tax IDs never appear here, neither SSNs nor EINs. The application carries the
-  TIN type and its last 4 digits; owners are referenced as owner:P1. The case
-  service keeps the real numbers in a separate table that the model never sees.
+  TIN type and its last 4 digits; owners are referenced as owner:P1. The full numbers
+  stay with the existing system; the case service doesn't store them either.
 - Raw merchant text (OCR text, page text) stays in case_db and is not part of this
   contract. Extracted values are still the merchant's claims: only the Evidence
   worker reads documents, bank verification and web snapshots.
@@ -135,7 +135,7 @@ class Application(Contract):
     dba: str | None = None
     address: str                                 # the business address the merchant entered
     tin_type: TinType | None = None              # sole proprietors may use the owner's SSN
-    tin_last4: str | None = Field(default=None, pattern=r"^\d{4}$")  # full number stays in case_db
+    tin_last4: str | None = Field(default=None, pattern=r"^\d{4}$")  # full number is never stored
     state: str = Field(pattern=r"^[A-Z]{2}$")
     state_entity_id: str | None = None           # sole proprietors usually have none
     entity_type: EntityType
