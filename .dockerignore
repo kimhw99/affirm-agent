@@ -1,0 +1,7 @@
+# Kept out of every image built from the repo root.
+.git
+.env
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/node_modules

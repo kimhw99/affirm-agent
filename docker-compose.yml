@@ -1,5 +1,5 @@
 # Runs all services together. Copy .env.example to .env and fill it in first.
-# So far it runs the database; each service joins as it gets built.
+# So far it runs the database and the case service; the others join as they get built.
 services:
   db:
     image: postgres:16
@@ -22,6 +22,31 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  case:
+    build:
+      context: .
+      dockerfile: services/case/Dockerfile
+    environment:
+      CASE_DB_HOST: db
+      CASE_DB_PORT: "5432"
+      CASE_DB_PASSWORD: ${CASE_DB_PASSWORD:?set CASE_DB_PASSWORD in .env}
+      CASE_SERVICE_TOKEN: ${CASE_SERVICE_TOKEN:?set CASE_SERVICE_TOKEN in .env}
+    volumes:
+      # For loading the golden cases from inside the container:
+      #   docker compose run --rm case python seed.py
+      - ./data/golden:/repo/data/golden:ro
+    ports:
+      # Published on this machine only; inside Docker Compose it's http://case:8000.
+      - "127.0.0.1:${CASE_HOST_PORT:-8001}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   db-data:

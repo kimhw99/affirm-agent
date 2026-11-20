@@ -1,3 +1,9 @@
-# The seed script (seed.py). The case service's API will add its own.
-psycopg[binary]>=3.1
+# Case service: the API (app/) and the seed script (seed.py)
+fastapi>=0.110
+uvicorn>=0.29
 pydantic>=2.7
+psycopg[binary,pool]>=3.1
+
+# Tests
+pytest>=8.0
+httpx>=0.27

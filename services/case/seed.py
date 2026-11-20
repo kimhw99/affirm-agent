@@ -17,10 +17,15 @@ Usage, from the repo root, once the database is running (docker compose up -d db
     python services/case/seed.py data/golden/ec1    # one edge case's cases
     python services/case/seed.py --reset            # empty case_db, then load
 
-It connects as case_svc to case_db on localhost, at the port docker-compose.yml
-publishes (POSTGRES_HOST_PORT, 55432 by default), with CASE_DB_PASSWORD. Both come
-from the environment or from .env in the repo root. It needs psycopg and pydantic:
-pip install -r services/case/requirements.txt
+It connects as case_svc to case_db with CASE_DB_PASSWORD, at CASE_DB_HOST and
+CASE_DB_PORT. On this machine they default to localhost and the port docker-compose.yml
+publishes (POSTGRES_HOST_PORT, 55432 by default). Settings come from the environment
+or from .env in the repo root. It needs the packages in services/case/requirements.txt.
+
+The case service's container has them, and docker-compose.yml points it at the
+database, so this works without installing anything:
+
+    docker compose run --rm case python seed.py
 """
 
 import argparse
@@ -140,8 +145,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="data/golden (the default), one edge case's folder, or one case folder")
     parser.add_argument("--reset", action="store_true",
                         help="empty every case_db table first, decisions and audit log included")
-    parser.add_argument("--host", default="localhost")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("POSTGRES_HOST_PORT", DEFAULT_PORT)))
+    parser.add_argument("--host", default=os.environ.get("CASE_DB_HOST", "localhost"))
+    parser.add_argument("--port", type=int, default=int(
+        os.environ.get("CASE_DB_PORT") or os.environ.get("POSTGRES_HOST_PORT") or DEFAULT_PORT))
     args = parser.parse_args(argv)
 
     if not args.path.is_dir():
