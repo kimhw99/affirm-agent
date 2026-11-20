@@ -29,16 +29,17 @@ Each database admits only its own account. The agent service has no account on `
 
 If a password is missing, `docker compose` stops with an error that names it.
 
-To start the database and load the golden cases, from the repo root:
+To start the database and the case service, and load the golden cases, from the repo root:
 
 ```bash
-cp .env.example .env                            # then replace each change-me
-docker compose up -d db                         # the first start runs db/init.sql
-pip install -r services/case/requirements.txt
-python services/case/seed.py                    # creates the case_db tables and loads data/golden
+cp .env.example .env                            # then replace each change-me and the XXX token
+docker compose up -d                            # the database's first start runs db/init.sql
+docker compose run --rm case python seed.py     # loads data/golden into case_db
 ```
 
-`seed.py` runs `schema.sql` before loading, and the case service will too when it starts. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. Running `seed.py` again replaces each case's rows; `--reset` empties `case_db` first. To change a table, edit `schema.sql`, delete the database volume with `docker compose down -v` (all three databases), then start the database and run `seed.py` again. The data always comes from `data/golden/`, so nothing is lost.
+The case service is then at `http://localhost:8001` (`CASE_HOST_PORT`); every endpoint except `/health` needs `Authorization: Bearer <CASE_SERVICE_TOKEN>`. To run `seed.py` on this machine instead of in the container: `pip install -r services/case/requirements.txt`, then `python services/case/seed.py`.
+
+Both `seed.py` and the case service run `schema.sql` when they start. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. Running `seed.py` again replaces each case's rows; `--reset` empties `case_db` first. To change a table, edit `schema.sql`, delete the database volume with `docker compose down -v` (all three databases), then start the database and run `seed.py` again. The data always comes from `data/golden/`, so nothing is lost.
 
 ## case_db
 

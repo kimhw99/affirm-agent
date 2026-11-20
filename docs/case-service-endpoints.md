@@ -10,7 +10,7 @@ These 10 endpoints are read-only, and only the agent service calls them. `GET /c
 
 ## Common rules
 
-- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role is read-only and gets only these endpoints plus `GET /cases/{case_id}`.
+- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role is read-only and gets only these endpoints plus `GET /cases/{case_id}`. Until the auth service exists (BEAC-14), the token is a shared secret: both services read `CASE_SERVICE_TOKEN`.
 - **Base URL:** the agent reads it from `CASE_SERVICE_URL`, for example `http://case:8000` inside Docker Compose. These calls go service to service, not through the gateway.
 - **Not found:**
   - An unknown key in a path returns **404**, including an evidence ID that belongs to a different case.
