@@ -64,12 +64,12 @@ Rule: whoever produces the data owns its format; whoever uses it reviews the for
 | `WorkerInput` (aliases `WorkerTask`, and `FollowUp` when `follow_up_of` is set) | task_id, worker, question, focus_fields, hypotheses, context (`CaseContext`: the application, checks and evidence IDs from `CaseInput`), prior_findings, follow_up_of, max_tool_calls, record_id_start | H | E | `contracts/kyb_contracts/worker_io.py` |
 | `WorkerResult` | task_id, case_id, worker, status, findings, sources (each `source_id` is an evidence ID), hypothesis_signals, not_found, unresolved, answer, tool_calls_used, error | E | H | `contracts/kyb_contracts/worker_io.py` |
 | `ReconcileTable` | Per field: records_value, evidence_value, status, evidence_ids | H | H | Proposed here |
-| `Memo` | flags (status, root_cause, evidence), auto_resolved, out_of_scope, ruled_out, recommendation, document_request, notes_for_analyst | H | XL | Proposed here; `memo.py` (to add) |
-| `evidence_index` | For each cited ID: source, type, excerpt, as_of | H (built by code in step 9) | XL | Proposed here; `memo.py` (to add) |
-| `CheckResult` | passed, failures | H | XL | Proposed here; `memo.py` (to add) |
+| `Memo` | case_id, flags (flag, status, root_cause, evidence), auto_resolved, out_of_scope, ruled_out, recommendation, document_request, notes_for_analyst | H | XL | `contracts/kyb_contracts/memo.py` |
+| `evidence_index` | For each cited ID: source, type, excerpt, as_of | H (built by code in step 9) | XL | `contracts/kyb_contracts/memo.py` (`EvidenceEntry`, inside `CheckedMemo`) |
+| `CheckResult` | passed, failures (rule, flag, evidence, detail) | H | XL | `contracts/kyb_contracts/memo.py` |
 | `DecisionInput` / `DecisionRecord` | decision, note, analyst_id, agent_recommendation, overridden, decided_at | XL | H (evaluation) | `contracts/kyb_contracts/decision.py` |
 
-Formats marked *proposed here* aren't in `contracts/` yet. Their field lists come from the Nov 17 walkthrough in section 7 and may differ from their owners' drafts. Once a format is in `contracts/`, the code there is the source of truth, and this table should point to it. The worker formats are now in `worker_io.py`; section 7 still shows the earlier proposal (`WorkerTask`, `RecordsFinding`, `EvidenceFinding`).
+Formats marked *proposed here* aren't in `contracts/` yet. Their field lists come from the Nov 17 walkthrough in section 7 and may differ from their owners' drafts. Once a format is in `contracts/`, the code there is the source of truth, and this table should point to it. The worker formats are now in `worker_io.py`; section 7 still shows the earlier proposal (`WorkerTask`, `RecordsFinding`, `EvidenceFinding`). The memo formats are now in `memo.py`.
 
 **Evidence IDs:**
 
@@ -166,7 +166,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 |---|---|
 | Tasks | For each flag, write the outcome (resolved / unresolved / out of scope), the root cause, the causes ruled out, the recommendation, the documents to request and notes for the analyst; cite evidence IDs for every conclusion, IDs only and no excerpts (`evidence_index` is built in step 9). Code copies `auto_resolved` and `out_of_scope` from intake (to confirm) |
 | Input | Both findings, the reconcile table, the follow-up history; plus the `CheckResult` when step 9 sends the memo back |
-| Output | `Memo`. The recommendation is one of four: recommend_clear, request_documents, escalate, insufficient_evidence |
+| Output | `Memo` (`contracts/kyb_contracts/memo.py`). The recommendation is one of four: recommend_clear, request_documents, escalate, insufficient_evidence |
 | Owner | H; XL approves the format |
 | Handoffs | To XL: the `Memo` format (`evidence_index` comes from step 9) |
 | Done when | All structured outputs pass validation |
@@ -177,7 +177,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 |---|---|
 | Tasks | First, build `evidence_index`: look up every ID the memo cites in `CaseInput` and the workers' `WorkerResult.sources` and take its source, type, excerpt and date; an ID that can't be found is a citation error (to confirm). Then check the hard rules, only for flags the lead marked resolved: clearing needs both an official or third-party record (R or K) and merchant evidence (D, B or W); an EIN that belongs to an unrelated company must be escalated; a new company whose EIN is `Not Issued` can't have its TIN flag cleared; no full SSN or EIN may appear in the memo. On failure, send the memo back to the lead once; if it still fails, flag it for the analyst |
 | Input | `Memo`, `CaseInput`, both `WorkerResult`s |
-| Output | `CheckResult`, plus the memo with `evidence_index` attached |
+| Output | `CheckResult`, plus the memo with `evidence_index` attached; together they make a `CheckedMemo` (`memo.py`) |
 | Owner | H (this is the guardrails layer) |
 | Handoffs | To XL: `CheckResult` and `evidence_index`; the UI shows "checks passed" or a warning, and uses `evidence_index` to display citations |
 | Done when | Every hard rule is triggered by at least one golden case |
@@ -242,14 +242,15 @@ Progress on each deliverable is tracked in Jira (subtasks under BEAC-3, BEAC-4 a
 3. Is splitting the golden cases by edge case across the three of us OK?
 4. With the scope narrowed to EC-1/2/4, which roles do we keep?
 5. Deploy to EC2, with a local demo ready as a backup?
-6. `evidence_index` is now built by code in step 9, and the lead writes IDs only (changed while working through the example). Does H agree?
-7. Code copies `auto_resolved` and `out_of_scope` from intake into the memo, and the hard rules only check flags the lead marked resolved. OK?
+6. `evidence_index` is now built by code in step 9, and the lead writes IDs only (changed while working through the example). Does H agree? (`memo.py` assumes so.)
+7. Code copies `auto_resolved` and `out_of_scope` from intake into the memo, and the hard rules only check flags the lead marked resolved. OK? (`memo.py` assumes so.)
 8. How to compute the override rate (see the table in 7.15): XL and H to confirm.
 9. The analyst's decision is spelled `request_docs`, but the recommendation is `request_documents`. Keep both spellings, or use one?
 10. `NAME_UNVERIFIED` vs `ENTITY_NOT_FOUND`: the proposed rule is that a `checks.sos_name` result of Unverified with a `matched_name` means `NAME_UNVERIFIED`, and without one means `ENTITY_NOT_FOUND` (see `contracts/case_input_guide.md`, 6.2). OK?
 11. `TIN_NOT_FOUND` vs `TIN_NOT_ISSUED`: real IRS TIN matching has no separate "not found" result. How do the two labels differ in our cases?
 12. After `docs_requested`, does the case go back to `pending_review`, or is a new case opened?
 13. Worker formats: `contracts/kyb_contracts/worker_io.py` now defines `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult`, built on `CaseInput`'s IDs. H to review `WorkerInput`; section 7 still uses the earlier proposal and needs rewriting to match.
+14. Memo format: `contracts/kyb_contracts/memo.py` is a first draft by XL, from the walkthrough in 7.11–7.13; H owns it and can change any field. Not in it yet, from BEAC-22: a status per check (AGREE / EXPLAINED / GAP / CONFLICT / HARD_FAIL), a confidence, and the follow-up history. H to decide whether the memo needs them, and whether to rename the `CheckRule` codes or the `EvidenceEntry.type` values.
 
 ## 7. Walkthrough example: one case from step 1 to step 11
 
@@ -660,9 +661,9 @@ Checks runs again, everything passes, and the `evidence_index` is attached to th
     "R5": { "source": "IL SoS filing history", "type": "official_record", "excerpt": "2025-03-12 Articles of Amendment: HARBOR LIGHT CYCLES LLC → NORTHLINE BICYCLE WORKS LLC", "as_of": "2026-11-17" },
     "R6": { "source": "IL SoS search", "type": "official_record", "excerpt": "No separate entity named HARBOR LIGHT CYCLES LLC; former name of IL-0458821", "as_of": "2026-11-17" },
     "R7": { "source": "IRS TIN match", "type": "official_record", "excerpt": "EIN + HARBOR LIGHT CYCLES LLC: Match", "as_of": "2026-11-17" },
-    "D1": { "source": "Merchant upload", "type": "merchant_document", "excerpt": "IRS CP 575: HARBOR LIGHT CYCLES LLC, EIN 00-1234567", "as_of": "2023-06-08" },
+    "D1": { "source": "Merchant upload", "type": "merchant_document", "excerpt": "IRS CP 575: HARBOR LIGHT CYCLES LLC, EIN ending 4567", "as_of": "2023-06-08" },
     "B1": { "source": "Bank verification", "type": "bank_verification", "excerpt": "Account holder: NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES (verified)", "as_of": "2026-11-10" },
-    "W1": { "source": "https://northlinecycles.example/terms", "type": "website", "excerpt": "Northline Cycles is a trade name of Northline Bicycle Works LLC.", "as_of": "2026-11-10" }
+    "W1": { "source": "https://northlinecycles.example/terms", "type": "website", "excerpt": "legal_name: Northline Bicycle Works LLC; dba: Northline Cycles", "as_of": "2026-11-10" }
   }
 }
 ```
