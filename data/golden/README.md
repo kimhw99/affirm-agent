@@ -63,5 +63,5 @@ It lists each case as `ok` or with its problems, and exits with 1 if there are a
 
 ## Not decided yet
 
-- **The expected-answer file**: its name and format. The draft is the YAML in `docs/workflow-handoffs.md` 7.18 (expected_decision, must_cite, forbidden_actions). It will sit next to the two files, and the seed script won't load it, so the agent never sees it. Keep answers out of `case.json` and `world.json`.
+- **The expected-answer file**: its name and format. The draft is the YAML in `docs/workflow-handoffs.md` 7.18: expected_decision (a `Recommendation` from [memo.py](../../contracts/kyb_contracts/memo.py)), must_cite and forbidden_actions. It will sit next to the two files, and the seed script won't load it, so the agent never sees it. Keep answers out of `case.json` and `world.json`.
 - **How `NAME_UNVERIFIED` and `ENTITY_NOT_FOUND` differ**: open question 10 in `docs/workflow-handoffs.md`.

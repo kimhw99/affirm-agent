@@ -9,8 +9,8 @@ For a field-by-field walkthrough of `CaseInput` and the KYB background behind it
 | `kyb_contracts/case_input.py` | `CaseInput` and its parts | case service, intake, both workers |
 | `kyb_contracts/world.py` | `World`: a golden case's `world.json`, the mocked registry, DBA, commercial and IRS records. Also what case-service endpoints 1–6 return (`RegistryEntity`, `Filing`, `DbaFiling`, `CommercialProfile`, `TinRecord`) | case service (seed script, endpoints 1–6), Records worker tools, the agent's fake client |
 | `kyb_contracts/decision.py` | `DecisionInput`, `DecisionRecord`, the status each decision leads to (`STATUS_AFTER`) and the override rule (`AGREES_WITH`, `is_override`) | review app, agent API, case service, evaluation |
-| `kyb_contracts/worker_io.py` | Worker input and output (to add) | graph, workers |
-| `kyb_contracts/memo.py` | Memo, the checks result, `evidence_index` (to add; `Recommendation` moves here from `decision.py`) | graph, review app |
+| `kyb_contracts/worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult`, with the `CaseContext`, `Finding` and `Source` inside them | graph, workers |
+| `kyb_contracts/memo.py` | `Memo` (the lead's memo), `CheckResult`, the `evidence_index` entries, `CheckedMemo` (the three together, as the review app shows them) and `Recommendation` | graph (lead, Checks), review app, case service (via `DecisionRecord`) |
 
 ## Rules
 
@@ -33,11 +33,15 @@ After changing a contract, check from the repo root that the examples still vali
 python -c "import json, pathlib; from kyb_contracts import CaseInput; [CaseInput.model_validate(json.loads(p.read_text())) for p in pathlib.Path('contracts/examples/case_input').glob('*.json')]; print('ok')"
 ```
 
+The tests in `services/agent/tests/` check every example and every contract rule. Run them from the repo root with `pytest services/agent/tests` (they need pydantic, pytest and rapidfuzz, as in `services/agent/requirements.txt`).
+
 ## Examples
 
 All data in `examples/` is fictional, and no full SSN or EIN appears in it: `CaseInput` and `World` reject anything that looks like one.
 
 `world/case_1042.json` is the other file of `case_1042`, so the two together show one complete golden case (`case.json` and `world.json` in `data/golden/<ec>/<case_id>/`). How to write one: [data/golden/README.md](../data/golden/README.md).
+
+`checked_memo.json` is `case_1042`'s memo after Checks: the memo, its `evidence_index` and the `check_result`, as the review app gets them.
 
 The sample cases in `case_input/`:
 

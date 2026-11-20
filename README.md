@@ -19,7 +19,7 @@ affirm-agent/
 │   │   ├── case_input.py         # CaseInput
 │   │   ├── world.py              # World (a golden case's world.json); what case-service endpoints 1–6 return
 │   │   ├── worker_io.py          # WorkerInput (aliases WorkerTask, FollowUp), WorkerResult
-│   │   ├── memo.py               # Memo, CheckResult, evidence_index
+│   │   ├── memo.py               # Memo, CheckResult, evidence_index, CheckedMemo; Recommendation
 │   │   └── decision.py           # DecisionInput, DecisionRecord
 │   └── examples/                 # One valid JSON example per format
 ├── services/
@@ -96,4 +96,25 @@ The TIN record carries only the last 4 digits; no file or table in this project 
 
 Trust boundary, enforced by the contract: the Records worker cites only R and K sources; the Evidence worker cites only D, B and W. A worker never recommends approve or deny.
 
-Examples: `contracts/examples/` (`case_input/*.json`, `worker_input_*.json`, `worker_result_records.json`).
+### Agent service and review app: `CheckedMemo` ([memo.py](contracts/kyb_contracts/memo.py))
+
+The lead writes the memo (step 8); Checks (code, step 9) adds the evidence index and its result. Once a review is awaiting the analyst, `GET /reviews/{review_id}` returns the three together.
+
+| Format | Fields |
+|---|---|
+| `Memo` | `case_id`, `flags` (each with `flag`, `status` resolved/unresolved, `root_cause`, `evidence` IDs), `auto_resolved`, `out_of_scope`, `ruled_out` (`cause`, `evidence`), `recommendation`, `document_request` (`type`, `reason`), `notes_for_analyst` |
+| `evidence_index` | For each ID the memo cites: `source`, `type`, `excerpt`, `as_of` (`EvidenceEntry`) |
+| `CheckResult` | `passed`, `failures` (`rule`, `flag`, `evidence`, `detail`) |
+
+`recommendation` is one of `recommend_clear`, `request_documents`, `escalate` and `insufficient_evidence`. The lead writes evidence IDs only; excerpts come from code. Checks, not the model, applies the hard rules, so a memo that breaks one still validates and goes back to the lead once.
+
+### Review app, agent API and case service: `DecisionInput` / `DecisionRecord` ([decision.py](contracts/kyb_contracts/decision.py))
+
+| Format | Fields |
+|---|---|
+| `DecisionInput` | `decision` (`approve`/`request_docs`/`escalate`/`deny`), `note`: the body of `POST /reviews/{review_id}/decision` |
+| `DecisionRecord` | `review_id`, `case_id`, `decision`, `note`, `analyst_id` (from the JWT), `agent_recommendation`, `overridden`, `decided_at`: what the case service saves in step 11 |
+
+`AGREES_WITH` lists the decisions that agree with each recommendation; `is_override` applies it, and evaluation uses `overridden` for the override rate.
+
+Examples: `contracts/examples/` (`case_input/*.json`, `world/`, `worker_input_*.json`, `worker_result_records.json`, `checked_memo.json`).
