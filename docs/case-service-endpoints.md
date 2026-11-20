@@ -10,7 +10,7 @@ These 10 endpoints are read-only, and only the agent service calls them. `GET /c
 
 ## Common rules
 
-- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role gets only these endpoints, `GET /cases/{case_id}`, and one write: `POST /cases/{case_id}/decisions` for step 11 (at the end). Until the auth service exists (BEAC-14), the token is a shared secret: both services read `CASE_SERVICE_TOKEN`.
+- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role gets only these endpoints, `GET /cases/{case_id}`, and one write: `POST /cases/{case_id}/decisions` for step 11 (at the end). For now the token is a shared secret that both services read from `CASE_SERVICE_TOKEN`. The gateway uses it too, for the review app's reads (at the end).
 - **Base URL:** the agent reads it from `CASE_SERVICE_URL`, for example `http://case:8000` inside Docker Compose. These calls go service to service, not through the gateway.
 - **Not found:**
   - An unknown key in a path returns **404**, including an evidence ID that belongs to a different case.
@@ -192,6 +192,14 @@ The agent service calls this once the analyst has decided. The body is the `Deci
 - **404** for an unknown case.
 - **409** if the review already has a different decision, or the case can't take a decision now. Only `pending_review` and `escalated` cases can: an approved or denied case is done, and a `docs_requested` case waits for the merchant's new evidence.
 - **422** if `decision_record.case_id` isn't the path's case, `case_status` isn't the status the decision leads to, or the record is invalid (for example, `overridden` doesn't match `AGREES_WITH`).
+
+### For the review app
+
+The review app calls these through the gateway, which adds the service token ([auth.md](auth.md)):
+
+- `GET /cases?status=pending_review`: the case queue, oldest first. Each row has `case_id`, `status`, `legal_name`, `dba`, `state`, `flag_reasons`, `created_at` and `updated_at`. Without `status` it lists every case; an unknown status is 422.
+- `GET /cases/{case_id}/decisions`: the case's `DecisionRecord`s, oldest first. 404 for an unknown case.
+- `GET /metrics/override-rate`: how often analysts decide against the agent's recommendation (BEAC-20). It returns `decisions`, `overridden` and `rate` (`null` before the first decision), and the same three per recommendation in `by_recommendation`.
 
 ## Seed data
 

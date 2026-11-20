@@ -1,0 +1,60 @@
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { ApiError, request } from "./api.js";
+
+// The session (token, user, expiry) is kept in localStorage, so a reload keeps you logged in.
+export const SESSION_KEY = "kyb-review-session";
+
+const AuthContext = createContext(null);
+
+function loadSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+    return session && session.expiresAt > Date.now() ? session : null;
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [session, setSession] = useState(loadSession);
+
+  const logout = useCallback(() => {
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch {
+      // storage unavailable: the session only lived in memory
+    }
+    setSession(null);
+  }, []);
+
+  const login = useCallback(async (username, password) => {
+    const data = await request("/auth/login", { method: "POST", body: { username, password } });
+    const next = { token: data.access_token, user: data.user, expiresAt: Date.now() + data.expires_in * 1000 };
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    } catch {
+      // storage unavailable: stay logged in until this tab closes
+    }
+    setSession(next);
+  }, []);
+
+  // Calls the API with the session's token. A 401 means the session is over.
+  const call = useCallback(
+    async (path, options = {}) => {
+      try {
+        return await request(path, { ...options, token: session?.token });
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) logout();
+        throw error;
+      }
+    },
+    [session, logout],
+  );
+
+  const value = useMemo(() => ({ user: session?.user ?? null, login, logout, call }), [session, login, logout, call]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

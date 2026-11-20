@@ -1,7 +1,7 @@
 """The API gateway: the only entry point for the browser (docs/auth.md).
 
-It routes /auth to the auth service, /cases to the case service and /reviews to the
-agent service. /auth passes through as it is, since the auth service checks its own
+It routes /auth to the auth service, /cases and /metrics to the case service, and
+/reviews to the agent service. /auth passes through as it is, since the auth service checks its own
 credentials. Every other request needs a JWT from the auth service. The gateway
 verifies it, drops any X-User-* header the client sent, and forwards who is acting as
 X-User-Id and X-User-Role, without the JWT itself. Requests to the case service carry
@@ -41,6 +41,8 @@ ROUTES: dict[str, Route] = {
                   needs_user=False, service_token=False),
     "cases": Route("CASE_SERVICE_URL", "http://case:8000", frozenset({"GET"}),
                    needs_user=True, service_token=True),
+    "metrics": Route("CASE_SERVICE_URL", "http://case:8000", frozenset({"GET"}),
+                     needs_user=True, service_token=True),
     "reviews": Route("AGENT_SERVICE_URL", "http://agent:8000", frozenset({"GET", "POST"}),
                      needs_user=True, service_token=False),
 }

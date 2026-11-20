@@ -2,7 +2,9 @@
 
 GET /cases/{case_id} serves a whole CaseInput, and endpoints 1-10 serve the records
 the agent's workers look up (docs/case-service-endpoints.md). POST
-/cases/{case_id}/decisions saves the analyst's decision (step 11). All of them need
+/cases/{case_id}/decisions saves the analyst's decision (step 11). For the review app,
+GET /cases lists the case queue, GET /cases/{case_id}/decisions a case's decisions, and
+GET /metrics/override-rate how often analysts override the agent. All of them need
 the service token; GET /health doesn't.
 
 Until the auth service issues service JWTs (BEAC-14), the token is a shared secret:
@@ -18,6 +20,7 @@ machine instead, from services/case: uvicorn app.main:app --port 8001
 import os
 import secrets
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Iterator
 
@@ -186,6 +189,63 @@ def save_decision(case_id: str, body: SaveDecision, conn: Conn, response: Respon
     if not created:
         response.status_code = 200  # already saved: a retry
     return SaveDecision(decision_record=record, case_status=status)
+
+
+# ---------- For the review app ----------
+
+class CaseSummary(BaseModel):
+    """One row of the case queue."""
+
+    case_id: str
+    status: CaseStatus
+    legal_name: str
+    dba: str | None
+    state: str
+    flag_reasons: list[str]
+    created_at: datetime
+    updated_at: datetime
+
+
+class RecommendationOverrides(BaseModel):
+    recommendation: str
+    decisions: int
+    overridden: int
+    rate: float | None  # overridden / decisions, or None before the first decision
+
+
+class OverrideRate(BaseModel):
+    """How often analysts decide against the agent's recommendation (BEAC-20)."""
+
+    decisions: int
+    overridden: int
+    rate: float | None
+    by_recommendation: list[RecommendationOverrides]
+
+
+def _rate(part: int, whole: int) -> float | None:
+    return round(part / whole, 4) if whole else None
+
+
+@router.get("/cases", response_model=list[CaseSummary])
+def list_cases(conn: Conn, status: CaseStatus | None = None):
+    """The case queue: every case, or the ones with this status, oldest first."""
+    return store.list_cases(conn, status.value if status else None)
+
+
+@router.get("/cases/{case_id}/decisions", response_model=list[DecisionRecord])
+def list_decisions(case_id: str, conn: Conn):
+    """The case's decisions, oldest first."""
+    return found(store.list_decisions(conn, case_id), "case")
+
+
+@router.get("/metrics/override-rate", response_model=OverrideRate)
+def override_rate(conn: Conn):
+    groups = [RecommendationOverrides(**row, rate=_rate(row["overridden"], row["decisions"]))
+              for row in store.override_counts(conn)]
+    decisions = sum(group.decisions for group in groups)
+    overridden = sum(group.overridden for group in groups)
+    return OverrideRate(decisions=decisions, overridden=overridden, rate=_rate(overridden, decisions),
+                        by_recommendation=groups)
 
 
 app.include_router(router)

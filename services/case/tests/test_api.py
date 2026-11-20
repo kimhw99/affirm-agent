@@ -212,3 +212,54 @@ def test_a_time_without_a_time_zone_counts_as_utc():
     chicago = DecisionRecord.model_validate(_record())
     assert store.same_decision(utc, chicago)
     assert not store.same_decision(utc, DecisionRecord.model_validate(_record(note="Another note.")))
+
+
+# ---------- For the review app ----------
+
+SUMMARY = {"case_id": "case_1042", "status": "pending_review", "legal_name": "NORTHLINE BICYCLE WORKS LLC",
+           "dba": "Northline Cycles", "state": "IL", "flag_reasons": ["NAME_SIMILAR_MATCH", "TIN_MISMATCH"],
+           "created_at": "2026-11-19T10:00:00+00:00", "updated_at": "2026-11-19T10:00:00+00:00"}
+
+
+def test_the_queue_lists_the_cases_with_a_status(client, monkeypatch):
+    calls = []
+    monkeypatch.setattr(store, "list_cases", lambda conn, status=None: calls.append(status) or [SUMMARY])
+    response = client.get("/cases", params={"status": "pending_review"}, headers=AUTH)
+    assert response.status_code == 200
+    assert [row["case_id"] for row in response.json()] == ["case_1042"]
+    assert client.get("/cases", headers=AUTH).status_code == 200
+    assert calls == ["pending_review", None]
+
+
+def test_the_queue_refuses_an_unknown_status(client):
+    assert client.get("/cases", params={"status": "open"}, headers=AUTH).status_code == 422
+
+
+def test_a_cases_decisions(client, monkeypatch):
+    record = DecisionRecord.model_validate(_record())
+    monkeypatch.setattr(store, "list_decisions",
+                        lambda conn, case_id: [record] if case_id == "case_1042" else None)
+    response = client.get("/cases/case_1042/decisions", headers=AUTH)
+    assert response.status_code == 200
+    assert [row["review_id"] for row in response.json()] == ["rv_7f3a"]
+    assert client.get("/cases/case_9999/decisions", headers=AUTH).status_code == 404
+
+
+def test_the_override_rate_adds_up_the_recommendations(client, monkeypatch):
+    monkeypatch.setattr(store, "override_counts", lambda conn: [
+        {"recommendation": "escalate", "decisions": 1, "overridden": 0},
+        {"recommendation": "recommend_clear", "decisions": 3, "overridden": 1}])
+    body = client.get("/metrics/override-rate", headers=AUTH).json()
+    assert (body["decisions"], body["overridden"], body["rate"]) == (4, 1, 0.25)
+    assert [group["rate"] for group in body["by_recommendation"]] == [0.0, 0.3333]
+
+
+def test_without_decisions_there_is_no_override_rate_yet(client, monkeypatch):
+    monkeypatch.setattr(store, "override_counts", lambda conn: [])
+    assert client.get("/metrics/override-rate", headers=AUTH).json() == {
+        "decisions": 0, "overridden": 0, "rate": None, "by_recommendation": []}
+
+
+@pytest.mark.parametrize("path", ["/cases", "/cases/case_1042/decisions", "/metrics/override-rate"])
+def test_the_review_app_endpoints_need_the_token(client, path):
+    assert client.get(path).status_code == 401

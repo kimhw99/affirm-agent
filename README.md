@@ -5,14 +5,14 @@
 ```text
 affirm-agent/
 ├── README.md                     # Overview, how to run, folder guide
-├── docker-compose.yml            # Runs all services together; so far the database and the backend services
+├── docker-compose.yml            # Runs everything: the database, the backend services and the review app
 ├── .env.example                  # Lists every environment variable, no real values
 ├── .gitignore                    # .env, node_modules, pycache
 ├── docs/
 │   ├── proposal/                 # Project proposal
 │   ├── architecture.md           # How the services, the workflow and the data fit together
 │   ├── auth.md                   # Roles, the JWT, and what the gateway lets through
-│   ├── case-service-endpoints.md # The case-service endpoints the agent calls
+│   ├── case-service-endpoints.md # The case service's endpoints, for the agent and the review app
 │   ├── database.md               # The three databases and the case_db tables
 │   └── workflow-handoffs.md      # Workflow steps, owners and handoffs
 ├── contracts/                    # Shared data formats (Pydantic); each producer maintains its own
@@ -29,7 +29,7 @@ affirm-agent/
 │   ├── auth/                     # Login, JWT, roles (auth_db, tables in schema.sql)
 │   ├── case/                     # Cases, decisions, audit log (case_db): API in app/, tables in schema.sql, seed.py loads the golden cases
 │   └── agent/                    # LangGraph workflow and its API; see below
-├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway
+├── frontend/                     # Review app: React + React Router; nginx serves the pages and forwards /api to the gateway (see its README)
 ├── db/init.sql                   # Creates the three databases and their accounts
 ├── data/golden/                  # Golden cases: case.json and world.json per case (see its README)
 │   ├── ec1/                      # EC-1 cases, one folder per case

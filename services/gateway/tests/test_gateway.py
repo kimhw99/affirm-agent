@@ -12,7 +12,8 @@ from app.main import Settings, create_app
 
 SECRET = "test-secret-that-is-long-enough-for-hs256"
 SETTINGS = Settings(jwt_secret=SECRET, service_token="service-token",
-                    urls={"auth": "http://auth", "cases": "http://case", "reviews": "http://agent"})
+                    urls={"auth": "http://auth", "cases": "http://case", "metrics": "http://case",
+                          "reviews": "http://agent"})
 
 
 def auth(role="analyst", expires_in=600, secret=SECRET) -> dict[str, str]:
@@ -64,6 +65,14 @@ def test_cases_get_the_service_token_and_the_query(gateway):
     assert str(request.url) == "http://case/cases?status=escalated"
     assert request.headers["authorization"] == "Bearer service-token"
     assert request.headers["x-user-role"] == "senior_analyst"
+
+
+def test_metrics_go_to_the_case_service_with_the_service_token(gateway):
+    client, seen = gateway
+    client.get("/metrics/override-rate", headers=auth())
+    (request,) = seen
+    assert str(request.url) == "http://case/metrics/override-rate"
+    assert request.headers["authorization"] == "Bearer service-token"
 
 
 @pytest.mark.parametrize("headers, status", [

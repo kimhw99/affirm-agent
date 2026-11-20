@@ -245,3 +245,31 @@ def save_decision(conn, record: DecisionRecord) -> bool:
                       json.dumps({"decision": record.decision, "agent_recommendation": record.agent_recommendation,
                                   "overridden": record.overridden})])
     return True
+
+
+# ---------- For the review app ----------
+
+SUMMARY = "case_id, status, legal_name, dba, state, flag_reasons, created_at, updated_at"
+
+
+def list_cases(conn, status: str | None = None) -> list[dict]:
+    """The case queue: every case, or the ones with this status, oldest first."""
+    if status is None:
+        return _rows(conn, f"SELECT {SUMMARY} FROM cases ORDER BY created_at, case_id")
+    return _rows(conn, f"SELECT {SUMMARY} FROM cases WHERE status = %s ORDER BY created_at, case_id", status)
+
+
+def list_decisions(conn, case_id: str) -> list[DecisionRecord] | None:
+    """The case's decisions, oldest first, or None if there's no such case."""
+    if conn.execute("SELECT 1 FROM cases WHERE case_id = %s", [case_id]).fetchone() is None:
+        return None
+    rows = _rows(conn, f"SELECT {DECISION} FROM decisions WHERE case_id = %s ORDER BY decided_at, review_id",
+                 case_id)
+    return [DecisionRecord.model_validate(row) for row in rows]
+
+
+def override_counts(conn) -> list[dict]:
+    """For each recommendation of the agent: how many decisions there were, and how many overrode it."""
+    return _rows(conn, "SELECT agent_recommendation AS recommendation, count(*) AS decisions, "
+                       "count(*) FILTER (WHERE overridden) AS overridden FROM decisions "
+                       "GROUP BY agent_recommendation ORDER BY agent_recommendation")
