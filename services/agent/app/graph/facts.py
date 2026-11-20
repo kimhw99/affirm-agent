@@ -83,12 +83,12 @@ EVIDENCE_FIELDS: dict[str, frozenset[str]] = {
     "name": frozenset({"name", "legal_name", "holder", "website_legal_name", "new_name"}),
     "dba": frozenset({"dba", "dba_name", "website_dba", "business_name"}),
     "registrant": frozenset({"registrant", "dba_owner"}),
-    "ein_last4": frozenset({"ein_last4", "tin_last4"}),
+    "ein_last4": frozenset({"ein_last4"}),  # EIN letters only; a W-9's tin_last4 may be an SSN's
     "name_control": frozenset({"name_control", "ein_letter_name_control"}),
     "date": frozenset({"date", "issue_date", "issued", "filed", "ein_letter_date"}),
     "formation_date": frozenset({"formation_date"}),
     "account_holder": frozenset({"account_holder", "bank_account_holder"}),
-    "bank_status": frozenset({"bank_status", "status", "verification_status"}),
+    "bank_status": frozenset({"bank_status", "verification_status"}),  # "status" is a document's
     "license_status": frozenset({"license_status", "status"}),
     "tin_type": frozenset({"tin_type"}),
     "suspicious": frozenset({"injection_suspected", "suspicious_content", "instruction_like_text", "suspicious"}),

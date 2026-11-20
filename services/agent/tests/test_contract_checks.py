@@ -84,6 +84,14 @@ def test_a_fact_name_gives_every_field_the_fact_accepts():
     assert worker_fields("evidence", ["legal_name"]) == ["legal_name"]
 
 
+def test_a_fact_gives_back_only_its_own_record_fields():
+    """worker_fields() has no source kind, so a fact must not accept a field another record
+    writes: a document's 'status' isn't the bank's, and a W-9's 'tin_last4' isn't an EIN letter's."""
+    assert worker_fields("evidence", ["bank_status"]) == ["bank_status"]
+    assert worker_fields("evidence", ["ein_last4"]) == ["ein_last4"]
+    assert worker_fields("evidence", ["tin_last4"]) == ["tin_last4"]
+
+
 def test_follow_up_prior_findings_use_tool_field_names(case_1042):
     """A follow-up about 'dba_owner' and 'tin_match' gets back the worker's 'registrant' and
     'tin_match_result' findings (it used to compare the Lead's names with the tools' names)."""
