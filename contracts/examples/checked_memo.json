@@ -1,0 +1,38 @@
+{
+  "memo": {
+    "case_id": "case_1042",
+    "flags": [
+      {
+        "flag": "DBA_UNVERIFIED",
+        "status": "resolved",
+        "root_cause": "The DBA was filed in 2024 under the company's former name, before the 2025 name change",
+        "evidence": ["R3", "R5", "B1", "W1"]
+      },
+      {
+        "flag": "TIN_MISMATCH",
+        "status": "resolved",
+        "root_cause": "The IRS still has the former name, so the TIN match fails on the current name",
+        "evidence": ["R4", "R5", "R7", "D1"]
+      }
+    ],
+    "auto_resolved": ["NAME_SIMILAR_MATCH"],
+    "out_of_scope": ["PRODUCT_CATEGORY_REVIEW"],
+    "ruled_out": [
+      {"cause": "EIN belongs to an unrelated company", "evidence": ["R5", "R6", "R7"]}
+    ],
+    "recommendation": "recommend_clear",
+    "document_request": [],
+    "notes_for_analyst": "Ask the merchant to update its name with the IRS; the TIN match will keep failing on the current name until it does. The agent did not review PRODUCT_CATEGORY_REVIEW."
+  },
+  "evidence_index": {
+    "R3": {"source": "IL DBA records", "type": "official_record", "excerpt": "NORTHLINE CYCLES, filed 2024-01-15 by HARBOR LIGHT CYCLES LLC", "as_of": "2026-11-17"},
+    "R4": {"source": "IRS TIN match", "type": "official_record", "excerpt": "EIN ending 4567 + NORTHLINE BICYCLE WORKS LLC: Mismatch", "as_of": "2026-11-17"},
+    "R5": {"source": "IL SoS filing history", "type": "official_record", "excerpt": "2025-03-12 name change: HARBOR LIGHT CYCLES LLC → NORTHLINE BICYCLE WORKS LLC", "as_of": "2026-11-17"},
+    "R6": {"source": "IL SoS search", "type": "official_record", "excerpt": "No separate entity named HARBOR LIGHT CYCLES LLC; former name of IL-0458821", "as_of": "2026-11-17"},
+    "R7": {"source": "IRS TIN match", "type": "official_record", "excerpt": "EIN ending 4567 + HARBOR LIGHT CYCLES LLC: Match", "as_of": "2026-11-17"},
+    "D1": {"source": "Merchant upload", "type": "merchant_document", "excerpt": "IRS CP 575: HARBOR LIGHT CYCLES LLC, EIN ending 4567", "as_of": "2023-06-08"},
+    "B1": {"source": "Bank verification", "type": "bank_verification", "excerpt": "Account holder: NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES (verified)", "as_of": "2026-11-10"},
+    "W1": {"source": "https://northlinecycles.example/terms", "type": "website", "excerpt": "legal_name: Northline Bicycle Works LLC; dba: Northline Cycles", "as_of": "2026-11-10"}
+  },
+  "check_result": {"passed": true, "failures": []}
+}

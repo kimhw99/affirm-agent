@@ -7,8 +7,9 @@ from langgraph.types import Command
 
 from conftest import NOW, TODAY
 from fakes import (
-    Rec,
     ScriptedWorker,
+    bank,
+    document,
     evidence_1042,
     evidence_2001,
     evidence_3001,
@@ -16,8 +17,12 @@ from fakes import (
     records_1042,
     records_2001,
     records_3001,
+    registry_none,
+    tin_match,
+    website,
 )
-from kyb_contracts.memo import ReviewOutput
+from kyb_contracts.memo import CheckedMemo
+from kyb_contracts.review import ReviewOutput
 
 from app.graph.followup import MAX_INTERNAL_ROUNDS
 from app.graph.llm import ExplainOut, NullLeadLLM
@@ -37,28 +42,37 @@ def _review(raw, records, evidence, llm=None, thread="t1"):
     graph = build_graph(deps)
     cfg = {"configurable": {"thread_id": thread}}
     state = graph.invoke({"review_id": "rv_test", "raw_case": raw}, cfg)
-    out = ReviewOutput.model_validate(state["review_output"])     # the contract holds
+    out = ReviewOutput.model_validate(state["review_output"])     # the contracts hold
+    if out.checked_memo is not None:                              # memo.py's own object, unchanged
+        CheckedMemo.model_validate(state["review_output"]["checked_memo"])
     return graph, cfg, state, out, sink, deps
+
+
+def _status(out):
+    return {c.check_id: c.status for c in out.lead.checks}
 
 
 def test_case_1042_clears_after_internal_follow_ups(case_1042):
     graph, cfg, state, out, sink, deps = _review(case_1042, records_1042, evidence_1042)
-    memo = out.memo
+    memo, lead = out.memo, out.lead
     assert memo.recommendation == "recommend_clear"
-    assert out.check_result.passed
-    assert {c.check_id: c.status for c in memo.checks}["EC1.dba_owner"] == "EXPLAINED"
-    assert {c.check_id: c.status for c in memo.checks}["EC2.tin_match"] == "EXPLAINED"
+    assert out.passed and out.checked_memo.check_result.passed
+    assert _status(out)["EC1.dba_owner"] == "EXPLAINED"
+    assert _status(out)["EC2.tin_match"] == "EXPLAINED"
     assert memo.auto_resolved == ["NAME_SIMILAR_MATCH"] and memo.out_of_scope == ["PRODUCT_CATEGORY_REVIEW"]
     assert all(f.status == "resolved" for f in memo.flags)
+    # Each flag's checks are in the report.
+    assert {f.flag: f.check_ids for f in lead.flag_checks}["TIN_MISMATCH"][0] == "EC2.tin_match"
     # Internal follow-ups only; never more than the round limit; no merchant round.
-    assert memo.follow_ups and all(f.target == "records" for f in memo.follow_ups)
-    assert max(f.round for f in memo.follow_ups) <= MAX_INTERNAL_ROUNDS
+    assert lead.follow_ups and all(f.target == "records" for f in lead.follow_ups)
+    assert max(f.round for f in lead.follow_ups) <= MAX_INTERNAL_ROUNDS
     # Follow-up tasks went only to the affected worker.
     assert len(deps.evidence_worker.calls) == 1
     assert all(c.follow_up_of == "case_1042-records-1" for c in deps.records_worker.calls[1:])
-    # Every cited ID is in the evidence index, built by code.
-    assert set(out.evidence_index) == memo.cited_ids()
-    assert memo.confidence == min((c.confidence for c in memo.checks if c.required),
+    # Every ID the memo cites is in the evidence index, built by code; the report's extra IDs too.
+    assert set(out.checked_memo.evidence_index) == memo.cited_ids()
+    assert set(out.report_evidence_index) == lead.cited_ids() - memo.cited_ids()
+    assert lead.confidence == min((c.confidence for c in lead.checks if c.required),
                                   key=["low", "medium", "high"].index)
 
     # The analyst approves; the result goes back to the backend.
@@ -72,17 +86,16 @@ def test_case_1042_clears_after_internal_follow_ups(case_1042):
 def test_case_3001_ein_of_unrelated_company_escalates(case_3001):
     *_, out, sink, _ = _review(case_3001, records_3001, evidence_3001)
     assert out.memo.recommendation == "escalate"
-    tin = next(c for c in out.memo.checks if c.check_id == "EC2.tin_match")
-    assert tin.hard_fail_reason == "ein_belongs_to_other_entity"
+    assert out.lead.check("EC2.tin_match").hard_fail_reason == "ein_belongs_to_other_entity"
 
 
 def test_case_2001_sole_proprietor_clears_without_provisional(case_2001):
     *_, out, _, _ = _review(case_2001, records_2001, evidence_2001)
-    memo = out.memo
-    assert memo.recommendation == "recommend_clear", [(c.check_id, c.status) for c in memo.checks]
-    reg = next(c for c in memo.checks if c.check_id == "EC4.registry_presence")
+    assert out.memo.recommendation == "recommend_clear", _status(out)
+    reg = out.lead.check("EC4.registry_presence")
     assert reg.status == "EXPLAINED" and reg.expected_absence
-    assert memo.provisional is False                      # nothing to re-check for a sole proprietor
+    assert out.lead.provisional is False                  # nothing to re-check for a sole proprietor
+    assert [r.cause for r in out.memo.ruled_out] == ["The SSN belongs to someone other than the owner"]
 
 
 def test_new_llc_gets_a_provisional_clear(case_3001):
@@ -93,51 +106,66 @@ def test_new_llc_gets_a_provisional_clear(case_3001):
     case_3001["application"]["formation_date"] = formed
 
     def records(task):
-        return [Rec("sos_registry", [("registry_found", False, "no OH entity yet")]), kyc()]
+        return [registry_none("Maple Ridge Coffee Roasters LLC", state="OH"), kyc()]
 
     def evidence(task):
         if task.follow_up_of:
             return []
-        return [Rec("articles", [("formation_date", formed, f"filed {formed}")], source_id="D1", authority="merchant"),
-                Rec("bank_verification", [("account_holder", "MAPLE RIDGE COFFEE ROASTERS LLC", "h"),
-                                          ("bank_status", "verified", "v")], source_id="B1", authority="third_party"),
-                Rec("website", [("legal_name", "Maple Ridge Coffee Roasters", "n")], source_id="W1",
-                    authority="merchant", confidence="low")]
+        return [document("D1", "articles", legal_name="Maple Ridge Coffee Roasters LLC", formation_date=formed),
+                bank("MAPLE RIDGE COFFEE ROASTERS LLC"),
+                website(legal_name="Maple Ridge Coffee Roasters")]
 
     *_, out, _, _ = _review(case_3001, records, evidence)
-    memo = out.memo
-    assert memo.recommendation == "recommend_clear"
-    assert memo.provisional and memo.recheck_targets == ["registry"]
-    assert memo.recheck_after == TODAY + timedelta(days=30)
+    assert out.memo.recommendation == "recommend_clear"
+    assert out.lead.provisional and out.lead.recheck_targets == ["registry"]
+    assert out.lead.recheck_after == TODAY + timedelta(days=30)
 
 
 def test_conflict_that_never_resolves_ends_in_a_merchant_request(case_1042):
     def records(task):  # the IRS never matches, and nothing explains the DBA owner
         return records_1042(task) if task.follow_up_of is None else [
-            Rec("irs_tin_match", [("tin_match", "3", "code 3 ('NORTHLINE BICYCLE WORKS LLC')")])]
+            tin_match("case_1042", "NORTHLINE BICYCLE WORKS LLC", "Mismatch")]
 
     graph, cfg, state, out, _, deps = _review(case_1042, records, evidence_1042)
     memo = out.memo
     assert memo.recommendation == "request_documents"
     assert state["internal_rounds"] <= MAX_INTERNAL_ROUNDS
-    merchant = [f for f in memo.follow_ups if f.target == "merchant"]
+    merchant = [f for f in out.lead.follow_ups if f.target == "merchant"]
     assert len(merchant) == 1
-    assert {r.document_type for r in memo.document_request} >= {"dba_certificate", "irs_147c"}
+    assert {r.type for r in memo.document_request} >= {"dba_certificate", "irs_147c"}
+    # The report says which check each requested document would settle.
+    assert {d.type: d.check_id for d in out.lead.document_checks}["dba_certificate"] == "EC1.dba_owner"
+    # ...and only open checks get a merchant request (never one that already passes).
+    assert all(out.lead.check(d.check_id).status not in ("AGREE", "EXPLAINED") for d in out.lead.document_checks)
 
 
-def test_no_flags_goes_to_the_human_queue(case_1042):
+def test_out_of_scope_flags_only_go_to_the_human_queue(case_1042):
     case_1042["flag_reasons"] = ["OFAC_POTENTIAL_MATCH"]
     *_, out, _, deps = _review(case_1042, records_1042, evidence_1042)
-    assert out.memo.route == "human_queue" and out.memo.recommendation == "insufficient_evidence"
+    assert out.lead.route == "human_queue" and out.memo.recommendation == "insufficient_evidence"
+    assert out.memo.out_of_scope == ["OFAC_POTENTIAL_MATCH"]
     assert deps.records_worker.calls == [] and deps.evidence_worker.calls == []
+
+
+def test_no_flags_goes_to_the_human_queue_without_a_memo(case_1042):
+    """memo.Memo must name a flag, so there is only the report, with the reason."""
+    case_1042["flag_reasons"] = []
+    graph, cfg, state, out, sink, deps = _review(case_1042, records_1042, evidence_1042)
+    assert out.checked_memo is None and out.recommendation == "insufficient_evidence"
+    assert out.lead.route == "human_queue" and out.lead.route_reason == "no flags on the case"
+    final = graph.invoke(Command(resume={"decision": "escalate", "note": "", "analyst_id": "u_7"}), cfg)
+    assert final["status"] == "done"
+    assert sink[0]["decision_record"]["agent_recommendation"] == "insufficient_evidence"
+    assert sink[0]["decision_record"]["overridden"] is False
 
 
 def test_missing_inputs_go_to_needs_info(case_3001):
     case_3001["application"].update(tin_type=None, tin_last4=None)
     case_3001["documents"] = []
     *_, out, _, deps = _review(case_3001, records_3001, evidence_3001)
-    assert out.memo.route == "needs_info" and out.memo.recommendation == "request_documents"
-    assert out.memo.document_request[0].document_type == "irs_147c"
+    assert out.lead.route == "needs_info" and out.memo.recommendation == "request_documents"
+    assert out.memo.document_request[0].type == "irs_147c"
+    assert out.lead.document_checks[0].check_id == "EC2.ein_letter_matches"
     assert deps.records_worker.calls == []
 
 
@@ -174,10 +202,10 @@ def test_llm_cannot_explain_without_real_citations(case_1042):
         return records_1042(task) if task.follow_up_of is None else []
 
     *_, out, _, _ = _review(case_1042, records, evidence_1042, llm=StubLLM())
-    statuses = {c.check_id: c.status for c in out.memo.checks}
+    statuses = _status(out)
     assert statuses["EC1.dba_owner"] == "CONFLICT"
     assert "ADD.second_dba" in statuses
-    assert next(c for c in out.memo.checks if c.check_id == "ADD.second_dba").required is False
+    assert out.lead.check("ADD.second_dba").required is False
     assert out.memo.recommendation != "recommend_clear"
 
 
@@ -200,7 +228,8 @@ def test_api_start_is_idempotent_and_decision_resumes(case_1042):
     assert len(deps.evidence_worker.calls) == 1                   # no second run
 
     body = client.get(f"/reviews/{rid}").json()
-    assert body["review_output"]["memo"]["recommendation"] == "recommend_clear"
+    assert body["review_output"]["checked_memo"]["memo"]["recommendation"] == "recommend_clear"
+    CheckedMemo.model_validate(body["review_output"]["checked_memo"])     # the review app's contract
 
     assert client.post(f"/reviews/{rid}/decision", json={"decision": "approve"}).status_code == 403
     assert client.post(f"/reviews/{rid}/decision", json={"decision": "approve"},

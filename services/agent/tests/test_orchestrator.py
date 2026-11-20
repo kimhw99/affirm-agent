@@ -1,7 +1,7 @@
 """The orchestrator is a lookup table: routing, input checks and idempotency are plain code."""
 
 from kyb_contracts.case_input import FlagReason
-from kyb_contracts.memo import FLAG_EDGE_CASE
+from kyb_contracts.review import FLAG_EDGE_CASE
 
 from app.graph.orchestrator import (
     OUT_OF_SCOPE,

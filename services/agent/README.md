@@ -16,7 +16,7 @@ every LLM call falls back to a deterministic path, so the graph and tests run of
 ```bash
 cd services/agent
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m pytest -q              # 194 tests, no network or API key needed
+.venv/bin/python -m pytest -q              # no network or API key needed
 .venv/bin/uvicorn app.main:app --reload    # the /reviews API
 ```
 
@@ -36,9 +36,11 @@ For uvicorn, install them: `pip install -e ../../contracts`.
 | `app/graph/guardrails.py` | 9 | Builds `evidence_index` from saved data; enforces the hard rules | No |
 | `app/graph/workflow.py` | all | The LangGraph graph, `Deps` (injected workers, LLM, clock, result sink) | – |
 | `app/graph/llm.py` | – | `LeadLLM` protocol, `OpenAILeadLLM` (LangChain), `NullLeadLLM` | – |
+| `app/graph/worker_adapter.py` | 4–5 | `LangGraphWorker`: the BEAC-7 worker functions as `run(WorkerInput)` workers | – |
 | `app/api/` | 10 | `POST /reviews`, `GET /reviews/{id}`, `POST /reviews/{id}/decision` | – |
 | `app/clients/case_service.py` | 1, 11 | Fetch a case; send the decision back | – |
-| `contracts/kyb_contracts/memo.py` | 8–9 | `Memo`, `CheckOutcome`, `CheckResult`, `ReviewOutput`, `evidence_index` | – |
+| `contracts/kyb_contracts/memo.py` | 8–9 | The agreed memo (BEAC-22): `Memo`, `CheckResult`, `EvidenceEntry`, `CheckedMemo` | – |
+| `contracts/kyb_contracts/review.py` | 8–10 | What the Lead adds: `LeadReport` (`CheckOutcome`s, confidence, route, follow-ups), `ReviewOutput` | – |
 
 ## The graph
 
@@ -82,14 +84,14 @@ findings and doesn't rest on the website alone; otherwise it stays a CONFLICT. H
 (TIN never issued, entity dissolved or revoked, KYC failed, EIN letter ≠ submitted EIN,
 EIN belongs to another entity, tampered document) are never sent to the LLM. Decision
 rules, in order: any HARD_FAIL → escalate; an open required check → follow-up; else →
-clear. Confidence is the weakest required check (enforced by the `Memo` contract).
+clear. Confidence is the weakest required check (enforced by the `LeadReport` contract).
 Trust: when bank or documents and the registry agree, the website is ignored; when the
 website is the only support, confidence is capped at low.
 
 **Follow-ups.** `PLAYBOOK` lists, per check, the internal steps (rerun the TIN match
 with the letter's or the owner's name; search county DBA records; read the filing
 history; check pending filings) and the merchant document (147C, DBA certificate,
-stamped articles, bank letter). Each follow-up targets one check and one worker; only
+stamped articles, a current business license). Each follow-up targets one check and one worker; only
 that worker runs, and only that check is re-reconciled. The loop stops on: nothing open,
 a HARD_FAIL, `MAX_INTERNAL_ROUNDS` (3), a round with no new findings, or no internal step
 left. What's still open becomes one merchant round (`request_documents`), and the
@@ -98,26 +100,80 @@ memo says `insufficient_evidence` instead of asking the merchant.
 
 **Memo and checks.** Code fills the structured parts; the LLM writes prose, which is
 scrubbed for full TINs. Step 9 builds `evidence_index` from `CaseInput` and saved
-sources, then checks CITATION_NOT_FOUND, CLEAR_NEEDS_TWO_SOURCES,
-EIN_OTHER_ENTITY_NOT_ESCALATED, NOT_ISSUED_TIN_CLEARED, HARD_FAIL_NOT_ESCALATED,
-REQUIRED_CHECK_MISSING, DOCUMENT_ALREADY_IN_CASE, FULL_TIN_IN_MEMO and
-WEBSITE_OVERRULES_RECORDS. A failing memo is sent back once; if it still fails, it goes to
+sources, then checks memo.py's rules (CITED_ID_MUST_EXIST, CLEAR_NEEDS_TWO_SOURCES,
+UNRELATED_EIN_MUST_ESCALATE, NOT_ISSUED_TIN_CANT_CLEAR, NO_FULL_TAX_ID) and the Lead's
+own (HARD_FAIL_NOT_ESCALATED, REQUIRED_CHECK_MISSING, DOCUMENT_ALREADY_IN_CASE,
+WEBSITE_OVERRULES_RECORDS). A failing memo is sent back once; if it still fails, it goes to
 the analyst with the failures shown.
+
+## The memo and the Lead's report
+
+The memo is `memo.Memo`, as agreed in BEAC-22: one outcome per open flag (status, root
+cause, evidence IDs), the causes ruled out, one recommendation, the documents to
+request, notes. What the Lead produces beyond that lives in `review.LeadReport`, so
+memo.py stays as merged:
+
+| In the Lead's report | Why it isn't in the memo |
+|---|---|
+| `checks`: one `CheckOutcome` per planned check (status, values, evidence, explanation, hard-fail reason) | The memo works per flag; the brief's reconcile works per check |
+| `confidence` (the weakest required check) | Not a memo field |
+| `route`, `route_reason` (`reviewed`, `needs_info`, `human_queue`) | Intake's decision, not the Lead's conclusion |
+| `provisional`, `recheck_after`, `recheck_targets` | EC-4 provisional clear |
+| `follow_ups` (internal rounds and the one merchant round) | History, not a conclusion |
+| `flag_checks`, `document_checks` | `FlagOutcome` and `DocumentRequest` have no `check_id` |
+
+`GET /reviews/{id}` returns a `ReviewOutput`: `checked_memo` (memo.py's `CheckedMemo`,
+unchanged: memo + `evidence_index` + `check_result`), `lead`, `lead_check_failures`
+(the Lead's rules beyond `memo.CheckRule`: HARD_FAIL_NOT_ESCALATED,
+REQUIRED_CHECK_MISSING, DOCUMENT_ALREADY_IN_CASE, WEBSITE_OVERRULES_RECORDS),
+`check_attempts`, and `report_evidence_index` (excerpts for IDs only the report cites).
+A memo must name a flag, so a payload with no flags, or one that doesn't parse, has
+`checked_memo: null` and the reason in `lead.route_reason`.
+
+Step 9 reports memo.py's rules under their names there: CITED_ID_MUST_EXIST,
+CLEAR_NEEDS_TWO_SOURCES, UNRELATED_EIN_MUST_ESCALATE, NOT_ISSUED_TIN_CANT_CLEAR,
+NO_FULL_TAX_ID. `bank_letter` isn't a `DocumentType`, so a bank-account conflict asks
+for the DBA certificate or articles of amendment.
 
 ## Handoffs
 
-**To BEAC-4 (workers).** A worker is any object with `run(WorkerInput) -> WorkerResult`.
-`app/main.py` loads `app.workers.records.RecordsWorker` and
-`app.workers.evidence.EvidenceWorker`; until they exist, a placeholder returns `failed`.
-Reconcile reads findings by `field` name; the accepted names are listed at the top of
-`app/graph/facts.py` (for example `legal_name`, `entity_status`, `dba_owner`,
-`former_name` / `name_change`, `tin_match` as a result, an IRS code or
-`{"result", "name_tested"}`, `irs_name_control`, `kyc_result`, `registry_found`,
-`separate_entity`; on the evidence side `name`, `ein_last4`, `date`, `account_holder`,
-`bank_status`, `registrant`, `tin_type`, `document_tampered`, `suspicious_content`).
-Follow-up tasks put the check ID first in `question` (`[EC2.tin_match] Run the TIN match
-again with …`). Parallel Records follow-ups get separate `record_id_start` ranges (20
-apart). `tests/fakes.py` shows the shape the Lead expects.
+**Workers (BEAC-7).** The graph calls `worker.run(WorkerInput) -> WorkerResult`.
+`app/main.py` wraps `app.workers.run_records_worker` / `run_evidence_worker` with
+`LangGraphWorker`, which passes the workers' case-service client (`HttpCaseClient`),
+the Lead's callbacks (worker steps nest under the review's trace) and the Lead's clock.
+Without `CASE_SERVICE_URL` (or without the workers), a placeholder fails each task with
+the reason, and the memo says insufficient_evidence instead of guessing.
+
+How the Lead reads the workers' findings is listed at the top of `app/graph/facts.py`.
+Two points matter:
+- `search_registry` returns look-alike entities. Registry facts are split by entity:
+  the applicant's entity (its `state_entity_id`, else the closest name) feeds the
+  registry checks; every other entity is a separate company. A dissolved look-alike
+  never fails the applicant, and a TIN that matches another entity's name is a
+  hard fail (`ein_belongs_to_other_entity`).
+- The name a TIN match was run with is read from the R source's locator
+  (`name=<name>`), since the IRS result itself never carries it.
+
+Follow-up tasks put the check ID first in `question` (`[EC2.tin_match] Run the TIN
+match again with …`) and pass prior findings whose `field` is in the step's focus list
+(the workers' field names). Parallel Records follow-ups get separate `record_id_start`
+ranges (20 apart).
+
+`tests/fakes.py` writes findings the way the BEAC-7 tools do, and
+`tests/test_real_workers.py` runs the real workers and tools over the golden cases in
+`tests/fixtures/` with a deterministic chat model that follows the workers' prompts
+(skipped where the workers aren't installed).
+
+| Golden case | Story | Lead's recommendation |
+|---|---|---|
+| case_1042 | Renamed LLC; the IRS and the DBA filing have the former name | recommend_clear |
+| case_4101 | Suffix and '&' only | recommend_clear (intake resolves it) |
+| case_4102 | DBA filed at the county by the LLC | recommend_clear |
+| case_4103 | A dissolved look-alike entity in the registry | recommend_clear |
+| case_4201 | The DBA was entered as the legal name | recommend_clear (TIN EXPLAINED by registry + DBA filing) |
+| case_4202 | The TIN matches none of the merchant's names; 147C read with low confidence | insufficient_evidence |
+| case_4401 | Brand-new LLC, EIN not issued yet | request_documents (irs_147c) |
+| case_4402 | Sole proprietor; hidden instructions on the website | recommend_clear; W1 flagged in the notes |
 
 **To BEAC-5 (review app, integration).** `GET /reviews/{id}` returns `status` plus a
 `ReviewOutput` once `awaiting_decision`. The decision endpoint reads the user from
@@ -126,9 +182,24 @@ apart). `tests/fakes.py` shows the shape the Lead expects.
 `POST {CASE_SERVICE_URL}/cases/{case_id}/decisions` with
 `{decision_record, case_status}`; that path is a proposal to confirm.
 
+## Environment
+
+Shared with the workers (in the repo's `.env.example`): `OPENAI_API_KEY`,
+`OPENAI_MODEL`, `CASE_SERVICE_URL`, `CASE_SERVICE_TOKEN`. The Lead also reads these
+optional ones (defaults in brackets):
+
+| Variable | What it does |
+|---|---|
+| `LEAD_MODEL` [`OPENAI_MODEL`, then gpt-4o-mini] | The Lead's model, if it should differ from the workers' |
+| `LEAD_LLM` [on] | `off` forces the deterministic Lead even with a key (tests, evaluation baseline) |
+| `SEND_RESULTS` [1] | `0` doesn't send the final decision back to the case service (local demos) |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` [unset] | LangFuse tracing |
+
 ## Open items
 
 - `MAX_INTERNAL_ROUNDS` is 3 per the brief; `docs/workflow-handoffs.md` still says 2.
-- `memo.py` was empty in the repo; it was rebuilt to satisfy `tests/test_memo.py` and the
-  example `review_output_case_1042.json` (all pass).
+- `.env.example` and `contracts/README.md` were left exactly as on main so the branch
+  merges without conflicts; after the merge, add the variables above to `.env.example`
+  and a `review.py` row to the contracts table.
+- `bank_letter` as a `DocumentType` (case_input.py), so a bank-account conflict can ask for one.
 - Postgres checkpointer and a persistent idempotency table (both in memory today).

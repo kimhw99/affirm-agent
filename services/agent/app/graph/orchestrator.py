@@ -26,7 +26,7 @@ from pydantic import ValidationError
 
 from app.shared.name_norm import compare_names, irs_name_control, normalize_name
 from kyb_contracts.case_input import CASE_ID, CaseInput, FlagReason
-from kyb_contracts.memo import FLAG_EDGE_CASE
+from kyb_contracts.review import FLAG_EDGE_CASE
 
 Route = Literal["reviewed", "needs_info", "human_queue"]
 

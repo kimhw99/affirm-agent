@@ -1,7 +1,7 @@
 """Reconcile compares in code first; the LLM only judges EXPLAINED, with citations."""
 
 from conftest import TODAY
-from fakes import Rec, ScriptedWorker, evidence_1042, kyc, records_1042
+from fakes import ScriptedWorker, document, evidence_1042, kyc, records_1042, registry_entity, tin_match
 
 from app.graph.facts import FactIndex
 from app.graph.orchestrator import route_case
@@ -68,7 +68,7 @@ def test_website_alone_cannot_explain_a_difference(case_1042):
 def test_explanation_must_cite_real_findings(case_1042):
     _, assessments, plan, facts, _ = _run(case_1042, records_1042, evidence_1042)
     a = assessments["EC1.dba_owner"]
-    key = next(f.key for f in facts.facts if f.field == "dba_owner")
+    key = next(f.key for f in facts.records("dba_owner"))
     out = apply_explanation(plan.check("EC1.dba_owner"), a, facts, Explanation("Former name", [key]))
     assert out.status == "EXPLAINED" and out.explanation_evidence == [facts.by_key(key).source_id]
 
@@ -76,7 +76,7 @@ def test_explanation_must_cite_real_findings(case_1042):
 def test_website_cannot_overrule_the_registry(case_1042):
     def evidence(task):
         recs = evidence_1042(task)
-        recs[2].findings[0] = ("legal_name", "Totally Different Name LLC", "legal name")
+        recs[2].findings[0] = ("website_legal_name", "Totally Different Name LLC", "extracted.legal_name: x")
         return recs
     outcomes, *_ = _run(case_1042, records_1042, evidence)
     assert outcomes["EC1.entity_active"].status == "AGREE"         # bank + registry agree; W1 ignored
@@ -101,8 +101,7 @@ def test_failed_kyc_is_a_hard_fail(case_1042):
 def test_dissolved_entity_is_a_hard_fail(case_1042):
     def records(task):
         recs = records_1042(task)
-        recs[0] = Rec("sos_registry", [("legal_name", "NORTHLINE BICYCLE WORKS LLC", "x"),
-                                       ("entity_status", "dissolved", "Dissolved")])
+        recs[0] = registry_entity("IL-0458821", "NORTHLINE BICYCLE WORKS LLC", status="dissolved")
         return recs
     outcomes, *_ = _run(case_1042, records, evidence_1042)
     o = outcomes["EC1.entity_active"]
@@ -120,13 +119,12 @@ def test_tampered_document_is_a_hard_fail(case_1042):
 
 def _tin_not_issued(letter_date):
     def records(task):
-        return [Rec("sos_registry", [("legal_name", "MAPLE RIDGE COFFEE ROASTERS LLC", "x"),
-                                     ("entity_status", "active", "Active")]),
-                Rec("irs_tin_match", [("tin_match", "2", "code 2: TIN not currently issued ('MAPLE RIDGE COFFEE ROASTERS LLC')")])]
+        return [registry_entity("OH-5582114", "MAPLE RIDGE COFFEE ROASTERS LLC", state="OH"),
+                tin_match("case_3001", "Maple Ridge Coffee Roasters LLC", "Not Issued")]
 
     def evidence(task):
-        return [Rec("irs_cp575", [("name", "MAPLE RIDGE COFFEE ROASTERS LLC", "n"), ("ein_last4", "4321", "4321"),
-                                  ("date", letter_date, letter_date)], source_id="D1", authority="merchant")]
+        return [document("D1", "irs_cp575", name="MAPLE RIDGE COFFEE ROASTERS LLC", ein_last4="4321",
+                         date=letter_date)]
     return records, evidence
 
 
@@ -150,3 +148,78 @@ def test_only_named_checks_are_re_reconciled(case_1042):
     again, assessed = reconcile(case, plan, facts, TODAY, only=["EC2.tin_match"], previous=prev)
     assert set(assessed) == {"EC2.tin_match"}
     assert again["EC1.entity_active"].confidence == "low"          # untouched
+
+
+# ---------- How the Lead reads the BEAC-7 workers' findings ----------
+
+def test_look_alike_entity_from_a_search_is_not_the_applicant(case_1042):
+    """search_registry returns look-alikes; a dissolved one must not fail the applicant."""
+    def records(task):
+        return [registry_entity("IL-0458821", "NORTHLINE BICYCLE WORKS, L.L.C."),
+                registry_entity("IL-0999001", "NORTHLINE BICYCLES INC", status="dissolved")] + records_1042(task)[1:]
+    outcomes, _, _, facts, _ = _run(case_1042, records, evidence_1042)
+    assert outcomes["EC1.entity_active"].status == "AGREE"
+    assert not any(o.status == "HARD_FAIL" for o in outcomes.values())
+    assert [f.value for f in facts.records("separate_entity")] == ["NORTHLINE BICYCLES INC"]
+
+
+def test_tin_matching_a_separate_registry_entity_is_a_hard_fail(case_3001):
+    def records(task):
+        return [registry_entity("OH-5582114", "MAPLE RIDGE COFFEE ROASTERS LLC", state="OH"),
+                registry_entity("OH-1100", "BLUE RIVER TOOLS INC", state="OH"),
+                tin_match("case_3001", "Maple Ridge Coffee Roasters LLC", "Mismatch"),
+                tin_match("case_3001", "BLUE RIVER TOOLS INC", "Match")]
+    from fakes import evidence_3001
+    outcomes, *_ = _run(case_3001, records, evidence_3001)
+    o = outcomes["EC2.tin_match"]
+    assert (o.status, o.hard_fail_reason) == ("HARD_FAIL", "ein_belongs_to_other_entity")
+
+
+def test_name_tested_comes_from_the_tin_source(case_1042):
+    from app.graph.reconcile import tin_results
+    *_, facts, case = _run(case_1042, records_1042, evidence_1042)
+    assert [(r.result, r.name_tested) for r in tin_results(facts, case)] == [("Mismatch", "Northline Bicycle Works LLC")]
+
+
+def test_dba_filed_under_the_applicants_entity_number_belongs_to_it(case_1042):
+    from fakes import dba_filing
+
+    def records(task):
+        recs = records_1042(task)
+        recs[1] = dba_filing("IL-AN-2024-0115", "NORTHLINE CYCLES", "HARBOR LIGHT CYCLES LLC", "IL-0458821")
+        return recs
+    outcomes, *_ = _run(case_1042, records, evidence_1042)
+    assert outcomes["EC1.dba_owner"].status == "AGREE"
+
+
+def test_applied_dba_as_legal_name_is_explained_by_registry_and_dba_filing(case_3001):
+    """case_4201's story: the merchant entered its DBA as the legal name; the TIN matches the
+    registered name of the entity at the submitted number, which filed that DBA."""
+    from fakes import bank, dba_filing
+    case_3001["application"]["legal_name"] = "Bluefin Supply"
+    case_3001["flag_reasons"] = ["TIN_MISMATCH"]
+
+    def records(task):
+        return [registry_entity("OH-5582114", "HARWICK MARINE SUPPLY LLC", state="OH"),
+                dba_filing("OH-G21", "BLUEFIN SUPPLY", "HARWICK MARINE SUPPLY LLC", "OH-5582114"),
+                tin_match("case_3001", "Bluefin Supply", "Mismatch"),
+                tin_match("case_3001", "HARWICK MARINE SUPPLY LLC", "Match")]
+
+    def evidence(task):
+        return [document("D1", "irs_147c", name="HARWICK MARINE SUPPLY LLC", ein_last4="4321", date="2026-10-28"),
+                bank("HARWICK MARINE SUPPLY LLC")]
+    outcomes, *_ = _run(case_3001, records, evidence)
+    o = outcomes["EC2.tin_match"]
+    assert o.status == "EXPLAINED" and "assumed name" in o.explanation
+    assert decide(outcomes) == "clear"
+
+    def records_without_dba(task):
+        return [r for r in records(task) if r.source_type != "state_dba"]
+    outcomes, *_ = _run(case_3001, records_without_dba, evidence)
+    assert outcomes["EC2.tin_match"].status == "CONFLICT"     # no DBA link: could be someone else's EIN
+
+
+def test_clean_website_is_not_reported_as_suspicious(case_1042):
+    *_, facts, _ = _run(case_1042, records_1042, evidence_1042)
+    from app.graph.facts import truthy
+    assert facts.evidence("suspicious") and not any(truthy(f.value) for f in facts.evidence("suspicious"))

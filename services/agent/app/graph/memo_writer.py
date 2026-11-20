@@ -1,10 +1,14 @@
-"""Step 8: write the memo.
+"""Step 8: write the memo (memo.Memo) and the Lead's report (review.LeadReport).
 
-Code fills every structured part: per-check statuses, the recommendation, confidence,
-``auto_resolved``, ``out_of_scope``, the follow-up history and the document requests.
-The LLM (when configured) writes only the prose: root causes, causes ruled out, and
-notes for the analyst, citing evidence IDs. Anything it cites that doesn't exist is
-dropped, and anything shaped like a full TIN is redacted (and reported in step 9).
+Code fills every structured part: the flag statuses and their evidence, the
+recommendation, ``auto_resolved``, ``out_of_scope``, the document requests, and in the
+report the per-check statuses, confidence and the follow-up history. The LLM (when
+configured) writes only the prose: root causes, causes ruled out, and notes for the
+analyst, citing evidence IDs. Anything it cites that doesn't exist is dropped, and
+anything shaped like a full TIN is redacted (and reported in step 9).
+
+A memo must name at least one flag, so a payload with no flags, or one that doesn't
+parse, gets no memo: only a report with ``route="human_queue"`` and the reason.
 """
 
 from __future__ import annotations
@@ -16,20 +20,20 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.graph.facts import FactIndex
-from app.graph.followup import merchant_record, merchant_requests
+from app.graph.facts import FactIndex, truthy
+from app.graph.followup import MerchantRequest, merchant_record, merchant_requests
 from app.graph.orchestrator import RoutingDecision
 from app.graph.plan import TEMPLATES, Plan
 from app.graph.reconcile import decide
 from kyb_contracts.case_input import TIN_PATTERN, CaseInput, FlagReason
-from kyb_contracts.memo import (
+from kyb_contracts.memo import FlagOutcome, Memo, RuledOutCause
+from kyb_contracts.review import (
     PASSING_STATUSES,
     CheckOutcome,
-    DocumentRequest,
-    FlagOutcome,
+    DocumentCheck,
+    FlagChecks,
     FollowUpRecord,
-    Memo,
-    RuledOut,
+    LeadReport,
     weakest,
 )
 
@@ -69,7 +73,8 @@ class Revision:
 
 @dataclass
 class MemoBuild:
-    memo: Memo
+    memo: Optional[Memo]          # None only for a human_queue case with no flags or a bad payload
+    report: LeadReport
     tin_redacted: bool = False
 
 
@@ -93,13 +98,15 @@ def default_root_cause(flag: str, checks: list[CheckOutcome], resolved: bool) ->
     return "Still open: " + "; ".join(f"{c.description} ({c.status})" for c in open_)
 
 
-def default_ruled_out(outcomes: dict[str, CheckOutcome]) -> list[RuledOut]:
-    out: list[RuledOut] = []
+def default_ruled_out(outcomes: dict[str, CheckOutcome], tin_type: Optional[str] = None) -> list[RuledOutCause]:
+    out: list[RuledOutCause] = []
     tin = outcomes.get("EC2.tin_match")
     if tin and tin.status in PASSING_STATUSES:
         ev = tin.explanation_evidence or [e for e in tin.evidence if e.startswith("R")]
         if ev:
-            out.append(RuledOut(cause="The EIN belongs to an unrelated company", evidence=ev))
+            cause = ("The SSN belongs to someone other than the owner" if tin_type == "SSN"
+                     else "The EIN belongs to an unrelated company")
+            out.append(RuledOutCause(cause=cause, evidence=ev))
     return out
 
 
@@ -155,30 +162,42 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
 
     # ----- Intake routes: human queue or needs info -----
     if routing.route == "human_queue":
-        memo = Memo(case_id=case_id, generated_at=now, version=version, route="human_queue",
-                    route_reason=clean(routing.reason or "routed to a human"),
-                    out_of_scope=routing.out_of_scope, recommendation="insufficient_evidence",
-                    confidence="low",
-                    notes_for_analyst=clean(f"Routed to the human queue: {routing.reason}."))
-        return MemoBuild(memo, redacted)
+        reason = clean(routing.reason or "routed to a human")
+        report = LeadReport(case_id=case_id, version=version, generated_at=now, route="human_queue",
+                            route_reason=reason, confidence="low")
+        memo = None
+        if routing.out_of_scope:  # a memo must name a flag; with none there is only the report
+            memo = Memo(case_id=case_id, out_of_scope=routing.out_of_scope,
+                        recommendation="insufficient_evidence",
+                        notes_for_analyst=clean(f"Routed to the human queue: {routing.reason}. The agent did not "
+                                                "review " + ", ".join(f.value for f in routing.out_of_scope) + "."))
+        return MemoBuild(memo, report, redacted)
 
     if routing.route == "needs_info":
         check_ids = list(dict.fromkeys(m["check_id"] for m in routing.missing_inputs))
         checks = _gap_outcomes_for(check_ids)
-        requests = [DocumentRequest(document_type=m["document_type"], check_id=m["check_id"], reason=m["reason"])
-                    for m in routing.missing_inputs]
+        seen: set[str] = set()
+        requests = []
+        for m in routing.missing_inputs:
+            if m["document_type"] not in seen:
+                seen.add(m["document_type"])
+                requests.append(MerchantRequest(m["document_type"], m["check_id"], m["reason"]))
         flags = [FlagOutcome(flag=f, status="unresolved",
                              root_cause=clean(next((m["reason"] for m in routing.missing_inputs
                                                     if m["flag"] == f.value),
-                                                   "Not reviewed yet: the case is waiting for missing inputs")),
-                             check_ids=[m["check_id"] for m in routing.missing_inputs if m["flag"] == f.value])
+                                                   "Not reviewed yet: the case is waiting for missing inputs")))
                  for f in routing.open_flags]
-        memo = Memo(case_id=case_id, generated_at=now, version=version, route="needs_info",
-                    route_reason=clean(routing.reason or "inputs missing"), flags=flags,
-                    auto_resolved=auto, out_of_scope=routing.out_of_scope, checks=checks,
-                    recommendation="request_documents", confidence="low", document_request=requests,
+        memo = Memo(case_id=case_id, flags=flags, auto_resolved=auto, out_of_scope=routing.out_of_scope,
+                    recommendation="request_documents", document_request=[r.to_memo() for r in requests],
                     notes_for_analyst=clean(f"Inputs were missing before review: {routing.reason}."))
-        return MemoBuild(memo, redacted)
+        report = LeadReport(
+            case_id=case_id, version=version, generated_at=now, route="needs_info",
+            route_reason=clean(routing.reason or "inputs missing"), checks=checks, confidence="low",
+            flag_checks=[FlagChecks(flag=f, check_ids=[m["check_id"] for m in routing.missing_inputs
+                                                       if m["flag"] == f.value]) for f in routing.open_flags],
+            document_checks=[DocumentCheck(type=r.document_type, check_id=r.check_id) for r in requests],
+        )
+        return MemoBuild(memo, report, redacted)
 
     # ----- Reviewed -----
     assert case is not None
@@ -188,6 +207,7 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
     known_ids = facts.known_evidence_ids() if facts else set()
 
     flag_outcomes: list[FlagOutcome] = []
+    flag_checks: list[FlagChecks] = []
     prose_by_flag = {p.flag: p.root_cause for p in (prose.flags if prose else [])}
     for flag in routing.open_flags:
         cids = [c for c in plan.checks_for_flag(flag) if c in outcomes]
@@ -198,14 +218,16 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
         evidence: list[str] = []
         for c in fchecks:
             evidence += c.evidence + c.explanation_evidence
+        evidence = list(dict.fromkeys(evidence))
+        if resolved and not evidence:  # memo.FlagOutcome: a resolved flag needs evidence
+            resolved = False
         root = prose_by_flag.get(flag.value) or default_root_cause(flag.value, fchecks, resolved)
-        flag_outcomes.append(FlagOutcome(
-            flag=flag, status="resolved" if resolved else "unresolved", root_cause=clean(root),
-            check_ids=cids, evidence=list(dict.fromkeys(evidence)),
-        ))
+        flag_outcomes.append(FlagOutcome(flag=flag, status="resolved" if resolved else "unresolved",
+                                         root_cause=clean(root), evidence=evidence))
+        flag_checks.append(FlagChecks(flag=flag, check_ids=cids))
 
     # Recommendation: code only.
-    requests: list[DocumentRequest] = []
+    requests: list[MerchantRequest] = []
     provisional = False
     if verdict == "hard_fail" or revision.force_escalate:
         recommendation = "escalate"
@@ -217,9 +239,13 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
             c.expected_absence and c.status == "EXPLAINED" for c in checks)
     else:
         still_open = [c for c in checks if c.required and c.status not in PASSING_STATUSES]
-        for f in flag_outcomes:  # flags step 9 unresolved, though their checks pass
-            if f.status == "unresolved":
-                still_open += [outcomes[c] for c in f.check_ids if outcomes[c] not in still_open][:1]
+        by_flag = {FlagReason(fc.flag).value: fc.check_ids for fc in flag_checks}
+        for f in flag_outcomes:
+            # A flag step 9 unresolved although all its checks pass: ask for what would settle
+            # its first check. A flag with an open check is already covered by that check.
+            fchecks = [outcomes[c] for c in by_flag[FlagReason(f.flag).value]]
+            if f.status == "unresolved" and fchecks and not any(c in still_open for c in fchecks):
+                still_open.append(fchecks[0])
         # A worker that failed is our problem, not the merchant's: don't ask them for documents.
         requests = [] if worker_errors else merchant_requests(case, still_open, frozenset(revision.drop_doc_types))
         recommendation = "request_documents" if requests else "insufficient_evidence"
@@ -233,18 +259,22 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
     required = [c.confidence for c in checks if c.required]
     confidence = weakest(required) if required else ("high" if recommendation == "recommend_clear" else "low")
 
-    ruled_out: list[RuledOut] = []
+    ruled_out: list[RuledOutCause] = []
     if prose and prose.ruled_out:
         for r in prose.ruled_out:
             ev = [e for e in r.evidence if _EVIDENCE_ID.match(e) and e in known_ids]
             if ev and r.cause.strip():
-                ruled_out.append(RuledOut(cause=clean(r.cause), evidence=ev))
+                ruled_out.append(RuledOutCause(cause=clean(r.cause), evidence=ev))
     else:
-        ruled_out = default_ruled_out(outcomes) if recommendation != "escalate" else []
+        ruled_out = (default_ruled_out(outcomes, case.application.tin_type)
+                     if recommendation != "escalate" else [])
 
-    suspicious = [f.source_id for f in facts.evidence("suspicious")] if facts else []
+    suspicious = [f.source_id for f in facts.evidence("suspicious") if truthy(f.value)] if facts else []
     notes = (prose.notes_for_analyst if prose and prose.notes_for_analyst else
              default_notes(case, routing, outcomes, recommendation, provisional, suspicious))
+    if suspicious and not all(s in notes for s in suspicious):
+        notes += (" Instruction-like text was found in " + ", ".join(sorted(set(suspicious)))
+                  + "; it was treated as data and not followed.")
     if routing.out_of_scope and not all(f.value in notes for f in routing.out_of_scope):
         notes += " The agent did not review " + ", ".join(f.value for f in routing.out_of_scope) + "."
     if worker_errors:
@@ -253,15 +283,19 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
         notes += " Step 9 asked for a revision: " + "; ".join(revision.failures) + "."
 
     memo = Memo(
+        case_id=case_id, flags=flag_outcomes, auto_resolved=auto, out_of_scope=routing.out_of_scope,
+        ruled_out=ruled_out, recommendation=recommendation,
+        document_request=[r.to_memo() for r in requests], notes_for_analyst=clean(notes.strip()),
+    )
+    report = LeadReport(
         case_id=case_id, version=version, generated_at=now, route="reviewed",
-        flags=flag_outcomes, auto_resolved=auto, out_of_scope=routing.out_of_scope,
-        checks=checks, ruled_out=ruled_out, recommendation=recommendation, confidence=confidence,
-        provisional=provisional,
+        checks=checks, confidence=confidence, provisional=provisional,
         recheck_after=(today + timedelta(days=RECHECK_AFTER_DAYS)) if provisional else None,
         recheck_targets=["registry"] if provisional else [],
-        document_request=requests, follow_ups=history, notes_for_analyst=clean(notes.strip()),
+        follow_ups=history, flag_checks=flag_checks,
+        document_checks=[DocumentCheck(type=r.document_type, check_id=r.check_id) for r in requests],
     )
-    return MemoBuild(memo, redacted)
+    return MemoBuild(memo, report, redacted)
 
 
 __all__ = [
