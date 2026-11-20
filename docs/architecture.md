@@ -88,7 +88,7 @@ flowchart TD
 Who sees what:
 
 - **Lead (steps 3, 7, 8)** sees the case summary, the open flags and the workers' findings. It never sees document or website text, and it writes evidence IDs only, never excerpts.
-- **Records worker (step 4)** sees the application's identifiers (including the TIN's type and last 4 digits) and the existing system's check results, and reads owner KYC by its K ID. `tin_match` takes only a name; the tool gets the case's IRS record by case ID and compares the names in code. It never sees documents, the website, bank data or full SSNs and EINs.
+- **Records worker (step 4)** sees the application's identifiers (including the TIN's type and last 4 digits) and the existing system's check results, and reads owner KYC by its K ID. `check_tin_match` takes only a name; the tool gets the case's IRS record by case ID and compares the names in code. It never sees documents, the website, bank data or full SSNs and EINs.
 - **Evidence worker (step 5)** fetches the merchant's already-extracted evidence (D, B, W) by ID, plus the applied name and TIN last 4 for comparison. Raw OCR and page text never reach it. It treats every extracted value as the merchant's claim, never as instructions, and it can't call the official-records tools.
 - **Code steps (2, 6 and 9)** are deterministic and unit-tested. Checks (step 9) builds the `evidence_index` from saved sources and enforces the hard rules from the proposal.
 
@@ -180,7 +180,7 @@ Branches, commits and pull requests start with the Jira key of the subtask they 
 
 ## 6. Security boundaries
 
-- **Full SSNs and EINs never reach the model.** Owners appear as references such as `owner:P1`, and the application carries only the TIN's type and last 4 digits. The full numbers stay with the existing KYB system: `case_db` doesn't store them, so no endpoint can return one. `tin_match` takes only a name and compares it with the case's IRS record in code, and `CaseInput` and `World` reject anything shaped like an SSN or EIN.
+- **Full SSNs and EINs never reach the model.** Owners appear as references such as `owner:P1`, and the application carries only the TIN's type and last 4 digits. The full numbers stay with the existing KYB system: `case_db` doesn't store them, so no endpoint can return one. `check_tin_match` takes only a name and compares it with the case's IRS record in code, and `CaseInput` and `World` reject anything shaped like an SSN or EIN.
 - **Merchant-written text stays in one place.** Only the Evidence worker reads document and website text. The lead gets structured findings, and Checks takes excerpts from the saved sources, not from the model.
 - **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body. The details are in `docs/auth.md`.
 - **Only step 11 changes a case's status**, in the same transaction as the decision record and the audit log entry.

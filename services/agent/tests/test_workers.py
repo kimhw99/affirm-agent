@@ -278,11 +278,22 @@ def test_graph_setup_failure_gives_failed():
     assert result.status == "failed" and "RuntimeError" in result.error
 
 
-def test_missing_model_config_gives_failed(monkeypatch):
-    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+def test_missing_api_key_gives_failed(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPAI_API_KEY", raising=False)
     result = run_records_worker(task("case_1042", "records"), fake_client(), now=NOW)
     check_valid(result)
-    assert result.status == "failed" and "OPENAI_MODEL" in result.error
+    assert result.status == "failed" and "OPENAI_API_KEY" in result.error
+
+
+def test_workers_and_lead_use_the_same_default_model(monkeypatch):
+    from app.llm import DEFAULT_MODEL, default_model, get_chat_model
+
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    assert default_model() == DEFAULT_MODEL == "gpt-4o-mini"
+    assert get_chat_model(api_key="sk-test").model_name == DEFAULT_MODEL
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4.1-mini")
+    assert get_chat_model(api_key="sk-test").model_name == "gpt-4.1-mini"
 
 
 # ---------------------------------------------------------------- untrusted content, recommendations

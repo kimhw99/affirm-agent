@@ -26,6 +26,7 @@ from typing import Any, Optional, Protocol
 from pydantic import BaseModel, Field
 
 from app.graph.facts import FactIndex
+from app.llm import default_model, openai_api_key
 from app.graph.memo_writer import MemoProse
 from app.graph.plan import PlanExtras, PlannedCheck
 from app.graph.reconcile import Assessment, Explainer, Explanation, rule_explainer
@@ -83,9 +84,8 @@ class OpenAILeadLLM:
     def __init__(self, model: Optional[str] = None, callbacks: Optional[list] = None):
         from langchain_openai import ChatOpenAI  # imported lazily: tests don't need a key
 
-        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPAI_API_KEY")
-        self._llm = ChatOpenAI(model=model or os.getenv("LEAD_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini",
-                               temperature=0, api_key=api_key, timeout=60)
+        self._llm = ChatOpenAI(model=model or os.getenv("LEAD_MODEL") or default_model(),
+                               temperature=0, api_key=openai_api_key(), timeout=60)
         self._callbacks = callbacks or []
 
     def _call(self, schema: type[BaseModel], task: str, payload: dict[str, Any]) -> Optional[BaseModel]:
@@ -136,7 +136,7 @@ class OpenAILeadLLM:
 def default_llm(callbacks: Optional[list] = None) -> LeadLLM:
     if os.getenv("LEAD_LLM", "").lower() == "off":
         return NullLeadLLM()
-    if os.getenv("OPENAI_API_KEY") or os.getenv("OPAI_API_KEY"):
+    if openai_api_key():
         try:
             return OpenAILeadLLM(callbacks=callbacks)
         except Exception as exc:  # noqa: BLE001

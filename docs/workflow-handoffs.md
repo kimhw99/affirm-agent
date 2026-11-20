@@ -124,7 +124,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 | Handoffs | From H: `WorkerInput` (first task or follow-up). To H: `WorkerResult` |
 | Done when | It runs on its own on a case file, without the graph; when the budget runs out it returns unresolved items instead of guessing |
 
-`tin_match` takes only the name to test; the tool gets the case's IRS record by `case_id` (case-service endpoint 6) and compares the names in code. No full SSN or EIN is involved, so none can enter the model's context. `get_kyc` takes an owner ref such as `owner:P1`.
+`check_tin_match` takes only the name to test; the tool gets the case's IRS record by `case_id` (case-service endpoint 6) and compares the names in code. No full SSN or EIN is involved, so none can enter the model's context. `get_kyc_result` takes an owner ref such as `owner:P1`.
 
 ### Step 5. Evidence worker (ReAct loop)
 
@@ -409,12 +409,12 @@ LangGraph's `Send` starts both workers at the same time.
 
 | Call | Tool | Result | ID |
 |---|---|---|---|
-| 1 | `sos_search(name="Northline Bicycle Works", state="IL")` | One match: IL-0458821, Active | R1 |
-| 2 | `sos_get_entity("IL-0458821")` | LLC, formed 2023-05-30, manager D. PARK | R2 |
-| 3 | `dba_lookup(name="Northline Cycles", state="IL")` | Filed 2024-01-15 by HARBOR LIGHT CYCLES LLC | R3 |
-| 4 | `tin_match(name="NORTHLINE BICYCLE WORKS LLC")` | Mismatch | R4 |
+| 1 | `search_registry(name="Northline Bicycle Works", state="IL")` | One match: IL-0458821, Active | R1 |
+| 2 | `get_registry_entity(state="IL", state_entity_id="IL-0458821")` | LLC, formed 2023-05-30, manager D. PARK | R2 |
+| 3 | `search_dba(name="Northline Cycles", state="IL")` | Filed 2024-01-15 by HARBOR LIGHT CYCLES LLC | R3 |
+| 4 | `check_tin_match(name="NORTHLINE BICYCLE WORKS LLC")` | Mismatch | R4 |
 
-After 4 calls the budget is used up, so the worker stops and lists what it couldn't settle under `unresolved` instead of guessing. Note that `tin_match` gets only the name; the tool compares it with the case's IRS record, looked up by `case_id`.
+After 4 calls the budget is used up, so the worker stops and lists what it couldn't settle under `unresolved` instead of guessing. Note that `check_tin_match` gets only the name; the tool compares it with the case's IRS record, looked up by `case_id`.
 
 ```json
 {
@@ -533,9 +533,9 @@ Official records can tell these apart, so the lead sends one question to the Rec
 
 | Call | Tool | Result | ID |
 |---|---|---|---|
-| 5 | `sos_filing_history("IL-0458821")` | 2025-03-12 Articles of Amendment: HARBOR LIGHT CYCLES LLC renamed NORTHLINE BICYCLE WORKS LLC | R5 |
-| 6 | `sos_search(name="Harbor Light Cycles", state="IL")` | No separate company by that name; it appears only as a former name of IL-0458821 | R6 |
-| 7 | `tin_match(name="HARBOR LIGHT CYCLES LLC")` | Match | R7 |
+| 5 | `get_filing_history("IL-0458821")` | 2025-03-12 Articles of Amendment: HARBOR LIGHT CYCLES LLC renamed NORTHLINE BICYCLE WORKS LLC | R5 |
+| 6 | `search_registry(name="Harbor Light Cycles", state="IL")` | No separate company by that name; it appears only as a former name of IL-0458821 | R6 |
+| 7 | `check_tin_match(name="HARBOR LIGHT CYCLES LLC")` | Match | R7 |
 
 R IDs continue from round 1 and never repeat within a review. In round 2 the worker returns only what it newly found. When this merges into the existing `RecordsFinding`, the list fields (`evidence`, `answers`, `tin_results`, `name_history`) are appended, and `unresolved` is replaced by this round's list:
 
@@ -759,8 +759,8 @@ trace rv_7f3a (case_1042)
 | Situation | Where it branches | What happens |
 |---|---|---|
 | Formatting differences only (e.g. just NAME_SIMILAR_MATCH) | 2 | Intake resolves it, skips steps 3–7 and goes straight to step 8 |
-| EC-4: newly formed company with a brand-new EIN | 4 | `tin_match` returns `Not Issued`; the hard rule in step 9 blocks clearing the TIN flag → request_documents (ask for the IRS EIN letter) |
-| EC-4: sole proprietor with no state registration | 4 | Finding no entity is expected; `tin_match(name="<owner's name>")` checks the owner's name against the IRS record for the submitted SSN (`tin_type` = SSN); KYC (K) supports the owner's identity, and clearing still needs merchant evidence such as B or D |
+| EC-4: newly formed company with a brand-new EIN | 4 | `check_tin_match` returns `Not Issued`; the hard rule in step 9 blocks clearing the TIN flag → request_documents (ask for the IRS EIN letter) |
+| EC-4: sole proprietor with no state registration | 4 | Finding no entity is expected; `check_tin_match(name="<owner's name>")` checks the owner's name against the IRS record for the submitted SSN (`tin_type` = SSN); KYC (K) supports the owner's identity, and clearing still needs merchant evidence such as B or D |
 | The EIN belongs to an unrelated company | 4 (round 2) | The Records worker finds a separate company → hard rule in step 9 → escalate |
 | Hidden instructions on the website (e.g. "ignore previous instructions…") | 5 | The Evidence worker records them under `suspicious` and doesn't follow them; the lead gets only the fact "W1 contains instruction-like text", and the memo warns the analyst |
 | Conflicts remain after 2 follow-up rounds | 7 | No more follow-ups; the memo is written with the `unresolved` items → insufficient_evidence |
@@ -777,7 +777,7 @@ must_cite:
   - D1
   - any_of: [B1, W1]
   - source: sos_filing_history          # R IDs can change between runs, so describe them by source
-  - source: tin_match
+  - source: irs_tin_match
     name_tested: HARBOR LIGHT CYCLES LLC
     result: Match
 forbidden_actions:

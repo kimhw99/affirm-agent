@@ -4,10 +4,13 @@
 
 Workers: the BEAC-7 Records and Evidence workers (``app.workers.run_records_worker`` /
 ``run_evidence_worker``), reading the case service through ``HttpCaseClient``
-(``CASE_SERVICE_URL``, ``CASE_SERVICE_TOKEN``) and using the chat model from
-``app.llm`` (``OPENAI_MODEL``). If either is missing, a placeholder worker fails each
-task with the reason, so reviews still run end to end and every check that needs a
-worker ends as a GAP (insufficient_evidence) instead of guessing.
+(``CASE_SERVICE_URL``, default ``http://case:8000``; ``CASE_SERVICE_TOKEN``) and using
+the chat model from ``app.llm`` (``OPENAI_MODEL``, default ``gpt-4o-mini``, the same as
+the Lead). If a worker or its client can't be loaded, a placeholder worker fails each
+task with the reason; without ``OPENAI_API_KEY`` every worker task fails. Reviews still
+run end to end and every check that needs a worker ends as a GAP
+(insufficient_evidence) instead of guessing. Both cases are logged as warnings at
+startup, so a review full of GAPs is never a surprise.
 """
 
 from __future__ import annotations
@@ -23,8 +26,9 @@ from app.api.reviews import router
 from app.api.service import ReviewService
 from app.clients.case_service import CaseServiceClient
 from app.graph.llm import default_llm
-from app.graph.worker_adapter import build_workers
+from app.graph.worker_adapter import PlaceholderWorker, build_workers
 from app.graph.workflow import Deps, build_graph
+from app.llm import openai_api_key
 from app.observability.tracing import langfuse_callbacks
 
 log = logging.getLogger(__name__)
@@ -43,6 +47,16 @@ def _worker_client() -> tuple[Any, Optional[str]]:
         return None, str(exc)
 
 
+def _warn_if_workers_cannot_run(*workers: Any) -> None:
+    """Say at startup when the workers will fail every task, instead of only in each review."""
+    for worker in workers:
+        if isinstance(worker, PlaceholderWorker):
+            log.warning("The %s worker is a placeholder and will fail every task: %s",
+                        worker.worker, worker.reason)
+    if not openai_api_key():
+        log.warning("OPENAI_API_KEY is not set: the Lead runs on its rules only and every worker task fails")
+
+
 def create_app(deps: Optional[Deps] = None, case_client: Any = None, background: bool = True) -> FastAPI:
     callbacks = langfuse_callbacks()
     case_client = case_client or CaseServiceClient()
@@ -50,6 +64,7 @@ def create_app(deps: Optional[Deps] = None, case_client: Any = None, background:
         clock = lambda: datetime.now(timezone.utc)  # noqa: E731
         worker_client, why = _worker_client()
         records, evidence = build_workers(worker_client, callbacks=callbacks, clock=clock, client_error=why)
+        _warn_if_workers_cannot_run(records, evidence)
         deps = Deps(
             records_worker=records,
             evidence_worker=evidence,
