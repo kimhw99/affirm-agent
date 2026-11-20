@@ -143,6 +143,7 @@ Every format that crosses a service or step boundary lives in the shared package
 | `decision.py` | `DecisionInput`, `DecisionRecord`, `AGREES_WITH`, `STATUS_AFTER` | Review app → agent API → case service; evaluation reads the records |
 | `worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult` | Lead ↔ workers |
 | `memo.py` | `Memo`, `CheckResult`, the `evidence_index` entries, and `CheckedMemo`, which holds the three; `Recommendation` | Lead (the memo) and Checks (the rest) → review app; the case service saves the recommendation in `DecisionRecord` |
+| `auth.py` | `Role`, `LoginRequest`, `LoginResponse`, `User`, `TokenClaims` | Auth service → review app (login) and gateway (the JWT); the gateway → backend services as `X-User-Id` and `X-User-Role` (`docs/auth.md`) |
 
 Whoever produces a format owns it, and the parts that use it review every change in a pull request. `docs/workflow-handoffs.md` (section 2) lists every format and its fields, and `contracts/case_input_guide.md` explains each `CaseInput` field.
 
@@ -181,7 +182,7 @@ Branches, commits and pull requests start with the Jira key of the subtask they 
 
 - **Full SSNs and EINs never reach the model.** Owners appear as references such as `owner:P1`, and the application carries only the TIN's type and last 4 digits. The full numbers stay with the existing KYB system: `case_db` doesn't store them, so no endpoint can return one. `tin_match` takes only a name and compares it with the case's IRS record in code, and `CaseInput` and `World` reject anything shaped like an SSN or EIN.
 - **Merchant-written text stays in one place.** Only the Evidence worker reads document and website text. The lead gets structured findings, and Checks takes excerpts from the saved sources, not from the model.
-- **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body.
+- **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body. The details are in `docs/auth.md`.
 - **Only step 11 changes a case's status**, in the same transaction as the decision record and the audit log entry.
 - **Secrets stay out of git.** API keys and the JWT secret go in `.env`; `.env.example` lists only the names.
 

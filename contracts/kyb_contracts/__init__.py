@@ -1,5 +1,6 @@
 """Shared data formats for the KYB exception review system."""
 
+from .auth import ROLES, LoginRequest, LoginResponse, Role, TokenClaims, User
 from .case_input import (
     DOCUMENT_FIELDS,
     TIN_PATTERN,
@@ -48,6 +49,7 @@ from .world import (
 __all__ = [
     "AGREES_WITH",
     "DOCUMENT_FIELDS",
+    "ROLES",
     "STATUS_AFTER",
     "TIN_PATTERN",
     "WEB_FIELDS",
@@ -70,15 +72,20 @@ __all__ = [
     "Filing",
     "FlagOutcome",
     "FlagReason",
+    "LoginRequest",
+    "LoginResponse",
     "Memo",
     "Officer",
     "Owner",
     "OwnerKYC",
     "Recommendation",
     "RegistryEntity",
+    "Role",
     "RuledOutCause",
     "TinRecord",
     "TinType",
+    "TokenClaims",
+    "User",
     "WebSnapshot",
     "World",
     "is_override",

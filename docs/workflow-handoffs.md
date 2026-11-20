@@ -67,6 +67,7 @@ Rule: whoever produces the data owns its format; whoever uses it reviews the for
 | `evidence_index` | For each cited ID: source, type, excerpt, as_of | H (built by code in step 9) | XL | `contracts/kyb_contracts/memo.py` (`EvidenceEntry`, inside `CheckedMemo`) |
 | `CheckResult` | passed, failures (rule, flag, evidence, detail) | H | XL | `contracts/kyb_contracts/memo.py` |
 | `DecisionInput` / `DecisionRecord` | decision, note, analyst_id, agent_recommendation, overridden, decided_at | XL | H (evaluation) | `contracts/kyb_contracts/decision.py` |
+| `LoginRequest` / `LoginResponse` / `TokenClaims` | username and password; access_token, expires_in and user (user_id, username, display_name, role); the JWT's sub, role, name, iat and exp | XL | H (the agent reads the gateway's `X-User-*` headers) | `contracts/kyb_contracts/auth.py`, `docs/auth.md` |
 
 Formats marked *proposed here* aren't in `contracts/` yet. Their field lists come from the Nov 17 walkthrough in section 7 and may differ from their owners' drafts. Once a format is in `contracts/`, the code there is the source of truth, and this table should point to it. The worker formats are now in `worker_io.py`; section 7 still shows the earlier proposal (`WorkerTask`, `RecordsFinding`, `EvidenceFinding`). The memo formats are now in `memo.py`.
 
@@ -207,7 +208,7 @@ Formats marked *proposed here* aren't in `contracts/` yet. Their field lists com
 
 | Work | Details | Owner | Handoffs |
 |---|---|---|---|
-| Auth and API gateway | JWT login, roles, permission checks on every endpoint; the gateway routes `/auth`, `/cases` and `/reviews` | XL | To the team: the JWT claims and the list of roles |
+| Auth and API gateway | JWT login, roles, permission checks on every endpoint; the gateway routes `/auth`, `/cases` and `/reviews` | XL | To the team: the JWT claims and the list of roles (`docs/auth.md`) |
 | Agent service API | `POST /reviews` starts a review in the background; `GET /reviews/{id}` returns the status and memo; `POST /reviews/{id}/decision` submits the decision and resumes the graph; the frontend polls the status | XL (HTTP layer) + H (graph calls) | Agree on the endpoints with H |
 | LangFuse | A trace for every node and every LLM and tool call | H | E's workers use the same callback setup |
 | Golden dataset | About 28 cases, each with expected_decision, must_cite and forbidden_actions; 9–10 per person, each set including one case with hidden instructions. Proposed: XL writes EC-1, E writes EC-2, H writes EC-4 and the combined cases (to confirm). How to write and check a case: `data/golden/README.md` | Everyone | To XL for loading into the database; to H for evaluation |
