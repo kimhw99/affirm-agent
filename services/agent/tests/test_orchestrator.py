@@ -1,7 +1,7 @@
 """The orchestrator is a lookup table: routing, input checks and idempotency are plain code."""
 
 from kyb_contracts.case_input import FlagReason
-from kyb_contracts.memo import FLAG_EDGE_CASE
+from app.review import FLAG_EDGE_CASE
 
 from app.graph.orchestrator import (
     OUT_OF_SCOPE,
@@ -53,6 +53,13 @@ def test_unknown_flag_goes_to_human_queue(case_1042):
     case_1042["flag_reasons"].append("SOMETHING_NEW")
     d, _ = route_case(case_1042)
     assert d.route == "human_queue" and "SOMETHING_NEW" in d.reason
+
+
+def test_non_string_flags_go_to_human_queue_instead_of_raising(case_1042):
+    for bad in ({"flag": "TIN_MISMATCH"}, ["TIN_MISMATCH"], 7, None):
+        case_1042["flag_reasons"] = ["TIN_MISMATCH", bad]
+        d, case = route_case(case_1042)
+        assert d.route == "human_queue" and d.reason.startswith("unknown flags") and case is None
 
 
 def test_malformed_payload_goes_to_human_queue(case_1042):

@@ -26,7 +26,7 @@ from pydantic import ValidationError
 
 from app.shared.name_norm import compare_names, irs_name_control, normalize_name
 from kyb_contracts.case_input import CASE_ID, CaseInput, FlagReason
-from kyb_contracts.memo import FLAG_EDGE_CASE
+from app.review import FLAG_EDGE_CASE
 
 Route = Literal["reviewed", "needs_info", "human_queue"]
 
@@ -246,7 +246,8 @@ def route_case(raw: Any) -> tuple[RoutingDecision, Optional[CaseInput]]:
     if not isinstance(raw_flags, list):
         return _human("malformed payload: flag_reasons is not a list", case_id), None
     known = {f.value for f in FlagReason}
-    unknown = sorted({str(f) for f in raw_flags if f not in known})
+    # Flags may be any JSON value here (a dict or list isn't hashable), so test strings only.
+    unknown = sorted({str(f) for f in raw_flags if not (isinstance(f, str) and f in known)})
     if unknown:
         return _human(f"unknown flags: {unknown}", case_id), None
 

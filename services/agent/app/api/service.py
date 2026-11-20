@@ -2,7 +2,8 @@
 
 - ``start``: the idempotency key is case_id + a hash of the input, so a retry of the same
   payload returns the same review (no second run), while a case that comes back after
-  ``docs_requested`` with new evidence starts a new one.
+  ``docs_requested`` with new evidence starts a new one. A run that crashed releases its
+  key, so the backend's retry starts a fresh run instead of getting the failure back.
 - ``status``: running | awaiting_decision | done | failed (the review status, not the case status).
 - ``decide``: resumes the paused graph with the analyst's decision; the graph then hands
   the result back to the backend (``Deps.result_sink``).
@@ -56,17 +57,19 @@ class ReviewService:
         with self._lock:
             self._known.add(review_id)
         if background:
-            threading.Thread(target=self._run, args=(review_id, raw_case), daemon=True).start()
+            threading.Thread(target=self._run, args=(review_id, raw_case, key), daemon=True).start()
         else:
-            self._run(review_id, raw_case)
+            self._run(review_id, raw_case, key)
         return review_id, True
 
-    def _run(self, review_id: str, raw_case: dict[str, Any]) -> None:
+    def _run(self, review_id: str, raw_case: dict[str, Any], key: Optional[str] = None) -> None:
         try:
             self.graph.invoke({"review_id": review_id, "raw_case": raw_case}, self._config(review_id))
         except Exception as exc:  # noqa: BLE001
             log.exception("review %s failed", review_id)
             self._errors[review_id] = f"{type(exc).__name__}: {exc}"
+            if key is not None:
+                self.store.release(key)   # the failed review stays readable; a retry runs again
 
     # ----- status -----
 

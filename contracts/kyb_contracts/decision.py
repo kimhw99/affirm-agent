@@ -11,10 +11,9 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from .case_input import CaseStatus, Contract
-from .memo import Recommendation
+from .memo import Recommendation  # the lead's recommendation, defined with the memo
 
 Decision = Literal["approve", "request_docs", "escalate", "deny"]
-
 
 # Which decisions count as agreeing with each recommendation (proposal, to confirm).
 AGREES_WITH: dict[str, set[str]] = {

@@ -12,9 +12,10 @@ human review.
                                                                   │
                                                               finalize ──> backend API
 
-Workers are injected (``Deps``), so this module doesn't depend on how BEAC-4 builds
-them; anything with ``run(WorkerInput) -> WorkerResult`` works. State holds only
-JSON-friendly values so any LangGraph checkpointer can save it.
+Workers are injected (``Deps``): anything with ``run(WorkerInput) -> WorkerResult``.
+``app.graph.worker_adapter.LangGraphWorker`` wraps the BEAC-7 Records and Evidence
+workers (``app.workers``) that way. State holds only JSON-friendly values so any
+LangGraph checkpointer can save it.
 """
 
 from __future__ import annotations
@@ -47,7 +48,8 @@ from app.graph.plan import Plan, build_plan, initial_tasks
 from app.graph.reconcile import reconcile
 from kyb_contracts.case_input import CaseInput, FlagReason
 from kyb_contracts.decision import STATUS_AFTER, DecisionInput, DecisionRecord, is_override
-from kyb_contracts.memo import CheckOutcome, CheckResult, FollowUpRecord, Memo, ReviewOutput
+from kyb_contracts.memo import CheckedMemo, CheckResult, Memo
+from app.review import CheckOutcome, FollowUpRecord, LeadCheckFailure, LeadReport, ReviewOutput
 from kyb_contracts.worker_io import WorkerInput, WorkerResult
 
 log = logging.getLogger(__name__)
@@ -88,10 +90,12 @@ class ReviewState(TypedDict, total=False):
     internal_rounds: int
     last_round_new: Optional[bool]
     stop_reason: Optional[str]
-    memo: Optional[dict[str, Any]]
+    memo: Optional[dict[str, Any]]                                   # memo.Memo; None without flags
+    report: Optional[dict[str, Any]]                                 # review.LeadReport
     memo_attempts: int
     tin_redacted: bool
     check_result: Optional[dict[str, Any]]
+    lead_check_failures: list[dict[str, Any]]
     evidence_index: dict[str, Any]
     review_output: Optional[dict[str, Any]]
     decision_record: Optional[dict[str, Any]]
@@ -288,7 +292,7 @@ def build_graph(deps: Deps, checkpointer=None):
         outcomes = _outcomes(state)
         facts = _facts(state, case) if case else None
         attempts = state.get("memo_attempts", 0)
-        revision = _revision(state.get("check_result")) if attempts else None
+        revision = _revision(state.get("check_result"), state.get("lead_check_failures")) if attempts else None
         history = [FollowUpRecord.model_validate(h) for h in state.get("follow_up_history") or []]
         prose: Optional[MemoProse] = None
         if routing.route == "reviewed" and case is not None:
@@ -305,22 +309,30 @@ def build_graph(deps: Deps, checkpointer=None):
             now=deps.clock(), today=today(), version=attempts + 1, revision=revision,
             worker_errors=[f"{r.task_id}: {r.error}" for _, r in _results(state) if r.status == "failed"],
         )
-        return {"memo": _dump(build.memo), "memo_attempts": attempts + 1, "tin_redacted": build.tin_redacted}
+        return {"memo": _dump(build.memo) if build.memo else None, "report": _dump(build.report),
+                "memo_attempts": attempts + 1, "tin_redacted": build.tin_redacted}
 
     # --- 9. checks (code) ---
     def checks_node(state: ReviewState) -> dict[str, Any]:
-        memo = Memo.model_validate(state["memo"])
+        memo = Memo.model_validate(state["memo"]) if state.get("memo") else None
+        report = LeadReport.model_validate(state["report"])
         case = _case(state)
         facts = _facts(state, case) if case else None
-        result, index = run_checks(memo, case, facts, _plan(state), tin_redacted=state.get("tin_redacted", False),
-                                   attempts=state.get("memo_attempts", 1))
-        out = ReviewOutput(memo=memo, evidence_index=index, check_result=result)
-        return {"check_result": _dump(result), "evidence_index": {k: _dump(v) for k, v in index.items()},
+        checked = run_checks(memo, report, case, facts, _plan(state), tin_redacted=state.get("tin_redacted", False))
+        out = ReviewOutput(
+            checked_memo=(CheckedMemo(memo=memo, evidence_index=checked.evidence_index,
+                                      check_result=checked.check_result) if memo else None),
+            lead=report, lead_check_failures=checked.lead_failures,
+            check_attempts=state.get("memo_attempts", 1), report_evidence_index=checked.report_index,
+        )
+        return {"check_result": _dump(checked.check_result) if checked.check_result else None,
+                "lead_check_failures": [_dump(f) for f in checked.lead_failures],
+                "evidence_index": {k: _dump(v) for k, v in checked.evidence_index.items()},
                 "review_output": _dump(out)}
 
     def after_checks(state: ReviewState) -> str:
-        cr = CheckResult.model_validate(state["check_result"])
-        if not cr.passed and state.get("memo_attempts", 1) < 2:
+        out = ReviewOutput.model_validate(state["review_output"])
+        if not out.passed and state.get("memo_attempts", 1) < 2:
             return "write_memo"       # sent back once
         return "human_review"
 
@@ -333,11 +345,12 @@ def build_graph(deps: Deps, checkpointer=None):
     def finalize(state: ReviewState) -> dict[str, Any]:
         answer = state["decision_record"] or {}
         decision = DecisionInput.model_validate({"decision": answer.get("decision"), "note": answer.get("note", "")})
-        memo = Memo.model_validate(state["memo"])
+        report = LeadReport.model_validate(state["report"])
+        recommendation = state["memo"]["recommendation"] if state.get("memo") else "insufficient_evidence"
         record = DecisionRecord(
-            review_id=state["review_id"], case_id=memo.case_id, decision=decision.decision, note=decision.note,
-            analyst_id=str(answer.get("analyst_id") or "unknown"), agent_recommendation=memo.recommendation,
-            overridden=is_override(memo.recommendation, decision.decision), decided_at=deps.clock(),
+            review_id=state["review_id"], case_id=report.case_id, decision=decision.decision, note=decision.note,
+            analyst_id=str(answer.get("analyst_id") or "unknown"), agent_recommendation=recommendation,
+            overridden=is_override(recommendation, decision.decision), decided_at=deps.clock(),
         )
         payload = {"decision_record": _dump(record), "case_status": STATUS_AFTER[decision.decision].value}
         if deps.result_sink:
@@ -368,15 +381,17 @@ def build_graph(deps: Deps, checkpointer=None):
     return g.compile(checkpointer=checkpointer if checkpointer is not None else MemorySaver())
 
 
-def _revision(check_result: Optional[dict[str, Any]]) -> Revision:
+def _revision(check_result: Optional[dict[str, Any]],
+              lead_failures: Optional[list[dict[str, Any]]] = None) -> Revision:
+    """What step 9's failures ask the memo writer to fix (memo.CheckRule and review.LeadRule)."""
     rev = Revision()
-    if not check_result:
-        return rev
-    for f in CheckResult.model_validate(check_result).failures:
+    failures = list(CheckResult.model_validate(check_result).failures) if check_result else []
+    failures += [LeadCheckFailure.model_validate(f) for f in lead_failures or []]
+    for f in failures:
         rev.failures.append(f"{f.rule}: {f.detail}")
-        if f.rule in ("CLEAR_NEEDS_TWO_SOURCES", "NOT_ISSUED_TIN_CLEARED") and f.flag:
+        if f.rule in ("CLEAR_NEEDS_TWO_SOURCES", "NOT_ISSUED_TIN_CANT_CLEAR") and f.flag:
             rev.unresolve_flags.add(FlagReason(f.flag).value)
-        elif f.rule in ("EIN_OTHER_ENTITY_NOT_ESCALATED", "HARD_FAIL_NOT_ESCALATED"):
+        elif f.rule in ("UNRELATED_EIN_MUST_ESCALATE", "HARD_FAIL_NOT_ESCALATED"):
             rev.force_escalate = True
         elif f.rule == "DOCUMENT_ALREADY_IN_CASE":
             rev.drop_doc_types.add(f.detail.rsplit(" ", 1)[-1])

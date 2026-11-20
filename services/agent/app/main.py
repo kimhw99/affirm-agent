@@ -2,17 +2,19 @@
 
     uvicorn app.main:app --reload        (from services/agent)
 
-Workers are loaded from ``app.workers.records.RecordsWorker`` and
-``app.workers.evidence.EvidenceWorker`` (BEAC-4). Until those exist, a placeholder
-worker returns a failed result, so reviews still run end to end and every check that
-needs a worker ends as a GAP (insufficient_evidence) instead of guessing.
+Workers: the BEAC-7 Records and Evidence workers (``app.workers.run_records_worker`` /
+``run_evidence_worker``), reading the case service through ``HttpCaseClient``
+(``CASE_SERVICE_URL``, ``CASE_SERVICE_TOKEN``) and using the chat model from
+``app.llm`` (``OPENAI_MODEL``). If either is missing, a placeholder worker fails each
+task with the reason, so reviews still run end to end and every check that needs a
+worker ends as a GAP (insufficient_evidence) instead of guessing.
 """
 
 from __future__ import annotations
 
-import importlib
 import logging
 import os
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from fastapi import FastAPI
@@ -21,39 +23,38 @@ from app.api.reviews import router
 from app.api.service import ReviewService
 from app.clients.case_service import CaseServiceClient
 from app.graph.llm import default_llm
+from app.graph.worker_adapter import build_workers
 from app.graph.workflow import Deps, build_graph
 from app.observability.tracing import langfuse_callbacks
-from kyb_contracts.worker_io import WorkerInput, WorkerResult
 
 log = logging.getLogger(__name__)
 
 
-class PlaceholderWorker:
-    def __init__(self, worker: str):
-        self.worker = worker
-
-    def run(self, task: WorkerInput) -> WorkerResult:
-        return WorkerResult(task_id=task.task_id, case_id=task.context.case_id, worker=task.worker,
-                            status="failed", findings=[], sources=[], hypothesis_signals=[],
-                            tool_calls_used=0, error=f"the {self.worker} worker is not installed yet")
-
-
-def _load_worker(module: str, cls: str, name: str):
+def _worker_client() -> tuple[Any, Optional[str]]:
+    """The case-service client the workers' tools read from, or (None, why not)."""
     try:
-        return getattr(importlib.import_module(module), cls)()
-    except (ImportError, AttributeError):
-        log.warning("%s.%s not found; using a placeholder %s worker", module, cls, name)
-        return PlaceholderWorker(name)
+        from app.clients.case_client import HttpCaseClient
+    except ImportError as exc:
+        return None, f"app.clients.case_client is not installed ({exc})"
+    try:
+        return HttpCaseClient(), None
+    except Exception as exc:  # noqa: BLE001 - e.g. CASE_SERVICE_URL is not set
+        log.warning("The workers' case-service client could not start: %s", exc)
+        return None, str(exc)
 
 
 def create_app(deps: Optional[Deps] = None, case_client: Any = None, background: bool = True) -> FastAPI:
     callbacks = langfuse_callbacks()
     case_client = case_client or CaseServiceClient()
     if deps is None:
+        clock = lambda: datetime.now(timezone.utc)  # noqa: E731
+        worker_client, why = _worker_client()
+        records, evidence = build_workers(worker_client, callbacks=callbacks, clock=clock, client_error=why)
         deps = Deps(
-            records_worker=_load_worker("app.workers.records", "RecordsWorker", "records"),
-            evidence_worker=_load_worker("app.workers.evidence", "EvidenceWorker", "evidence"),
+            records_worker=records,
+            evidence_worker=evidence,
             llm=default_llm(callbacks),
+            clock=clock,
             result_sink=case_client.send_decision if os.getenv("SEND_RESULTS", "1") != "0" else None,
             callbacks=callbacks,
         )

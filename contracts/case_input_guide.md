@@ -103,8 +103,8 @@ An SSN (Social Security Number) is a person's number: 9 digits, written XXX-XX-X
 
 - The application carries only the TIN's type and last 4 digits (`tin_type`, `tin_last4`; see 5.3). Document fields do the same (`ein_last4`, see 4.5).
 - In CaseInput, owners appear only as reference IDs such as `owner:P1` (see 5.2).
-- The case service keeps the real SSN or EIN in a separate table that the model never sees.
-- For TIN matching, the Records worker calls `tin_match` with only a name to test; code looks up the case's submitted TIN by `case_id` and fills in the real number.
+- Our system never stores the full SSN or EIN. The existing system already used them, for TIN matching and KYC, before handing the case over; the results are in `checks.tin` and `owner_kyc`.
+- To test another name, the Records worker calls `tin_match` with only that name. The tool gets the case's IRS record by `case_id` and compares the names in code, so no full number is needed.
 - How full numbers are kept out: see `TIN_PATTERN` in 4.6 and the integrity check in section 8.
 
 ### 2.4 Rule 3: everything arrives parsed, and merchant claims stay on the Evidence side
@@ -258,7 +258,7 @@ All values are strings, dates included, for example `"2023-06-08"`.
 
 `TIN_PATTERN` matches a full SSN (`XXX-XX-XXXX`), a full EIN (`XX-XXXXXXX`) or 9 digits written together. The integrity check in section 8 turns the whole case into JSON text and scans it with this pattern; any match rejects the case. It doesn't matter which field the number is in: extracted fields, names and addresses all count. `state_entity_id` is the one field skipped, because some states issue 9-digit entity IDs. (`worker_io.py` imports the same pattern for the workers' context.)
 
-- **Test data convention:** fake EINs always start with `00` and fake SSNs with `000`. Real numbers never start this way, so a fake is obvious at a glance. But fake numbers are rejected by this check too, so full ones can only live in the case service's separate table (in the golden cases, `secrets.json`), never in CaseInput.
+- **Test data convention:** when a doc needs a full number as an example, fake EINs start with `00` and fake SSNs with `000`. Real numbers never start this way, so a fake is obvious at a glance. Fake numbers are rejected by this check too, so no golden case holds a full number, fake or not.
 - **Limits:** another number that happens to have one of these formats, such as a 9-digit ZIP+4 written without the dash, is rejected by mistake.
 - `SSN_PATTERN` (dashed SSNs only) is kept for existing imports; `TIN_PATTERN` covers it.
 
@@ -281,7 +281,7 @@ Everything in `application` is the merchant's claim, not a verified fact; the la
 | `formation_date` | Formation documents | The state registry | No separate check; used to tell whether the company is new | EC-4 |
 | `owners` | Filled in by the merchant | KYC services | `owner_kyc` | EC-4 |
 
-When a sole proprietor has no EIN, TIN matching uses the owner's SSN: `tin_type` is `SSN` and `tin_last4` holds its last 4 digits. The full number lives in the case service's separate table (see 2.3).
+When a sole proprietor has no EIN, TIN matching uses the owner's SSN: `tin_type` is `SSN` and `tin_last4` holds its last 4 digits. The full number stays with the existing system (see 2.3).
 
 ### 5.2 `Owner`: the people behind the business
 
@@ -302,7 +302,7 @@ When a sole proprietor has no EIN, TIN matching uses the owner's SSN: `tin_type`
 | `dba` | DBA (doing business as): the name a business trades under; also called an assumed name, fictitious business name or trade name | Text | Yes | The existing system runs `checks.dba` only when a DBA is filled in |
 | `address` | The business address the merchant entered | Text | No | The Records worker uses it to search the registry; the Evidence worker compares it with license and website addresses |
 | `tin_type` | Which tax ID was submitted: `EIN` (Employer Identification Number, a business's federal tax ID; a name change doesn't need a new one) or `SSN` (a sole proprietor filing under their own number) | `EIN` or `SSN` | Yes | Empty only when no TIN was submitted; then `tin_last4` is empty too |
-| `tin_last4` | The submitted TIN's last 4 digits | 4 digits | Yes | Given together with `tin_type`. The full number stays in case_db (see 2.3) |
+| `tin_last4` | The submitted TIN's last 4 digits | 4 digits | Yes | Given together with `tin_type`. The full number stays with the existing system (see 2.3) |
 | `state` | The state where the business is registered or operates | Two capital letters, such as `IL` | No | Decides which state's records to search |
 | `state_entity_id` | State entity ID: the number the state gives each company | Varies by state | Yes | Sole proprietors usually have none |
 | `entity_type` | Entity type | See 4.3 | No | — |
@@ -685,7 +685,7 @@ Example: Northline (`case_1042`)
 - A typo at the start of the applied name.
 - The name change was just reported to the IRS and the database hasn't caught up.
 
-**In the project:** the Records worker uses `tin_match` to try again with the old name; a match shows the IRS still has the old name. That's how the full example in section 7 of the workflow doc works it out. The call passes only the name to test; code looks up the case's submitted TIN and fills in the real number.
+**In the project:** the Records worker uses `tin_match` to try again with the old name; a match shows the IRS still has the old name. That's how the full example in section 7 of the workflow doc works it out. The call passes only the name to test; the tool gets the case's IRS record by `case_id` and compares the names in code.
 
 ### 9.5 `TIN_NOT_FOUND` (EC-2)
 
@@ -700,7 +700,7 @@ Example: Copperleaf Dental Supply Inc., in Georgia (made up)
         │
         ▼
 ② Applies to Affirm, swapping two digits of the EIN, and uploads the CP 575
-   └─ Application: tin_type = EIN, tin_last4 = 0512 (full number 00-7350512, kept in case_db)
+   └─ Application: tin_type = EIN, tin_last4 = 0512 (full number 00-7350512, kept by the existing system)
    └─ documents: D1 is the CP 575, with ein_last4 = 5512 (full number 00-7305512)
         │
         ▼
