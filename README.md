@@ -5,12 +5,13 @@
 ```text
 affirm-agent/
 ├── README.md                     # Overview, how to run, folder guide
-├── docker-compose.yml            # Runs all services together; so far the database and the case service
+├── docker-compose.yml            # Runs all services together; so far the database and the backend services
 ├── .env.example                  # Lists every environment variable, no real values
 ├── .gitignore                    # .env, node_modules, pycache
 ├── docs/
 │   ├── proposal/                 # Project proposal
 │   ├── architecture.md           # How the services, the workflow and the data fit together
+│   ├── auth.md                   # Roles, the JWT, and what the gateway lets through
 │   ├── case-service-endpoints.md # The case-service endpoints the agent calls
 │   ├── database.md               # The three databases and the case_db tables
 │   └── workflow-handoffs.md      # Workflow steps, owners and handoffs
@@ -20,11 +21,12 @@ affirm-agent/
 │   │   ├── world.py              # World (a golden case's world.json); what case-service endpoints 1–6 return
 │   │   ├── worker_io.py          # WorkerInput (aliases WorkerTask, FollowUp), WorkerResult
 │   │   ├── memo.py               # Memo, CheckResult, evidence_index, CheckedMemo; Recommendation
+│   │   ├── auth.py               # Roles, login, the JWT's claims
 │   │   └── decision.py           # DecisionInput, DecisionRecord
 │   └── examples/                 # One valid JSON example per format
 ├── services/
-│   ├── gateway/                  # FastAPI; verifies the JWT and routes by path
-│   ├── auth/                     # Login, JWT, roles (auth_db)
+│   ├── gateway/                  # FastAPI; verifies the JWT and routes by path (docs/auth.md)
+│   ├── auth/                     # Login, JWT, roles (auth_db, tables in schema.sql)
 │   ├── case/                     # Cases, decisions, audit log (case_db): API in app/, tables in schema.sql, seed.py loads the golden cases
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway

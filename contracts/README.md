@@ -11,6 +11,7 @@ For a field-by-field walkthrough of `CaseInput` and the KYB background behind it
 | `kyb_contracts/decision.py` | `DecisionInput`, `DecisionRecord`, the status each decision leads to (`STATUS_AFTER`) and the override rule (`AGREES_WITH`, `is_override`) | review app, agent API, case service, evaluation |
 | `kyb_contracts/worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult`, with the `CaseContext`, `Finding` and `Source` inside them | graph, workers |
 | `kyb_contracts/memo.py` | `Memo` (the lead's memo), `CheckResult`, the `evidence_index` entries, `CheckedMemo` (the three together, as the review app shows them) and `Recommendation` | graph (lead, Checks), review app, case service (via `DecisionRecord`) |
+| `kyb_contracts/auth.py` | The roles (`Role`, `ROLES`), `LoginRequest`, `LoginResponse`, `User`, the JWT's `TokenClaims`, and the `X-User-*` headers the gateway sets | auth service, gateway, review app |
 
 ## Rules
 
