@@ -5,7 +5,7 @@
 ```text
 affirm-agent/
 ├── README.md                     # Overview, how to run, folder guide
-├── docker-compose.yml            # Runs all services together
+├── docker-compose.yml            # Runs all services together; so far the database
 ├── .env.example                  # Lists every environment variable, no real values
 ├── .gitignore                    # .env, node_modules, pycache
 ├── docs/
@@ -25,7 +25,7 @@ affirm-agent/
 ├── services/
 │   ├── gateway/                  # FastAPI; verifies the JWT and routes by path
 │   ├── auth/                     # Login, JWT, roles (auth_db)
-│   ├── case/                     # Cases, decisions, audit log (case_db, tables in schema.sql); seed script
+│   ├── case/                     # Cases, decisions, audit log (case_db, tables in schema.sql); seed.py loads the golden cases
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # React + React Router; nginx serves the pages and forwards /api to the gateway
 ├── db/init.sql                   # Creates the three databases and their accounts

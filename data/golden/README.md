@@ -2,7 +2,7 @@
 
 The test cases for the whole system. Each case holds the case the existing KYB system hands over and the official and vendor records the agent can look up. Everything is made up: no tool in this project calls a real registry, the IRS or a data vendor.
 
-The case service's seed script loads both files of every case into its database, the agent's offline tests read the same files through a fake client, and the evaluation compares the agent's results with each case's expected answer.
+The case service's seed script ([seed.py](../../services/case/seed.py)) loads both files of every case into its database, the agent's offline tests read the same files through a fake client, and the evaluation compares the agent's results with each case's expected answer.
 
 ## Layout
 

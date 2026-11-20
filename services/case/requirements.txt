@@ -1,0 +1,3 @@
+# The seed script (seed.py). The case service's API will add its own.
+psycopg[binary]>=3.1
+pydantic>=2.7
