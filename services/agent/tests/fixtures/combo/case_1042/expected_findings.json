@@ -24,13 +24,12 @@
           "value": [
             "HARBOR LIGHT CYCLES LLC"
           ]
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "normalized_equal"
-          }
+          "against": "application.legal_name",
+          "label": "normalized_equal"
         }
       ]
     },
@@ -75,22 +74,18 @@
         {
           "field": "dba_expired",
           "value": false
+        }
+      ],
+      "name_checks": [
+        {
+          "name_field": "R3.registrant",
+          "against": "former_name",
+          "label": "exact"
         },
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "former_name",
-            "label": "exact",
-            "name_field": "R3.registrant"
-          }
-        },
-        {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.dba",
-            "label": "normalized_equal",
-            "name_field": "R3.dba"
-          }
+          "name_field": "R3.dba",
+          "against": "application.dba",
+          "label": "normalized_equal"
         }
       ]
     },
@@ -175,14 +170,13 @@
         {
           "field": "name_control_matches_legal_name",
           "value": false
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "different",
-            "name_field": "D1.name"
-          }
+          "name_field": "D1.name",
+          "against": "application.legal_name",
+          "label": "different"
         }
       ]
     },
@@ -194,30 +188,23 @@
       "sources": [
         "B1"
       ],
-      "expect": [
+      "expect": [],
+      "name_checks": [
         {
-          "field": "account_legal_name",
-          "value": "NORTHLINE BICYCLE WORKS LLC"
+          "name_field": "B1.account_holder (legal part)"
         },
         {
-          "field": "account_dba",
-          "value": "NORTHLINE CYCLES"
+          "name_field": "B1.account_holder (DBA part)"
         },
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "normalized_equal",
-            "name_field": "B1.account_legal_name"
-          }
+          "name_field": "B1.account_holder (legal part)",
+          "against": "application.legal_name",
+          "label": "normalized_equal"
         },
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.dba",
-            "label": "normalized_equal",
-            "name_field": "B1.account_dba"
-          }
+          "name_field": "B1.account_holder (DBA part)",
+          "against": "application.dba",
+          "label": "normalized_equal"
         }
       ]
     },

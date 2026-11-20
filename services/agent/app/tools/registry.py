@@ -85,13 +85,11 @@ def _entity_findings(ctx: ToolContext, entity: RegistryEntity, *, is_applicant: 
         found.append(add(source, "former_names", entity.former_names, lines["former_names"],
                          method=STRUCTURED, confidence=HIGH))
 
-    comparisons = ctx.add_name_comparisons(source, entity.legal_name, lines["legal_name"],
-                                           confidence=HIGH, label=f"{source.source_id}.legal_name")
-    found += comparisons
+    comparisons = ctx.name_hints(f"{source.source_id}.legal_name", entity.legal_name)
     # Remember the applicant's former names for later comparisons and TIN tests.
-    if is_applicant or any(f.value["against"] == "application.legal_name"
-                           and LABEL_RANK[f.value["label"]] >= LABEL_RANK["core_equal_suffix_differs"]
-                           for f in comparisons):
+    if is_applicant or any(against == "application.legal_name"
+                           and LABEL_RANK[c.label] >= LABEL_RANK["core_equal_suffix_differs"]
+                           for against, _, _, c in comparisons):
         ctx.former_names.extend(n for n in entity.former_names if n not in ctx.former_names)
     return source, found
 
@@ -313,10 +311,8 @@ def search_dba(ctx: ToolContext, args: SearchDbaArgs) -> ToolOutput:
         findings.append(add(source, "dba_expired", expired,
                             lines["expires"] if filing.expires else lines["status"],
                             method=DERIVED, confidence=HIGH))
-        findings += ctx.add_name_comparisons(source, filing.dba, lines["dba"], confidence=HIGH,
-                                             label=f"{source.source_id}.dba")
-        findings += ctx.add_name_comparisons(source, filing.registrant, lines["registrant"], confidence=HIGH,
-                                             label=f"{source.source_id}.registrant", include_owners=True)
+        ctx.name_hints(f"{source.source_id}.dba", filing.dba)
+        ctx.name_hints(f"{source.source_id}.registrant", filing.registrant, include_owners=True)
     return ctx.remember(call_key, output_from(ctx, "search_dba", sources, findings))
 
 
@@ -379,8 +375,7 @@ def search_commercial_db(ctx: ToolContext, args: SearchCommercialArgs) -> ToolOu
             add(source, "first_seen", profile.first_seen, l_first, method=STRUCTURED, confidence=HIGH),
             add(source, "last_updated", profile.last_updated, l_upd, method=STRUCTURED, confidence=HIGH),
         ]
-        findings += ctx.add_name_comparisons(source, profile.business_name, l_name, confidence=HIGH,
-                                             label=f"{source.source_id}.business_name")
+        ctx.name_hints(f"{source.source_id}.business_name", profile.business_name)
         formed = ctx.app.formation_date
         if formed:
             findings.append(add(source, "first_seen_after_formation", profile.first_seen >= formed, l_first,
@@ -393,7 +388,7 @@ def search_commercial_db(ctx: ToolContext, args: SearchCommercialArgs) -> ToolOu
 SPECS = [
     ToolSpec("search_registry",
              "Search the Secretary of State registry by business name, officer or address (broad match; "
-             "returns the 3 closest entities, each compared with the application's names). Use it when the "
+             "returns the 3 closest entities, with name_checks against the application's names). Use it when the "
              "application has no state_entity_id or to look for look-alike entities.",
              SearchRegistryArgs, search_registry),
     ToolSpec("get_registry_entity",

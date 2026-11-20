@@ -14,29 +14,22 @@
         {
           "field": "entity_status",
           "value": "active"
-        },
-        {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "normalized_equal"
-          }
         }
       ],
-      "absent": [
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "similar"
-          }
+          "against": "application.legal_name",
+          "label": "normalized_equal"
+        }
+      ],
+      "name_checks_absent": [
+        {
+          "against": "application.legal_name",
+          "label": "similar"
         },
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "different"
-          }
+          "against": "application.legal_name",
+          "label": "different"
         }
       ]
     },
@@ -71,20 +64,19 @@
       ],
       "expect": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "normalized_equal",
-            "name_field": "D1.legal_name"
-          }
-        },
-        {
           "field": "state_entity_id_matches_application",
           "value": true
         },
         {
           "field": "formation_date_matches_application",
           "value": true
+        }
+      ],
+      "name_checks": [
+        {
+          "name_field": "D1.legal_name",
+          "against": "application.legal_name",
+          "label": "normalized_equal"
         }
       ]
     },

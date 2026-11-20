@@ -29,13 +29,12 @@
         {
           "field": "legal_name",
           "value": "HARWICK MARINE SUPPLY LLC"
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "different"
-          }
+          "against": "application.legal_name",
+          "label": "different"
         }
       ]
     },
@@ -55,14 +54,13 @@
         {
           "field": "dba_expired",
           "value": false
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "normalized_equal",
-            "name_field": "R3.dba"
-          }
+          "name_field": "R3.dba",
+          "against": "application.legal_name",
+          "label": "normalized_equal"
         }
       ]
     },
@@ -130,14 +128,13 @@
         {
           "field": "business_name",
           "value": "Bluefin Supply"
-        },
+        }
+      ],
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "against": "application.legal_name",
-            "label": "exact",
-            "name_field": "D2.business_name"
-          }
+          "name_field": "D2.business_name",
+          "against": "application.legal_name",
+          "label": "exact"
         }
       ]
     }

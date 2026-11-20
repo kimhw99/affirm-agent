@@ -181,7 +181,7 @@ class PlaybookChatModel:
                 [_call("search_registry", name=m.group(1))]
         if m := re.search(r"county-level DBA records in \w\w for '(.+?)'", q):
             return [_call("search_dba", name=m.group(1))]
-        if m := re.search(r"pending filings in \w\w for '(.+?)'", q):
+        if m := re.search(r"Search the \w\w registry for '(.+?)' and read its filing history", q):
             return [_call("get_filing_history")] if app.state_entity_id else [_call("search_registry", name=m.group(1))]
         return []
 

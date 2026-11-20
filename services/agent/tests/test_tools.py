@@ -42,6 +42,38 @@ def test_expected_findings(case_id, worker):
         for unwanted in call.get("absent", []):
             hits = [f.finding_id for f in out.findings if finding_matches(unwanted, f)]
             assert not hits, f"{label}: unexpected {unwanted}: {hits}"
+        # Name comparisons are hints for the worker's model, not findings (the Lead owns the verdict).
+        for expected in call.get("name_checks", []):
+            assert any(hint_matches(expected, h) for h in out.hints), f"{label}: no name check {expected}: {out.hints}"
+        for unwanted in call.get("name_checks_absent", []):
+            hits = [h for h in out.hints if hint_matches(unwanted, h)]
+            assert not hits, f"{label}: unexpected name check {unwanted}: {hits}"
+    assert not any(f.field in WORKER_SIDE_NAME_MATCHING for _, out in outputs for f in out.findings)
+
+
+# Fields the workers used to write; the Lead now owns name matching (app/graph/reconcile.py).
+WORKER_SIDE_NAME_MATCHING = {"name_comparison", "account_legal_name", "account_dba"}
+
+
+def hint_matches(expected: dict, hint: str) -> bool:
+    """A name check reads '<name_field> vs <against>: <label> (<meaning>)'."""
+    head, _, rest = hint.partition(" vs ")
+    against, _, label = rest.partition(": ")
+    return (expected.get("name_field", head) == head and expected.get("against", against) == against
+            and ("label" not in expected or label.startswith(expected["label"] + " (")))
+
+
+def test_name_checks_never_carry_merchant_text():
+    """Hints sit in the trusted part of a tool reply, so they name fields and labels only."""
+    for case_id in CASE_IDS:
+        _, outputs = run_expected(case_id, "evidence")
+        for _, out in outputs:
+            merchant_values = {str(f.value) for f in out.findings if f.source_id in out.merchant_sources
+                               and isinstance(f.value, str) and len(f.value) > 3}
+            for hint in out.hints:
+                assert not any(v in hint for v in merchant_values), (case_id, hint)
+            if out.hints:
+                assert out.llm_view().split("\n", 1)[0].count("name_checks") == 1
 
 
 @pytest.mark.parametrize("case_id, worker", CASES_AND_WORKERS)
@@ -255,3 +287,10 @@ def test_openai_schema(spec):
     assert schema["function"]["name"] == spec.name
     params = schema["function"]["parameters"]
     assert params["type"] == "object" and params.get("additionalProperties") is False
+
+
+def test_a_repeated_call_keeps_its_name_checks():
+    ctx = tool_context("case_1042", "records")
+    first = RECORDS_TOOLS["get_registry_entity"].run(ctx, {})
+    again = RECORDS_TOOLS["get_registry_entity"].run(ctx, {})
+    assert again.cached and first.hints and again.hints == first.hints

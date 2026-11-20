@@ -119,8 +119,7 @@ def _document_derived(ctx: ToolContext, doc: Document, source, lines: dict[str, 
     for key in NAME_FIELDS:
         if key in lines and not injection_like(x[key]):
             include_owners = key in {"registrant", "holder"} or doc.type == "w9" or sole_prop
-            found += ctx.add_name_comparisons(source, x[key], lines[key], confidence=conf,
-                                              label=f"{doc.id}.{key}", include_owners=include_owners)
+            ctx.name_hints(f"{doc.id}.{key}", x[key], include_owners=include_owners)
 
     for key in ("ein_last4", "tin_last4"):
         if key in lines and app.tin_last4:
@@ -213,16 +212,12 @@ def get_bank_verification(ctx: ToolContext, args: GetBankVerificationArgs) -> To
     if bank.verified_at:
         findings.append(add(source, "verified_at", bank.verified_at, l_at, method=STRUCTURED, confidence="high"))
 
+    # The Lead splits "LEGAL DBA TRADE" itself when it reconciles; here the split only
+    # steers the model (name_checks), so there is one owner of the name verdict.
     legal, dba = split_dba(bank.account_holder)
-    findings.append(add(source, "account_legal_name", legal, l_holder, method=DERIVED, confidence=conf,
-                        note="legal part of the account holder" + (" (holder reads 'LEGAL DBA TRADE')" if dba else "")))
-    findings += ctx.add_name_comparisons(source, legal, l_holder, confidence=conf,
-                                         label=f"{bank.id}.account_legal_name", include_owners=True)
+    ctx.name_hints(f"{bank.id}.account_holder (legal part)", legal, include_owners=True)
     if dba:
-        findings.append(add(source, "account_dba", dba, l_holder, method=DERIVED, confidence=conf,
-                            note="trade name after 'DBA' in the account holder"))
-        findings += ctx.add_name_comparisons(source, dba, l_holder, confidence=conf,
-                                             label=f"{bank.id}.account_dba")
+        ctx.name_hints(f"{bank.id}.account_holder (DBA part)", dba)
     return ctx.remember(call_key, output_from(ctx, "get_bank_verification", [source], findings))
 
 
@@ -260,8 +255,7 @@ def get_site_identity(ctx: ToolContext, args: GetSiteIdentityArgs) -> ToolOutput
     suspicious = [k for k in lines if injection_like(snap.extracted[k])]
     for key in ("legal_name", "dba"):
         if key in lines and key not in suspicious:
-            findings += ctx.add_name_comparisons(source, snap.extracted[key], lines[key], confidence="low",
-                                                 label=WEB_FINDING[key])
+            ctx.name_hints(WEB_FINDING[key], snap.extracted[key])
     if "address" in lines and "address" not in suspicious:
         findings.append(add(source, "address_matches_application",
                             addresses_match(snap.extracted["address"], ctx.app.address), lines["address"],
@@ -280,8 +274,8 @@ SPECS = [
              "extraction confidence.",
              GetDocumentArgs, get_document),
     ToolSpec("get_bank_verification",
-             "Fetch the bank verification result: account holder (split into legal name and DBA when it reads "
-             "'LEGAL DBA TRADE'), status and date, compared with the application.",
+             "Fetch the bank verification result: account holder, status and date, with name_checks of its "
+             "legal and DBA parts ('LEGAL DBA TRADE') against the application.",
              GetBankVerificationArgs, get_bank_verification),
     ToolSpec("get_site_identity",
              "Fetch a website snapshot's stored fields (legal name, DBA, address) by its W ID. Website values "

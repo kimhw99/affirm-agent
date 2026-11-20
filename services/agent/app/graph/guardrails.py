@@ -189,7 +189,6 @@ def run_checks(memo: Optional[Memo], report: LeadReport, case: Optional[CaseInpu
                                                  detail="The IRS has not issued / has no record of the TIN"))
         # Blocking facts must escalate.
         blocking = [x for x in facts.records("kyc_result") if (text(x.value) or "").lower() == "fail"]
-        blocking += [x for x in facts.evidence("tampered") if str(x.value).lower() in ("true", "yes", "1")]
         if blocking and recommendation != "escalate":
             lead.append(LeadCheckFailure(rule="HARD_FAIL_NOT_ESCALATED",
                                          detail="Blocking finding(s) " + ", ".join(b.source_id for b in blocking)))

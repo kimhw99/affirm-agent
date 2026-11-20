@@ -141,8 +141,12 @@ def test_evidence_happy_path_case_1042():
     assert [s.source_id for s in result.sources] == ["D1", "B1", "W1"]
     assert finding(result, "name", value="HARBOR LIGHT CYCLES LLC")
     assert finding(result, "tin_last4_matches_application", value=True)
-    assert finding(result, "account_legal_name", value="NORTHLINE BICYCLE WORKS LLC")
-    assert finding(result, "account_dba", value="NORTHLINE CYCLES")
+    assert finding(result, "account_holder", value="NORTHLINE BICYCLE WORKS LLC DBA NORTHLINE CYCLES")
+    # The Lead splits and matches names itself; the worker reports the raw holder only.
+    assert not {f.field for f in result.findings} & {"name_comparison", "account_legal_name", "account_dba"}
+    bank_reply = next(m.content for m in llm.agent_calls[-1]
+                      if isinstance(m, ToolMessage) and m.name == "get_bank_verification")
+    assert "B1.account_holder (DBA part) vs application.dba: normalized_equal" in bank_reply
     assert all(f.confidence == "low" for f in finding(result, "website_legal_name"))
     assert llm.bound == list(EVIDENCE_TOOLS)
 
@@ -353,9 +357,9 @@ def test_follow_up_uses_record_id_start_and_prior_findings():
     check_valid(follow)
     assert [s.source_id for s in follow.sources] == ["R2"]
     assert all(f.finding_id.startswith("f_rec_t3_") for f in follow.findings)
-    # The former name from the prior task is used in the registrant comparison.
-    assert any(f.field == "name_comparison" and f.value["against"] == "former_name" and f.value["label"] == "exact"
-               for f in follow.findings)
+    # The former name from the prior task is used in the registrant name check the model sees.
+    dba_reply = next(m.content for m in llm.agent_calls[-1] if isinstance(m, ToolMessage) and m.name == "search_dba")
+    assert "R2.registrant vs former_name: exact" in dba_reply
     assert "Prior findings" in next(m.content for m in llm.agent_calls[0] if isinstance(m, HumanMessage))
 
 

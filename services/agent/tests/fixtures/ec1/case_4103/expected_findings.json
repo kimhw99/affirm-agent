@@ -21,30 +21,22 @@
         {
           "field": "entity_status",
           "value": "dissolved"
-        },
-        {
-          "field": "name_comparison",
-          "value": {
-            "name": "GREEN LEAF ORGANIC LLC",
-            "label": "similar"
-          },
-          "confidence": "medium"
-        },
-        {
-          "field": "name_comparison",
-          "value": {
-            "name": "GREENLEAF ORGANICS, LLC",
-            "label": "normalized_equal"
-          }
         }
       ],
-      "absent": [
+      "name_checks": [
         {
-          "field": "name_comparison",
-          "value": {
-            "name": "GREEN LEAF ORGANIC LLC",
-            "label": "normalized_equal"
-          }
+          "label": "similar",
+          "name_field": "R2.legal_name"
+        },
+        {
+          "label": "normalized_equal",
+          "name_field": "R1.legal_name"
+        }
+      ],
+      "name_checks_absent": [
+        {
+          "label": "normalized_equal",
+          "name_field": "R2.legal_name"
         }
       ]
     },

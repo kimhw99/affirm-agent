@@ -6,8 +6,12 @@ The LLM chooses tools and reads their results; code writes the findings. Each to
    application's state ID, or a name),
 2. renders it as plain ``key: value`` lines and registers it as a ``Source``,
 3. turns its fields into ``Finding``s whose citation excerpt is one of those lines,
-   copied word for word, plus a few findings derived by code (name comparisons,
-   dates, last-4 checks).
+   copied word for word, plus a few findings derived by code (dates, last-4 checks).
+
+Name matching for the *verdict* belongs to the Lead (``app/graph/reconcile.py``): it is
+the only side that sees both the records and the merchant's evidence. The tools still
+compare names with the application, but only as ``name_checks`` hints in what the
+worker's model sees (which lookup to run next), never as findings the Lead could read.
 
 Nothing here parses documents or raw text; the case service already did that.
 """
@@ -172,6 +176,7 @@ class ToolOutput:
     rejected: bool = False            # the request was refused (bad ID, wrong tool); not a failure
     merchant_sources: set[str] = field(default_factory=set)
     cached: bool = False
+    hints: list[str] = field(default_factory=list)   # name checks for the worker's model; not findings
 
     def llm_view(self) -> str:
         """What the model sees: compact JSON. Merchant values go inside untrusted tags."""
@@ -185,6 +190,8 @@ class ToolOutput:
         if self.sources:
             head["sources"] = [{"source_id": s.source_id, "type": s.source_type,
                                 "authority": s.authority, "locator": s.locator} for s in self.sources]
+        if self.hints:  # labels and field names only, never the merchant's text
+            head["name_checks"] = self.hints
 
         trusted = [f for f in self.findings if f.source_id not in self.merchant_sources]
         merchant = [f for f in self.findings if f.source_id in self.merchant_sources]
@@ -224,6 +231,7 @@ class ToolContext:
         self.merchant_sources: set[str] = set()
         self.errors: list[str] = []
         self.tool_calls_used = 0          # kept by the worker loop
+        self.pending_hints: list[str] = []  # name checks of the running call; output_from() takes them
         self._source_by_key: dict[str, str] = {}
         self._outputs: dict[str, ToolOutput] = {}
         self._finding_by_key: dict[tuple, Finding] = {}
@@ -260,7 +268,7 @@ class ToolContext:
             return None
         return ToolOutput(tool=tool, sources=previous.sources, findings=previous.findings,
                           note="Already retrieved in this task; same sources and findings as before.",
-                          merchant_sources=previous.merchant_sources, cached=True)
+                          merchant_sources=previous.merchant_sources, cached=True, hints=previous.hints)
 
     def remember(self, key: str, output: ToolOutput) -> ToolOutput:
         self._outputs[key] = output
@@ -341,22 +349,19 @@ class ToolContext:
         return [c for c in candidates
                 if c[0] == "application.legal_name" or c is closest or c[3].at_least("similar")]
 
-    def add_name_comparisons(self, source: Source, name: str, excerpt: str, *, confidence: str,
-                             label: str, include_owners: bool = False) -> list[Finding]:
-        found = []
-        for against, subject, other, comparison in self.compare_to_application(
-                name, include_owners=include_owners):
-            conf = confidence
-            if comparison.label == "similar" and conf == Confidence.HIGH.value:
-                conf = Confidence.MEDIUM.value
-            found.append(self.add_finding(
-                source, "name_comparison",
-                {"name": name, "name_field": label, "against": against, "against_value": other,
-                 "label": comparison.label, "score": round(comparison.score, 1)},
-                excerpt, method=ExtractionMethod.DERIVED, confidence=conf, subject=subject,
-                note=_comparison_note(label, comparison.label, against),
-            ))
-        return found
+    def name_hints(self, label: str, name: str, *, include_owners: bool = False
+                   ) -> list[tuple[str, str, str, NameComparison]]:
+        """Compare ``name`` with the application and queue the result as a hint for the model.
+
+        Hints help the worker pick its next lookup (e.g. a mismatch -> read the filing
+        history). They are not findings: whether two names are the same business is the
+        Lead's call (reconcile.py). A hint names fields and labels only, never the
+        compared text, so merchant values can't reach the trusted part of a tool reply.
+        """
+        comparisons = self.compare_to_application(name, include_owners=include_owners)
+        self.pending_hints += [_comparison_note(label, c.label, against)
+                               for against, _subject, _other, c in comparisons]
+        return comparisons
 
 
 def _comparison_note(field_label: str, label: str, against: str) -> str:
@@ -367,7 +372,7 @@ def _comparison_note(field_label: str, label: str, against: str) -> str:
         "similar": "a look-alike name; NOT evidence of the same entity",
         "different": "a different name",
     }[label]
-    return f"{field_label} vs {against}: {meaning}"
+    return f"{field_label} vs {against}: {label} ({meaning})"
 
 
 def rank_label(comparisons: list[tuple[str, str, str, NameComparison]]) -> int:
@@ -411,6 +416,7 @@ class ToolSpec:
             problems = "; ".join(f"{'.'.join(map(str, e['loc'])) or 'arguments'}: {e['msg']}"
                                  for e in error.errors())
             return ToolOutput(tool=self.name, rejected=True, note=f"invalid arguments: {problems}")
+        ctx.pending_hints = []
         try:
             return self.fn(ctx, args)
         except ToolInputError as error:
@@ -428,8 +434,9 @@ class ToolSpec:
 def output_from(ctx: ToolContext, tool: str, sources: list[Source], findings: list[Finding],
                 note: Optional[str] = None) -> ToolOutput:
     unique = list({s.source_id: s for s in sources}.values())
+    hints, ctx.pending_hints = list(dict.fromkeys(ctx.pending_hints)), []
     return ToolOutput(tool=tool, sources=unique, findings=findings, note=note,
-                      merchant_sources={s.source_id for s in unique} & ctx.merchant_sources)
+                      merchant_sources={s.source_id for s in unique} & ctx.merchant_sources, hints=hints)
 
 
 __all__ = [

@@ -128,6 +128,10 @@ class OpenAILeadLLM:
         return self._call(MemoProse, (
             "Write the prose parts of the review memo: one root_cause per flag (use the flag names given), "
             "causes you can rule out (each citing evidence IDs from the input), and short notes for the analyst. "
+            "worker_reports holds each worker's own reading of its findings (answer, hypothesis signals with "
+            "their evidence IDs) and what it could not find or settle: use the signals to word root causes and "
+            "ruled-out causes, and say why a GAP or CONFLICT check is still open. A worker's reading is one "
+            "side only; where it disagrees with the check statuses, the statuses win. "
             "Do not change any status or the recommendation; they are decided by code."
             + (f" The previous draft failed these checks; fix them: {failures}" if failures else "")),
             payload)
