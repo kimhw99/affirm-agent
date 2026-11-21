@@ -61,6 +61,17 @@ These steps take case_1042 through an analyst's decision and then a senior analy
 
 Without an OpenAI key, Escalate in step 5 agrees with the recommendation and Approve in step 12 doesn't, so in step 15 the override rate is 50%: 1 of 2 decisions.
 
+Then the merchant's documents: a case the analyst sends back for documents returns to review once they arrive. [Start over](#5-start-over-stop-or-update) first, so case_1042 is pending again.
+
+| # | Do | You should see |
+|---|---|---|
+| 16 | Log in as `analyst`, open case_1042, choose Request documents, write a note, and click Submit decision | "Decision saved" and "The case is now Docs requested." |
+| 17 | Click ← Case queue, choose Docs requested under Status, and open case_1042 | "Add the documents the merchant sent", with a reminder to enter only a tax ID's last 4 digits, and the decision that asked for them. No review starts |
+| 18 | Choose IRS letter 147C, fill in Name (NORTHLINE BICYCLE WORKS LLC) and EIN, last 4 digits (4567), and click Add the document | "Adding…", then "Added D2: IRS letter 147C (the EIN and the name on file). The case is back in Pending review, so a new review starts.", then the new review's memo and decision form. With an OpenAI key, the memo or the evidence panel can cite D2 |
+| 19 | Click ← Case queue | case_1042 is back in Pending review |
+
+To see what was saved: `docker compose exec db psql -U case_svc -d case_db -c "SELECT doc_id, type, extracted, confidence FROM documents WHERE case_id = 'case_1042'"`, and the audit log query in section 4, which shows the `documents_received` entry.
+
 To go through the steps again, [start over](#5-start-over-stop-or-update) first. For now `data/golden` holds only case_1042; once it holds more cases, open a few: each gets its own review.
 
 ## 4. See what each part did

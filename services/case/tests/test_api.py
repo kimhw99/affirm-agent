@@ -5,13 +5,16 @@ What the SQL returns is checked by running the service against a seeded database
 with a session that only records what it's given.
 """
 
+from contextlib import nullcontext
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.dialects import postgresql
 
 from app import main, store
-from kyb_contracts.case_input import CaseInput
+from kyb_contracts.case_input import CaseInput, Document
 from kyb_contracts.decision import DecisionRecord
 from kyb_contracts.world import CommercialProfile, RegistryEntity, World
 
@@ -260,6 +263,137 @@ def test_a_time_without_a_time_zone_counts_as_utc():
     chicago = DecisionRecord.model_validate(_record())
     assert store.same_decision(utc, chicago)
     assert not store.same_decision(utc, DecisionRecord.model_validate(_record(note="Another note.")))
+
+
+# ---------- POST /cases/{case_id}/documents (the merchant's new documents) ----------
+
+ADD = "/cases/case_1042/documents"
+USER = {"X-User-Id": "u_analyst_01", "X-User-Role": "analyst"}   # as the gateway forwards them
+LETTER = {"type": "irs_147c", "extracted": {"name": "NORTHLINE BICYCLE WORKS LLC", "ein_last4": "4567"},
+          "note": "Sent by email on Nov 20."}
+
+
+def _add(monkeypatch, outcome) -> list:
+    """Replaces store.add_document: it returns the document under outcome's ID, or raises outcome."""
+    calls = []
+
+    def fake(session, case_id, document, note, actor_id):
+        calls.append((case_id, document, note, actor_id))
+        if isinstance(outcome, Exception):
+            raise outcome
+        return document.model_copy(update={"id": outcome})
+    monkeypatch.setattr(store, "add_document", fake)
+    return calls
+
+
+def test_a_new_document_is_saved_and_the_case_goes_back_to_review(client, monkeypatch):
+    calls = _add(monkeypatch, "D2")
+    response = client.post(ADD, json=LETTER, headers=AUTH | USER)
+    assert response.status_code == 201
+    assert response.json() == {"document": {"id": "D2", "type": "irs_147c", "extracted": LETTER["extracted"],
+                                            "confidence": 1.0},
+                               "case_status": "pending_review"}
+    ((case_id, document, note, actor),) = calls
+    assert (case_id, document.type, document.confidence, note, actor) == (
+        "case_1042", "irs_147c", 1.0, "Sent by email on Nov 20.", "u_analyst_01")
+
+
+def test_values_are_trimmed_and_the_note_is_optional(client, monkeypatch):
+    calls = _add(monkeypatch, "D2")
+    body = {"type": "w9", "extracted": {"legal_name": "  Northline Bicycle Works LLC ", "tin_last4": "4567"}}
+    assert client.post(ADD, json=body, headers=AUTH | USER).status_code == 201
+    assert calls[0][1].extracted["legal_name"] == "Northline Bicycle Works LLC" and calls[0][2] == ""
+
+
+@pytest.mark.parametrize("error, status", [
+    (store.DocumentsNotRequested("case case_1042 is approved; only a docs_requested case takes new documents"), 409),
+    (store.CaseNotFound("case_1042"), 404),
+])
+def test_the_store_refusing_is_409_or_404(client, monkeypatch, error, status):
+    _add(monkeypatch, error)
+    response = client.post(ADD, json=LETTER, headers=AUTH | USER)
+    assert response.status_code == status
+
+
+@pytest.mark.parametrize("change, message", [
+    ({"extracted": {"name": "NORTHLINE", "routing_number": "x"}}, "unknown extracted fields: ['routing_number']"),
+    ({"type": "bank_statement"}, "type: Input should be 'irs_cp575'"),
+    ({"extracted": {"name": "NORTHLINE", "ein_last4": "  "}}, "empty fields: ein_last4"),
+    ({"extracted": {"name": "NORTHLINE", "ein_last4": "00-1234567"}}, "a full SSN or EIN appears"),
+    ({"note": "The SSN is 000-12-3456"}, "a full SSN or EIN appears"),
+])
+def test_a_document_the_contract_refuses_is_422_and_saves_nothing(client, monkeypatch, change, message):
+    calls = _add(monkeypatch, "D2")
+    response = client.post(ADD, json=LETTER | change, headers=AUTH | USER)
+    assert response.status_code == 422 and message in response.json()["detail"]
+    assert "00-1234567" not in response.text and "000-12-3456" not in response.text
+    assert calls == []
+
+
+@pytest.mark.parametrize("headers", [{}, {"X-User-Id": "u_analyst_01"}, {"X-User-Id": "u_1", "X-User-Role": "admin"}])
+def test_adding_a_document_needs_an_analyst_from_the_gateway(client, monkeypatch, headers):
+    calls = _add(monkeypatch, "D2")
+    assert client.post(ADD, json=LETTER, headers=AUTH | headers).status_code == 403
+    assert client.post(ADD, json=LETTER, headers=USER).status_code == 401     # and the service token
+    assert calls == []
+
+
+@pytest.mark.parametrize("ids, expected", [([], "D1"), (["D1"], "D2"), (["D1", "D9"], "D10"),
+                                           (["D10", "D9", "D2"], "D11")])
+def test_the_next_document_id_goes_by_number(ids, expected):
+    assert store.next_document_id(ids) == expected
+
+
+class ScriptedSession:
+    """Answers add_document's reads (the case's status, its document IDs) and records its writes."""
+
+    def __init__(self, status, doc_ids):
+        self.status, self.doc_ids, self.reads, self.writes = status, doc_ids, [], []
+
+    def begin(self):
+        return nullcontext()
+
+    def execute(self, statement, params=None):
+        if statement.is_select:
+            self.reads.append(statement)
+            return SimpleNamespace(scalar_one_or_none=lambda: self.status)
+        self.writes.append(statement)
+
+    def scalars(self, statement):
+        return iter(self.doc_ids)
+
+
+def _sql(statement) -> tuple[str, dict]:
+    compiled = statement.compile(dialect=postgresql.dialect())
+    return str(compiled), compiled.params
+
+
+def test_add_document_locks_the_case_numbers_the_document_and_reopens_the_case():
+    session = ScriptedSession("docs_requested", [f"D{i}" for i in range(1, 10)])
+    document = Document(id="D1", type="irs_147c", extracted={"ein_last4": "4567"}, confidence=1.0)
+    saved = store.add_document(session, "case_1042", document, "by email", "u_analyst_01")
+    assert saved.id == "D10" and saved.extracted == {"ein_last4": "4567"}
+    assert "FOR UPDATE" in _sql(session.reads[0])[0]
+    (insert_sql, inserted), (update_sql, updated), (audit_sql, audit) = map(_sql, session.writes)
+    assert insert_sql.startswith("INSERT INTO documents") and inserted == {
+        "case_id": "case_1042", "doc_id": "D10", "type": "irs_147c", "extracted": {"ein_last4": "4567"},
+        "confidence": 1.0}
+    assert update_sql.startswith("UPDATE cases SET status=") and "updated_at=now()" in update_sql
+    assert updated["status"] == "pending_review"
+    assert audit_sql.startswith("INSERT INTO audit_log") and {k: audit[k] for k in (
+        "actor_id", "action", "from_status", "to_status", "detail")} == {
+        "actor_id": "u_analyst_01", "action": "documents_received", "from_status": "docs_requested",
+        "to_status": "pending_review", "detail": {"doc_id": "D10", "type": "irs_147c", "note": "by email"}}
+
+
+@pytest.mark.parametrize("status, error", [("pending_review", store.DocumentsNotRequested),
+                                           ("approved", store.DocumentsNotRequested), (None, store.CaseNotFound)])
+def test_add_document_writes_nothing_unless_the_case_waits_for_documents(status, error):
+    session = ScriptedSession(status, ["D1"])
+    document = Document(id="D1", type="w9", extracted={"tin_last4": "4567"}, confidence=1.0)
+    with pytest.raises(error):
+        store.add_document(session, "case_1042", document, "", "u_analyst_01")
+    assert session.writes == []
 
 
 # ---------- For the review app ----------

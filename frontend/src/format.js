@@ -69,6 +69,44 @@ export function isOverride(recommendation, decision) {
   return !(AGREES_WITH[recommendation] ?? []).includes(decision);
 }
 
+// The document types, and the fields the existing system extracts from each: DocumentType
+// and DOCUMENT_FIELDS in contracts/kyb_contracts/case_input.py (format.test.js checks that
+// they match). For a docs_requested case, an analyst types in what a document the merchant
+// sent shows (POST /cases/{case_id}/documents).
+export const DOCUMENT_TYPES = [
+  { value: "irs_cp575", label: "IRS letter CP 575 (a new EIN)", fields: ["name", "ein_last4", "name_control", "address", "date"] },
+  { value: "irs_147c", label: "IRS letter 147C (the EIN and the name on file)", fields: ["name", "ein_last4", "name_control", "address", "date"] },
+  { value: "articles", label: "Articles of organization or incorporation", fields: ["legal_name", "state", "state_entity_id", "formation_date"] },
+  { value: "articles_of_amendment", label: "Articles of amendment, such as a new name", fields: ["old_name", "new_name", "state_entity_id", "date"] },
+  { value: "dba_certificate", label: "DBA certificate", fields: ["dba", "registrant", "jurisdiction", "filed", "expires"] },
+  { value: "w9", label: "W-9 form", fields: ["legal_name", "business_name", "tin_type", "tin_last4"] },
+  { value: "good_standing", label: "Certificate of good standing", fields: ["legal_name", "status", "date"] },
+  { value: "business_license", label: "Business license", fields: ["holder", "status", "address", "issued", "authority"] },
+];
+
+// The fields whose code alone doesn't name them well.
+const FIELD_LABELS = {
+  ein_last4: "EIN, last 4 digits",
+  tin_last4: "TIN, last 4 digits",
+  tin_type: "TIN type (EIN or SSN)",
+  name_control: "IRS name control",
+  state_entity_id: "State entity ID",
+  dba: "DBA name",
+};
+
+// Fields that hold a date, written as YYYY-MM-DD like the rest of the case.
+export const DATE_FIELDS = ["date", "formation_date", "filed", "expires", "issued"];
+
+// ein_last4 -> "EIN, last 4 digits"; legal_name -> "Legal name"
+export function fieldLabel(field) {
+  return FIELD_LABELS[field] ?? label(field);
+}
+
+// irs_147c -> "IRS letter 147C (the EIN and the name on file)"
+export function documentLabel(type) {
+  return DOCUMENT_TYPES.find((option) => option.value === type)?.label ?? label(type);
+}
+
 // pending_review -> "Pending review"
 export function label(value) {
   if (!value) return "";

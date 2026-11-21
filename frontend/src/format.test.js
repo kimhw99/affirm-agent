@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
+import caseInputSource from "../../contracts/kyb_contracts/case_input.py?raw";
 import {
   CASE_STATUSES,
+  DOCUMENT_TYPES,
   METRICS_ROLES,
   allowedDecisions,
   canDecide,
   defaultQueue,
+  documentLabel,
+  fieldLabel,
   isOverride,
   label,
   percent,
@@ -31,6 +35,32 @@ describe("format", () => {
     expect(label("pending_review")).toBe("Pending review");
     expect(percent(0.3333)).toBe("33%");
     expect(percent(null)).toBe("—");
+  });
+});
+
+// The document types and their fields, as contracts/kyb_contracts/case_input.py has them.
+function contractDocuments(source) {
+  const types = [...source.match(/DocumentType = Literal\[([\s\S]*?)\]/)[1].matchAll(/"(\w+)"/g)].map((m) => m[1]);
+  const block = source.match(/DOCUMENT_FIELDS: dict\[str, set\[str\]\] = \{([\s\S]*?)\n\}/)[1];
+  const fields = Object.fromEntries([...block.matchAll(/"(\w+)": \{([^}]*)\}/g)].map(([, type, list]) => [
+    type, [...list.matchAll(/"(\w+)"/g)].map((m) => m[1]).sort()]));
+  return { types, fields };
+}
+
+describe("documents (case_input.py)", () => {
+  it("offers every DocumentType, in the contract's order, with exactly its DOCUMENT_FIELDS", () => {
+    const contract = contractDocuments(caseInputSource);
+    expect(contract.types).toHaveLength(8);
+    expect(values(DOCUMENT_TYPES)).toEqual(contract.types);
+    expect(Object.fromEntries(DOCUMENT_TYPES.map((t) => [t.value, [...t.fields].sort()]))).toEqual(contract.fields);
+    for (const type of DOCUMENT_TYPES) expect(new Set(type.fields).size).toBe(type.fields.length);
+  });
+
+  it("names the documents and their fields for people", () => {
+    expect(documentLabel("irs_147c")).toBe("IRS letter 147C (the EIN and the name on file)");
+    expect(fieldLabel("ein_last4")).toBe("EIN, last 4 digits");
+    expect(fieldLabel("legal_name")).toBe("Legal name");
+    expect(DOCUMENT_TYPES.every((t) => t.label && !t.label.includes("_"))).toBe(true);
   });
 });
 

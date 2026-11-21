@@ -3,9 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import Checks from "../components/Checks.jsx";
 import DecisionForm from "../components/DecisionForm.jsx";
+import DocumentForm from "../components/DocumentForm.jsx";
 import { EvidencePanel } from "../components/Evidence.jsx";
 import Memo from "../components/Memo.jsx";
-import { allowedDecisions, canDecide, formatDate, label, readOnlyReason } from "../format.js";
+import { allowedDecisions, canDecide, documentLabel, formatDate, label, readOnlyReason } from "../format.js";
 
 const POLL_MS = 2000;
 
@@ -77,6 +78,7 @@ export default function Review() {
   const [history, setHistory] = useState(null);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
+  const [notice, setNotice] = useState("");
 
   // POST /reviews starts a review, or returns the one already running or waiting for this case.
   const startReview = useCallback(async () => {
@@ -97,6 +99,7 @@ export default function Review() {
     setHistory(null);
     setError("");
     setSelected(null);
+    setNotice("");
     call(`/cases/${caseId}`)
       .then(async (loaded) => {
         if (!active) return;
@@ -134,6 +137,21 @@ export default function Review() {
     }
   }
 
+  // A document the merchant sent brings a docs_requested case back to pending_review. The
+  // case is read again, and as for any case this user may decide, its new review starts.
+  async function added(result) {
+    setNotice(`Added ${result.document.id}: ${documentLabel(result.document.type)}. ` +
+              `The case is back in ${label(result.case_status)}, so a new review starts.`);
+    try {
+      const loaded = await call(`/cases/${caseId}`);
+      setCase(loaded);
+      setHistory(null);
+      if (canDecide(user.role, loaded.status)) await startReview();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   if (!kase) {
     return (
       <main className="page">
@@ -163,6 +181,13 @@ export default function Review() {
           {error}
         </p>
       )}
+      {notice && (
+        <section className="card decision-saved" role="status">
+          <p>{notice}</p>
+        </section>
+      )}
+      {/* Waiting for the merchant: the documents they sent bring the case back to review. */}
+      {kase.status === "docs_requested" && <DocumentForm caseId={caseId} onAdded={added} />}
       {!review && !decides && <History status={kase.status} decisions={history} />}
       {!review && decides && !error && <p className="muted">Starting the review…</p>}
       {review?.status === "running" && (

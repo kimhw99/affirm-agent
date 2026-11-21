@@ -4,8 +4,11 @@ GET /cases/{case_id} serves a whole CaseInput, and endpoints 1-10 serve the reco
 the agent's workers look up (docs/case-service-endpoints.md). POST
 /cases/{case_id}/decisions saves the analyst's decision (step 11). For the review app,
 GET /cases lists the case queue, GET /cases/{case_id}/decisions a case's decisions, and
-GET /metrics/override-rate how often analysts override the agent. All of them need
-the service token; GET /health doesn't.
+GET /metrics/override-rate how often analysts override the agent. POST
+/cases/{case_id}/documents saves a document the merchant sent for a docs_requested
+case, as an analyst types it in, and sends the case back to pending_review; the gateway
+forwards who is acting as X-User-Id and X-User-Role. All of them need the service
+token; GET /health doesn't.
 
 Until the auth service issues service JWTs (BEAC-14), the token is a shared secret:
 the agent sends CASE_SERVICE_TOKEN as a Bearer token, and this service compares it
@@ -27,11 +30,20 @@ from pathlib import Path
 from typing import Annotated, Iterator
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from kyb_contracts.case_input import BankVerification, CaseInput, CaseStatus, Document, OwnerKYC, WebSnapshot
+from kyb_contracts.auth import ROLES
+from kyb_contracts.case_input import (
+    TIN_PATTERN,
+    BankVerification,
+    CaseInput,
+    CaseStatus,
+    Document,
+    OwnerKYC,
+    WebSnapshot,
+)
 from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
@@ -187,6 +199,71 @@ def save_decision(case_id: str, body: SaveDecision, session: DbSession, response
     if not created:
         response.status_code = 200  # already saved: a retry
     return SaveDecision(decision_record=record, case_status=status)
+
+
+# ---------- The merchant's new documents, for a docs_requested case ----------
+
+class NewDocument(BaseModel):
+    """Body of POST /cases/{case_id}/documents: a document the merchant sent, as an analyst typed it in."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: str
+    extracted: dict[str, str]
+    note: str = Field(default="", max_length=2000)
+
+
+class DocumentAdded(BaseModel):
+    """What POST /cases/{case_id}/documents returns: the saved document, under its new ID, and the case's status."""
+
+    document: Document
+    case_status: CaseStatus
+
+
+def acting_user(user_id: str | None, role: str | None) -> str:
+    """Who is adding the document, as the gateway forwards it: an analyst or a senior analyst, or 403."""
+    if not user_id or role not in ROLES:
+        raise HTTPException(403, "only analysts can add documents")
+    return user_id
+
+
+def checked_document(body: NewDocument) -> Document:
+    """The document as kyb_contracts' Document checks it, and a little more, or 422.
+
+    Its type is a DocumentType with only that type's fields (DOCUMENT_FIELDS). On top of
+    that, no value may be empty, and nothing may look like a full SSN or EIN. Values are
+    trimmed. Typed in by hand, it has a confidence of 1.0. Its id is a placeholder until
+    store.add_document gives it the case's next one.
+    """
+    extracted = {field: value.strip() for field, value in body.extracted.items()}
+    empty = sorted(field for field, value in extracted.items() if not value)
+    if empty:
+        raise HTTPException(422, f"empty fields: {', '.join(empty)}; leave out the fields the document doesn't show")
+    # Never echo the values: one of them may be a full TIN.
+    if TIN_PATTERN.search(" ".join([*extracted.values(), body.note])):
+        raise HTTPException(422, "a full SSN or EIN appears in the document or the note; enter only the last 4 digits")
+    try:
+        return Document(id="D1", type=body.type, extracted=extracted, confidence=1.0)
+    except ValidationError as error:
+        raise HTTPException(422, "; ".join(
+            f"{'.'.join(map(str, e['loc']))}: {e['msg']}" if e["loc"] else e["msg"].removeprefix("Value error, ")
+            for e in error.errors())) from None
+
+
+@router.post("/cases/{case_id}/documents", status_code=201, response_model=DocumentAdded)
+def add_document(case_id: str, body: NewDocument, session: DbSession,
+                 x_user_id: Annotated[str | None, Header()] = None,
+                 x_user_role: Annotated[str | None, Header()] = None):
+    """Saves the document under the case's next D ID and sends the case back to pending_review, in one transaction."""
+    actor = acting_user(x_user_id, x_user_role)
+    document = checked_document(body)
+    try:
+        saved = store.add_document(session, case_id, document, body.note.strip(), actor)
+    except store.CaseNotFound:
+        raise HTTPException(404, "no such case") from None
+    except store.DocumentsNotRequested as error:
+        raise HTTPException(409, str(error)) from None
+    return DocumentAdded(document=saved, case_status=CaseStatus.PENDING_REVIEW)
 
 
 # ---------- For the review app ----------

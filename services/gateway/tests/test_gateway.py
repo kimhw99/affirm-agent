@@ -112,6 +112,43 @@ def test_the_browser_cant_save_a_decision_or_reach_other_paths(gateway):
     assert seen == []
 
 
+@pytest.mark.parametrize("role", ["analyst", "senior_analyst"])
+def test_either_role_can_add_the_merchants_documents(gateway, role):
+    client, seen = gateway
+    body = {"type": "irs_147c", "extracted": {"ein_last4": "4567"}, "note": "by email"}
+    forged = {"X-User-Id": "u_someone_else", "X-User-Role": "senior_analyst"}
+    response = client.post("/cases/case_1042/documents", json=body, headers=auth(role) | forged)
+    assert response.status_code == 200          # what the fake case service answers
+    (request,) = seen
+    assert request.method == "POST" and str(request.url) == "http://case/cases/case_1042/documents"
+    assert json.loads(request.content) == body
+    assert request.headers["authorization"] == "Bearer service-token"
+    assert (request.headers["x-user-id"], request.headers["x-user-role"]) == ("u_analyst_01", role)
+
+
+@pytest.mark.parametrize("method, path", [
+    ("POST", "/cases/case_1042/decisions"),
+    ("POST", "/cases"),
+    ("POST", "/cases/case_1042"),
+    ("POST", "/cases/case_1042/documents/D1"),
+    ("PUT", "/cases/case_1042/documents"),
+    ("DELETE", "/cases/case_1042/documents"),
+    ("PATCH", "/cases/case_1042"),
+])
+def test_every_other_write_to_the_case_service_is_405(gateway, method, path):
+    client, seen = gateway
+    assert client.request(method, path, json={}, headers=auth()).status_code == 405
+    assert seen == []
+
+
+def test_adding_documents_needs_a_valid_token(gateway):
+    client, seen = gateway
+    body = {"type": "irs_147c", "extracted": {"ein_last4": "4567"}}
+    assert client.post("/cases/case_1042/documents", json=body).status_code == 401
+    assert client.post("/cases/case_1042/documents", json=body, headers=auth(role="admin")).status_code == 403
+    assert seen == []
+
+
 def test_an_unreachable_service_is_502():
     def down(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("connection refused", request=request)

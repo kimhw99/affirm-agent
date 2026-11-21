@@ -34,6 +34,7 @@ const ESCALATION = {
   note: "Needs a second look.",
   agent_recommendation: "insufficient_evidence",
 };
+const DOCS_REQUEST = { ...DECISION, decision: "request_docs", note: "Ask for the IRS 147C letter." };
 
 // An answer with a status other than 200, for mockApi.
 class Reply {
@@ -215,6 +216,66 @@ describe("review app", () => {
     expect(await screen.findByText(/You don't have permission to do this\./)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
     expect(localStorage.getItem(SESSION_KEY)).not.toBeNull();
+  });
+
+  it("adds the merchant's document to a docs_requested case, then starts its new review", async () => {
+    logIn();
+    let status = "docs_requested";
+    const calls = mockApi({
+      "GET /api/cases/case_1042": () => ({ ...caseInput, status }),
+      "GET /api/cases/case_1042/decisions": [DOCS_REQUEST],
+      "POST /api/cases/case_1042/documents": () => {
+        status = "pending_review";
+        return { document: { id: "D2", type: "irs_147c", extracted: { name: "NORTHLINE BICYCLE WORKS LLC", ein_last4: "4567" },
+                             confidence: 1 }, case_status: "pending_review" };
+      },
+      "POST /api/reviews": { review_id: "rv_2", created: true, status: "awaiting_decision", review_output: reviewOutput },
+    });
+    renderAt("/cases/case_1042");
+
+    expect(await screen.findByRole("heading", { name: "Add the documents the merchant sent" })).toBeTruthy();
+    expect(await screen.findByText(/Ask for the IRS 147C letter/)).toBeTruthy();   // the decision that asked for it
+    expect(screen.getByText(/only its last 4 digits, never a full SSN or EIN/)).toBeTruthy();
+    expect(calls.some((call) => call.key === "POST /api/reviews")).toBe(false);
+
+    fireEvent.change(screen.getByLabelText("Document type"), { target: { value: "irs_147c" } });
+    for (const field of ["Name", "EIN, last 4 digits", "IRS name control", "Address", "Date"]) {
+      expect(screen.getByLabelText(field)).toBeTruthy();
+    }
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: " NORTHLINE BICYCLE WORKS LLC " } });
+    fireEvent.change(screen.getByLabelText("EIN, last 4 digits"), { target: { value: "4567" } });
+    fireEvent.change(screen.getByLabelText("Note"), { target: { value: "Sent by email." } });
+    fireEvent.click(screen.getByRole("button", { name: "Add the document" }));
+    expect(screen.getByRole("button", { name: "Adding…" })).toBeTruthy();
+
+    expect(await screen.findByText(/Added D2: IRS letter 147C/)).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Submit decision" })).toBeTruthy();   // the new review's form
+    expect(screen.queryByRole("heading", { name: "Add the documents the merchant sent" })).toBeNull();
+    const keys = calls.map((call) => call.key);
+    expect(keys.indexOf("POST /api/cases/case_1042/documents")).toBeLessThan(keys.indexOf("POST /api/reviews"));
+    expect(calls.find((call) => call.key === "POST /api/cases/case_1042/documents").body).toEqual({
+      type: "irs_147c", extracted: { name: "NORTHLINE BICYCLE WORKS LLC", ein_last4: "4567" }, note: "Sent by email." });
+  });
+
+  it("shows why the backend refused a document, and keeps the form", async () => {
+    logIn();
+    let answer = new Reply(422, { detail: "a full SSN or EIN appears in the document or the note; enter only the last 4 digits" });
+    mockApi({
+      "GET /api/cases/case_1042": { ...caseInput, status: "docs_requested" },
+      "GET /api/cases/case_1042/decisions": [DOCS_REQUEST],
+      "POST /api/cases/case_1042/documents": () => answer,
+    });
+    renderAt("/cases/case_1042");
+    fireEvent.change(await screen.findByLabelText("Document type"), { target: { value: "w9" } });
+    fireEvent.change(screen.getByLabelText("Legal name"), { target: { value: "Northline Bicycle Works LLC" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add the document" }));
+    expect(await screen.findByText(/Couldn't add the document: a full SSN or EIN appears/)).toBeTruthy();
+
+    // A validation error from FastAPI comes as a list; its messages are shown, with where they are.
+    answer = new Reply(422, { detail: [{ loc: ["body", "extracted", "legal_name"], msg: "Input should be a valid string" }] });
+    fireEvent.click(screen.getByRole("button", { name: "Add the document" }));
+    expect(await screen.findByText(/extracted\.legal_name: Input should be a valid string/)).toBeTruthy();
+    expect(screen.getByLabelText("Legal name").value).toBe("Northline Bicycle Works LLC");
   });
 
   it("goes back to the login page when the session has expired", async () => {
