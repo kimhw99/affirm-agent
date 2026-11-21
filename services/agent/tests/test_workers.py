@@ -129,6 +129,74 @@ def test_records_happy_path_case_1042():
     assert llm.structured_kwargs == {"method": "json_schema", "strict": True}
 
 
+FIRST_BATCH = calls(("get_registry_entity", {}), ("search_dba", {"name": "Northline Cycles"}),
+                    ("check_tin_match", {"name": "Northline Bicycle Works LLC"}), ("get_kyc_result", {}))
+
+
+def reminders(llm: ScriptedLLM) -> list[str]:
+    final = llm.agent_calls[-1]
+    return [m.content for m in final if isinstance(m, HumanMessage) and m.content.startswith("Before you answer")]
+
+
+def test_records_stopping_early_gets_one_reminder_of_the_owed_steps():
+    # gpt-4o-mini's habit: one batch of lookups, then an answer, despite a Mismatch next to a former name.
+    llm = ScriptedLLM(steps=[
+        FIRST_BATCH,
+        AIMessage(content="I have enough to answer."),
+        calls(("get_filing_history", {}), ("check_tin_match", {"name": "HARBOR LIGHT CYCLES LLC"})),
+    ])
+    result = run_records_worker(task("case_1042", "records"), fake_client(), llm=llm, now=NOW)
+
+    assert result.status == "completed" and result.tool_calls_used == 6
+    [reminder] = reminders(llm)
+    assert "get_filing_history" in reminder and "check_tin_match with 'HARBOR LIGHT CYCLES LLC'" in reminder
+    assert [f.value for f in finding(result, "tin_match_result")] == ["Mismatch", "Match"]
+
+
+def test_records_a_step_is_reminded_only_once():
+    llm = ScriptedLLM(steps=[FIRST_BATCH])  # then stops every time it is asked
+    result = run_records_worker(task("case_1042", "records"), fake_client(), llm=llm, now=NOW)
+
+    assert result.status == "completed" and result.tool_calls_used == 4
+    assert len(reminders(llm)) == 1 and len(llm.agent_calls) == 3
+
+
+def test_records_a_step_that_becomes_due_later_gets_its_own_reminder():
+    # The live run: the Mismatch only comes back after the first reminder, which makes the old name due.
+    llm = ScriptedLLM(steps=[
+        calls(("get_registry_entity", {}), ("search_dba", {"name": "Northline Cycles"})),
+        AIMessage(content="I have enough to answer."),
+        calls(("check_tin_match", {"name": "Northline Bicycle Works LLC"}), ("get_filing_history", {})),
+        AIMessage(content="I have enough to answer."),
+        calls(("check_tin_match", {"name": "HARBOR LIGHT CYCLES LLC"})),
+    ])
+    result = run_records_worker(task("case_1042", "records"), fake_client(), llm=llm, now=NOW)
+
+    first, second = reminders(llm)
+    assert "get_filing_history" in first and "check_tin_match with 'HARBOR" not in first
+    assert second.count("\n- ") == 1 and "check_tin_match with 'HARBOR LIGHT CYCLES LLC'" in second
+    assert [f.value for f in finding(result, "tin_match_result")] == ["Mismatch", "Match"]
+    assert result.tool_calls_used == 5
+
+
+def test_not_found_drops_fields_the_findings_have():
+    llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))],
+                      result=summary(not_found=["former_names", "former_name: no filing found", "commercial_db_profile",
+                                                "legal_name in county records"]))
+    result = run_records_worker(task("case_1042", "records", follow_up_of="t1"), fake_client(), llm=llm, now=NOW)
+
+    # R1 has former_names; former_name (from the filing history) was never looked up.
+    assert result.not_found == ["former_name: no filing found", "commercial_db_profile",
+                                "legal_name in county records"]
+
+
+def test_follow_up_tasks_get_no_reminder():
+    llm = ScriptedLLM(steps=[FIRST_BATCH])
+    run_records_worker(task("case_1042", "records", follow_up_of="t1"), fake_client(), llm=llm, now=NOW)
+
+    assert reminders(llm) == [] and len(llm.agent_calls) == 2
+
+
 def test_evidence_happy_path_case_1042():
     llm = ScriptedLLM(steps=[
         calls(("get_document", {"doc_id": "D1"})),

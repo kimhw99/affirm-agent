@@ -42,6 +42,19 @@ documents, bank verification or website.
 Job: pin down the legal entity and its history, find who owns the DBA, test which names the submitted
 TIN matches, and check commercial presence and owner KYC.
 
+Cover every flag before you answer. The task's flag reasons say which playbooks apply; on a first
+task (not a follow-up), run at least step 1 of each one that applies, even when an earlier finding
+seems to explain everything. You may ask for several independent lookups in one turn, but read
+their results before you answer: they often call for a next step. Before answering, go through this
+list and make any call it calls for, while budget is left:
+- TIN_MISMATCH or TIN_NOT_FOUND is flagged and check_tin_match hasn't run: run it with the applied
+  legal name.
+- A finding shows a former name (former_names on the registry entity, or a DBA registrant that
+  differs from the applied legal name) and get_filing_history hasn't run: run it, for the dated name
+  change.
+- check_tin_match returned Mismatch, and a former name or DBA registrant with a different name
+  control hasn't been tested: test it.
+
 Playbooks:
 - EC-1, name or DBA variant:
   1. get_registry_entity (or search_registry when there is no state_entity_id), then read the
@@ -53,15 +66,22 @@ Playbooks:
   1. check_tin_match with the applied legal name.
   2. On Mismatch, test the other candidate names, one call each: former names from the filing
      history, the DBA, and, when tin_type is SSN, the owner's name.
-  3. On Not Issued, check the formation date: a brand-new EIN is expected.
-  4. Never guess the name the IRS has on file; only report which tested names match.
+  3. The IRS compares only the name control (for a business, the first 4 characters of the name with
+     spaces removed, after dropping a leading "The"). A name with the same name control as one already tested gives the
+     same result, so don't test it: case, punctuation, a suffix (LLC, L.L.C., Inc) or a different
+     ending ("Northline Cycles" vs "Northline Bicycle Works LLC") changes nothing. Stop testing once
+     a name matches.
+  4. On Not Issued, check the formation date: a brand-new EIN is expected.
+  5. Never guess the name the IRS has on file; only report which tested names match.
 - EC-4, new business or sole proprietor:
   - New LLC: get_registry_entity (formation date, status), get_filing_history (empty is normal),
     search_commercial_db (no record is normal when new).
   - Sole proprietor: finding no registry entity is expected. Use search_dba (the registrant should be
     the owner), check_tin_match with the owner's name, and get_kyc_result.
 
-On a follow-up task, use the prior findings and don't repeat their lookups.
+On a follow-up task, the question asks for one specific lookup. Do exactly that first, use the prior
+findings and don't repeat their lookups; add another call only if the result leaves the question
+open.
 """
 
 EVIDENCE_PROMPT = SHARED_RULES + """

@@ -143,6 +143,18 @@ def test_repeat_call_reuses_sources_and_findings():
     assert list(ctx.sources) == ["R1"]
 
 
+def test_tin_match_with_the_same_name_control_reuses_the_result():
+    # NORTHLINE BICYCLE WORKS, L.L.C. and Northline Cycles both have the name control NORT.
+    ctx = tool_context("case_1042", "records")
+    first = RECORDS_TOOLS["check_tin_match"].run(ctx, {"name": "Northline Bicycle Works LLC"})
+    again = RECORDS_TOOLS["check_tin_match"].run(ctx, {"name": "Northline Cycles"})
+    assert again.cached and "same IRS name control (NORT)" in again.note
+    assert [f.finding_id for f in again.findings] == [f.finding_id for f in first.findings]
+    other = RECORDS_TOOLS["check_tin_match"].run(ctx, {"name": "HARBOR LIGHT CYCLES LLC"})
+    assert not other.cached
+    assert list(ctx.sources) == ["R1", "R2"]
+
+
 def test_search_then_lookup_of_the_same_entity_shares_one_source():
     ctx = tool_context("case_4103", "records")
     RECORDS_TOOLS["search_registry"].run(ctx, {"name": "Greenleaf Organics"})

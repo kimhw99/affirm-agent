@@ -45,7 +45,7 @@
         "name": "Stonegate Tile and Stone"
       },
       "sources": [
-        "R3"
+        "R1"
       ],
       "expect": [
         {
@@ -60,7 +60,7 @@
         "name": "Luis Ortega"
       },
       "sources": [
-        "R4"
+        "R3"
       ],
       "expect": [
         {

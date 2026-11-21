@@ -1,6 +1,7 @@
 """The worker loop shared by the Records and Evidence workers (LangGraph).
 
     agent (chat model + bound tools) --tool calls?--> tools (permission + key + budget guard) --> agent
+          '-- no calls, but a new step is owed -----> remind (each step once; checklist.py) -----> agent
           '-- no calls / budget used up ------------> summarize (structured WorkerSummary)
           '-- LLM error ----------------------------> end
     then assemble_result() turns the findings and the summary into one WorkerResult.
@@ -29,6 +30,7 @@ from app.clients.case_client import CaseDataClient
 from app.tools import TOOLS_FOR
 from app.tools._common import ToolContext, ToolSpec, redact
 
+from .checklist import missing_steps, reminder
 from .prompts import SUMMARY_INSTRUCTIONS, render_findings, render_task, system_prompt
 
 log = logging.getLogger(__name__)
@@ -63,6 +65,7 @@ class WorkerState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     tool_calls_used: int
     budget_hit: bool
+    reminded: list[str]           # checklist steps already sent to the model (each at most once)
     llm_error: Optional[str]
     summary: Optional[WorkerSummary]
     summary_error: Optional[str]
@@ -94,7 +97,22 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
         if state.get("budget_hit"):
             return "summarize"
         last = state["messages"][-1]
-        return "tools" if isinstance(last, AIMessage) and last.tool_calls else "summarize"
+        if isinstance(last, AIMessage) and last.tool_calls:
+            return "tools"
+        if state.get("tool_calls_used", 0) < budget and _new_steps(state):
+            return "remind"
+        return "summarize"
+
+    def _new_steps(state: WorkerState) -> list[str]:
+        sent = set(state.get("reminded") or [])
+        return [s for s in missing_steps(ctx) if s not in sent]
+
+    def remind(state: WorkerState) -> dict:
+        """The model stopped while the results still call for a lookup it hasn't been told about:
+        say which. A step is never sent twice, so the model can still decline."""
+        steps = _new_steps(state)
+        return {"messages": [HumanMessage(content=reminder(steps))],
+                "reminded": [*(state.get("reminded") or []), *steps]}
 
     def run_tools(state: WorkerState) -> dict:
         used = state.get("tool_calls_used", 0)
@@ -141,8 +159,10 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
     graph.add_node("agent", agent)
     graph.add_node("tools", run_tools)
     graph.add_node("summarize", summarize)
+    graph.add_node("remind", remind)
     graph.add_edge(START, "agent")
-    graph.add_conditional_edges("agent", after_agent, ["tools", "summarize", END])
+    graph.add_conditional_edges("agent", after_agent, ["tools", "remind", "summarize", END])
+    graph.add_edge("remind", "agent")
     graph.add_conditional_edges("tools", after_tools, ["agent", "summarize"])
     graph.add_edge("summarize", END)
     return graph.compile()
@@ -156,6 +176,21 @@ _RECOMMENDATION = re.compile(r"\b(approv\w*|den(?:y|ies|ied|ial)|declin\w*|rejec
 _SENTENCES = re.compile(r"(?<=[.!?])\s+")
 RECOMMENDATION_REMOVED = ("A recommendation to approve or deny was removed from the answer; "
                           "workers report findings only.")
+
+
+_FIELD_TOKEN = re.compile(r"([A-Za-z_]+)\s*(?:$|[:(\-])")
+
+
+def found_fields(ctx: ToolContext) -> set[str]:
+    """Finding fields with a non-empty value: the summary may not report these as not found."""
+    return {f.field.casefold() for f in ctx.findings if f.value not in (None, "", [], {})}
+
+
+def _leading_field(entry: str) -> str:
+    """The field a not_found entry is about, when the entry is a field name: "former_name" or
+    "former_name: no filing" -> former_name; free text ("dba certificate in county records") -> ""."""
+    m = _FIELD_TOKEN.match(entry.strip())
+    return m.group(1).casefold() if m else ""
 
 
 def strip_recommendation(answer: Optional[str]) -> tuple[Optional[str], bool]:
@@ -185,7 +220,8 @@ def assemble_result(task: WorkerInput, ctx: ToolContext, state: Optional[WorkerS
                 signals.append(HypothesisSignal(hypothesis_id=sig.hypothesis_id, direction=sig.direction,
                                                 finding_ids=cited))
         answer, removed = strip_recommendation(summary.answer)
-        not_found = [redact(s) for s in summary.not_found]
+        found = found_fields(ctx)
+        not_found = [redact(s) for s in summary.not_found if _leading_field(s) not in found]
         unresolved = [redact(s) for s in summary.unresolved]
         if removed:
             unresolved.append(RECOMMENDATION_REMOVED)
@@ -236,7 +272,9 @@ def run_worker(task: WorkerInput, client: CaseDataClient, llm: Any = None, confi
         config = dict(config or {})
         run_config = {
             **config,
-            "recursion_limit": 2 * task.max_tool_calls + 6,
+            # agent+tools per tool turn, plus agent+remind per reminder: a reminder needs a new
+            # step, which only a tool turn (or the start) can bring, so at most budget + 1 of them
+            "recursion_limit": 4 * task.max_tool_calls + 10,
             "run_name": f"{worker}_worker",
             "tags": [*config.get("tags", []), f"worker:{worker}"],
             "metadata": {**config.get("metadata", {}), "case_id": task.context.case_id,
