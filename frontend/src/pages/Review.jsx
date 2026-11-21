@@ -7,6 +7,7 @@ import DocumentForm from "../components/DocumentForm.jsx";
 import { EvidencePanel } from "../components/Evidence.jsx";
 import Memo from "../components/Memo.jsx";
 import { allowedDecisions, canDecide, documentLabel, formatDate, label, readOnlyReason } from "../format.js";
+import { log } from "../log.js";
 
 const POLL_MS = 2000;
 
@@ -84,8 +85,16 @@ export default function Review() {
   const startReview = useCallback(async () => {
     setError("");
     try {
-      setReview(await call("/reviews", { method: "POST", body: { case_id: caseId } }));
+      const started = await call("/reviews", { method: "POST", body: { case_id: caseId } });
+      log.info("review.started", {
+        case_id: caseId,
+        review_id: started.review_id,
+        created: started.created,
+        status: started.status,
+      });
+      setReview(started);
     } catch (err) {
+      log.error("review.start_failed", { case_id: caseId, status: err.status, request_id: err.requestId });
       setError(`Couldn't start the review: ${err.message}`);
     }
   }, [call, caseId]);
@@ -116,6 +125,13 @@ export default function Review() {
       active = false;
     };
   }, [call, caseId, startReview, user.role]);
+
+  // The agent's run failed: the page says so and offers to start it again.
+  useEffect(() => {
+    if (review?.status === "failed") {
+      log.error("review.failed", { case_id: caseId, review_id: review.review_id, reason: review.error });
+    }
+  }, [review, caseId]);
 
   // While the agent works, ask again every couple of seconds.
   useEffect(() => {

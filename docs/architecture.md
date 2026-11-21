@@ -188,6 +188,7 @@ Branches, commits and pull requests start with the Jira key of the subtask they 
 - **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body. The details are in `docs/auth.md`.
 - **Only step 11 and the merchant's new documents change a case's status**, each in one transaction with its record (the decision, or the document) and an audit log entry.
 - **Secrets stay out of git.** API keys and the JWT secret go in `.env`; `.env.example` lists only the names.
+- **Secrets stay out of the logs.** No log line holds a password, a JWT, the service token, an API key or a full SSN or EIN. Each service's `app/logs.py` also blanks out any it finds, and the review app's `src/log.js` does the same in the browser's console (`docs/local-testing.md`, Reading the logs).
 
 ## 7. Reading order
 

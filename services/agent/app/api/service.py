@@ -16,6 +16,7 @@ thread_id = review_id, so a paused review survives as long as the checkpointer d
 
 from __future__ import annotations
 
+import contextvars
 import logging
 import threading
 import uuid
@@ -93,7 +94,9 @@ class ReviewService:
             self._known.add(review_id)
             self._keys[review_id] = key
         if background:
-            threading.Thread(target=self._run, args=(review_id, raw_case, key), daemon=True).start()
+            # In a copy of the request's context, so the review's lines carry its X-Request-ID (logs.py).
+            context = contextvars.copy_context()
+            threading.Thread(target=context.run, args=(self._run, review_id, raw_case, key), daemon=True).start()
         else:
             self._run(review_id, raw_case, key)
         return review_id, True

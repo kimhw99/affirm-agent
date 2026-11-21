@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../auth.jsx";
 import { isOverride, label } from "../format.js";
+import { log } from "../log.js";
 
 // Step 10: the analyst's decision, which resumes the review (POST /reviews/{id}/decision).
 // `decisions` are the choices this user has for this case (format.js, allowedDecisions), so
@@ -17,8 +18,11 @@ export default function DecisionForm({ reviewId, recommendation, decisions, onDe
     setBusy(true);
     setError("");
     try {
-      onDecided(await call(`/reviews/${reviewId}/decision`, { method: "POST", body: { decision, note } }));
+      const result = await call(`/reviews/${reviewId}/decision`, { method: "POST", body: { decision, note } });
+      log.info("decision.saved", { review_id: reviewId, decision, status: result.status }); // never the note
+      onDecided(result);
     } catch (err) {
+      log.error("decision.failed", { review_id: reviewId, decision, status: err.status, request_id: err.requestId });
       setError(`Couldn't save the decision: ${err.message}`);
       setBusy(false);
     }

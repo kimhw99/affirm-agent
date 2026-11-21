@@ -62,6 +62,8 @@ For `/cases`, `/metrics` and `/reviews`, the gateway:
 2. Drops any `X-User-*` header the client sent, and sets `X-User-Id` (the `sub`) and `X-User-Role`.
 3. Doesn't pass the JWT on. Requests to the case service carry the service token (`CASE_SERVICE_TOKEN`) instead.
 
+Every request, `/auth` included, also gets an `X-Request-ID`: the client's, if it has only letters, digits and hyphens and at most 64 of them, or a new UUID. The gateway passes it to the service and returns it in the response, and each service writes it on its log lines for that request. The gateway logs one line per request, with the user and role from the JWT, but never the JWT itself, the `Authorization` header or the body ([local-testing.md, Reading the logs](local-testing.md#reading-the-logs)).
+
 Only reads reach the case service, and one write: `POST /cases/{case_id}/documents`, where an analyst adds a document the merchant sent for a `docs_requested` case. `POST /cases/{case_id}/decisions` is for the agent service, so a decision always goes through its review (`POST /reviews/{review_id}/decision`); from the browser it's 405, like any other write. Any other path is 404.
 
 The backend services can trust `X-User-Id` and `X-User-Role` because the gateway is the only way to reach them: in Docker Compose the auth and agent services aren't published, and the case service needs the service token.

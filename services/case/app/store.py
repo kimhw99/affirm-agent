@@ -17,6 +17,7 @@ Postgres's ILIKE, unnest and jsonb_array_elements; the query's words go in only 
 bound parameters, never into the SQL itself.
 """
 
+import logging
 import re
 from datetime import datetime, timezone
 
@@ -28,6 +29,8 @@ from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
 from . import db
+
+log = logging.getLogger(__name__)
 
 SEARCH_LIMIT = 20
 
@@ -281,6 +284,8 @@ def save_decision(session: Session, record: DecisionRecord) -> bool:
         saved = session.execute(select(*DECISION).where(db.Decision.review_id == record.review_id)).mappings().first()
         if saved is not None:
             if same_decision(DecisionRecord.model_validate(dict(saved)), record):
+                log.info("decision already saved case_id=%s review_id=%s: a retry, nothing changed",
+                         record.case_id, record.review_id)
                 return False
             raise DecisionConflict(f"review {record.review_id} already has a different decision")
         if status not in DECIDABLE:
@@ -296,6 +301,8 @@ def save_decision(session: Session, record: DecisionRecord) -> bool:
             from_status=status, to_status=to_status,
             detail={"decision": record.decision, "agent_recommendation": record.agent_recommendation,
                     "overridden": record.overridden}))
+    log.info("decision saved case_id=%s review_id=%s decision=%s from=%s to=%s analyst_id=%s",
+             record.case_id, record.review_id, record.decision, status, to_status, record.analyst_id)
     return True
 
 
@@ -335,6 +342,8 @@ def add_document(session: Session, case_id: str, document: Document, note: str, 
         session.execute(insert(db.AuditLog).values(
             case_id=case_id, actor_id=actor_id, action="documents_received", from_status=status, to_status=back,
             detail={"doc_id": saved.id, "type": saved.type, "note": note}))
+    log.info("document added case_id=%s doc_id=%s type=%s from=%s to=%s actor_id=%s",
+             case_id, saved.id, saved.type, status, back, actor_id)
     return saved
 
 
