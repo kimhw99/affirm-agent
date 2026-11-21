@@ -133,7 +133,7 @@ sequenceDiagram
 
 The memo, `evidence_index` and `check_result` in that response make up a `CheckedMemo` (`contracts/kyb_contracts/memo.py`).
 
-The review status (`running`, `awaiting_decision`, `done`, `failed`) belongs to the agent service. It is different from the case status (`pending_review`, `approved`, `docs_requested`, `escalated`, `denied`), which the case service stores and only step 11 changes.
+The review status (`running`, `awaiting_decision`, `done`, `failed`) belongs to the agent service. It is different from the case status (`pending_review`, `approved`, `docs_requested`, `escalated`, `denied`), which the case service stores. Only step 11 changes it, and an analyst adding the documents the merchant sent, which brings a `docs_requested` case back to `pending_review` (`docs/case-service-endpoints.md`).
 
 ## 4. Data contracts
 
@@ -186,7 +186,7 @@ Branches, commits and pull requests start with the Jira key of the subtask they 
 - **Full SSNs and EINs never reach the model.** Owners appear as references such as `owner:P1`, and the application carries only the TIN's type and last 4 digits. The full numbers stay with the existing KYB system: `case_db` doesn't store them, so no endpoint can return one. `check_tin_match` takes only a name and compares it with the case's IRS record in code, and `CaseInput` and `World` reject anything shaped like an SSN or EIN.
 - **Merchant-written text stays in one place.** Only the Evidence worker reads document and website text. The lead gets structured findings, and Checks takes excerpts from the saved sources, not from the model.
 - **The server decides who is acting.** The gateway verifies the JWT, every endpoint checks the role (403 otherwise), and `analyst_id` comes from the token, never from a request body. The details are in `docs/auth.md`.
-- **Only step 11 changes a case's status**, in the same transaction as the decision record and the audit log entry.
+- **Only step 11 and the merchant's new documents change a case's status**, each in one transaction with its record (the decision, or the document) and an audit log entry.
 - **Secrets stay out of git.** API keys and the JWT secret go in `.env`; `.env.example` lists only the names.
 
 ## 7. Reading order

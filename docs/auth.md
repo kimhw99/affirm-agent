@@ -22,6 +22,7 @@ What each role may do. The backend enforces every rule, whatever the review app 
 | A `pending_review` case: start a review, decide it (`approve`, `request_docs`, `escalate`, `deny`) | Yes | Yes | The agent service (`services/agent/app/api/reviews.py`, `MAY_ACT`) |
 | An `escalated` case: start a review, decide it | 403 | Yes, but not `escalate` (409) | The agent service (`reviews.py`, `MAY_ACT` and `REFUSED_DECISIONS`) |
 | An `approved`, `denied` or `docs_requested` case: start a review or decide it | 409 | 409 | The agent service (`reviews.py`). The case service refuses a decision on such a case too (409, `services/case/app/store.py`) |
+| A `docs_requested` case: add the documents the merchant sent (`POST /cases/{case_id}/documents`), which sends it back to `pending_review` | Yes | Yes | The gateway lets both roles through this one write (`services/gateway/app/main.py`, `post_paths`); the case service checks the user (403) and the status: any other case is 409 (`services/case/app/main.py` and `store.py`) |
 
 `POST /reviews` takes only `{"case_id"}` (422 for anything else), and the agent service reads the case from the case service, so a review is always of the stored case. It reads the case's status each time it checks a rule: when a review starts, and again before it resumes the graph with a decision, so a refused decision changes nothing. If the case service still refuses the decision when the graph sends it (step 11), for example because another review decided the case first, `POST /reviews/{review_id}/decision` answers 409 (502 for any other error) and the review fails: `GET /reviews/{review_id}` says `failed`, with the reason, and starting a review of the case again runs a new one.
 
@@ -51,7 +52,7 @@ The browser loads the review app from `http://localhost:3000` (`APP_HOST_PORT`),
 | Path | Goes to | Needs a JWT | Methods |
 |---|---|---|---|
 | `/auth/...` | Auth service | No: the auth service checks its own credentials | GET, POST |
-| `/cases/...` | Case service | Yes | GET |
+| `/cases/...` | Case service | Yes | GET, and POST for `/cases/{case_id}/documents` only |
 | `/metrics/...` | Case service | Yes, with the `senior_analyst` role | GET |
 | `/reviews/...` | Agent service | Yes | GET, POST |
 
@@ -61,7 +62,7 @@ For `/cases`, `/metrics` and `/reviews`, the gateway:
 2. Drops any `X-User-*` header the client sent, and sets `X-User-Id` (the `sub`) and `X-User-Role`.
 3. Doesn't pass the JWT on. Requests to the case service carry the service token (`CASE_SERVICE_TOKEN`) instead.
 
-Only reads reach the case service. `POST /cases/{case_id}/decisions` is for the agent service, so a decision always goes through its review (`POST /reviews/{review_id}/decision`). Any other path is 404.
+Only reads reach the case service, and one write: `POST /cases/{case_id}/documents`, where an analyst adds a document the merchant sent for a `docs_requested` case. `POST /cases/{case_id}/decisions` is for the agent service, so a decision always goes through its review (`POST /reviews/{review_id}/decision`); from the browser it's 405, like any other write. Any other path is 404.
 
 The backend services can trust `X-User-Id` and `X-User-Role` because the gateway is the only way to reach them: in Docker Compose the auth and agent services aren't published, and the case service needs the service token.
 

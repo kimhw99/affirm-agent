@@ -10,7 +10,7 @@ These 10 endpoints are read-only, and only the agent service calls them. `GET /c
 
 ## Common rules
 
-- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role gets only these endpoints, `GET /cases/{case_id}`, and one write: `POST /cases/{case_id}/decisions` for step 11 (at the end). For now the token is a shared secret that both services read from `CASE_SERVICE_TOKEN`. The gateway uses it too, for the review app's reads (at the end).
+- **Auth:** `Authorization: Bearer <service JWT>` with role `agent_service`. That role gets only these endpoints, `GET /cases/{case_id}`, and one write: `POST /cases/{case_id}/decisions` for step 11 (at the end). For now the token is a shared secret that both services read from `CASE_SERVICE_TOKEN`. The gateway uses it too, for the review app's reads and its one write, `POST /cases/{case_id}/documents` (at the end).
 - **Base URL:** the agent reads it from `CASE_SERVICE_URL`, for example `http://case:8000` inside Docker Compose. These calls go service to service, not through the gateway.
 - **Not found:**
   - An unknown key in a path returns **404**, including an evidence ID that belongs to a different case.
@@ -187,7 +187,7 @@ The agent service calls this once the analyst has decided. The body is the `Deci
   "case_status": "approved"
 }
 ```
-- In one transaction, the case service saves the record, sets the case status to `STATUS_AFTER[decision]`, and writes an audit log entry: who (`analyst_id`), from which status to which, and when. Nothing else changes a case's status.
+- In one transaction, the case service saves the record, sets the case status to `STATUS_AFTER[decision]`, and writes an audit log entry: who (`analyst_id`), from which status to which, and when. Only one other endpoint changes a case's status: `POST /cases/{case_id}/documents`, below, which sends a `docs_requested` case back to `pending_review`.
 - **201** with the same body, `case_status` filled in. **200** if this review's decision was already saved with the same content, so a retry is safe.
 - **404** for an unknown case.
 - **409** if the review already has a different decision, or the case can't take a decision now. Only `pending_review` and `escalated` cases can: an approved or denied case is done, and a `docs_requested` case waits for the merchant's new evidence.
@@ -200,6 +200,18 @@ The review app calls these through the gateway, which adds the service token ([a
 - `GET /cases?status=pending_review`: the case queue, oldest first. Each row has `case_id`, `status`, `legal_name`, `dba`, `state`, `flag_reasons`, `created_at` and `updated_at`. Without `status` it lists every case; an unknown status is 422.
 - `GET /cases/{case_id}/decisions`: the case's `DecisionRecord`s, oldest first. 404 for an unknown case.
 - `GET /metrics/override-rate`: how often analysts decide against the agent's recommendation (BEAC-20). It returns `decisions`, `overridden` and `rate` (`null` before the first decision), and the same three per recommendation in `by_recommendation`. Only senior analysts get it: the gateway answers 403 to an analyst ([auth.md](auth.md)).
+
+#### `POST /cases/{case_id}/documents`
+When an analyst chooses Request documents, the case becomes `docs_requested` and waits for the merchant. There is no OCR in this project, so when the merchant sends a document, an analyst types in what it shows, as the existing system's extraction would, and the case goes back to review. The gateway forwards who is acting as `X-User-Id` and `X-User-Role` ([auth.md](auth.md)).
+
+```json
+{"type": "irs_147c", "extracted": {"name": "NORTHLINE BICYCLE WORKS LLC", "ein_last4": "4567"}, "note": "Sent by email on Nov 20."}
+```
+- `type` is a `DocumentType`, and `extracted` holds only that type's `DOCUMENT_FIELDS` (`case_input.py`), checked by the `Document` model. Any field may be left out, but none may be empty, and no value, nor the note, may look like a full SSN or EIN (`TIN_PATTERN`): a tax ID goes in as its last 4 digits. Values are trimmed. `note` is optional.
+- In one transaction, with the case's row locked, the case service gives the document the case's next D ID (its highest one plus 1, by number, so `D10` follows `D9`) and a `confidence` of 1.0, since a person typed it in. It saves it, sets the case's status back to `pending_review`, and writes an audit log entry: `action` `documents_received`, the user from `X-User-Id`, and `detail` with the `doc_id`, `type` and `note`.
+- **201** with the saved document and the new status: `{"document": {"id": "D2", "type": "irs_147c", "extracted": {...}, "confidence": 1.0}, "case_status": "pending_review"}`.
+- **403** without `X-User-Id`, or for a role other than `analyst` or `senior_analyst`. **404** for an unknown case. **409** if the case isn't `docs_requested`. **422** for an unknown type, a field outside the type's list, an empty value or a full TIN; the message never repeats the values.
+- The next `POST /reviews` for the case gets a new review: the case has changed, so the agent's idempotency key does too. The Evidence worker reads the new document like any other, through endpoint 8.
 
 ## Seed data
 

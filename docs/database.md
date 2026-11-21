@@ -66,11 +66,11 @@ Every table hangs off `cases`. Each indented line references the one above it, a
 cases (case_id)                                    <- case.json
 ├── case_owners (case_id, owner_ref)
 │   └── owner_kyc (case_id, kyc_id)                endpoint 7
-├── documents (case_id, doc_id)                    endpoint 8
+├── documents (case_id, doc_id)                    endpoint 8; new ones from POST /cases/{case_id}/documents
 ├── bank_verifications (case_id, bank_id)          endpoint 9
 ├── web_snapshots (case_id, web_id)                endpoint 10
 ├── decisions (review_id)                          step 11
-├── audit_log (id)                                 step 11
+├── audit_log (id)                                 step 11, and new documents
 ├── mock.tin_records (case_id)                     endpoint 6 (world.json's tin_record)
 └── via source_case: the rest of world.json        <- world.json
     ├── mock.registry_entities (state, state_entity_id)   endpoints 1, 2

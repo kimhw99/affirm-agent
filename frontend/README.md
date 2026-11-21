@@ -29,7 +29,7 @@ The tests use the agent's example review (`services/agent/examples/review_output
 |---|---|
 | `/login` | Log in (`POST /api/auth/login`) |
 | `/` | The case queue. An analyst starts on `pending_review` cases and a senior analyst on `escalated` ones |
-| `/cases/:caseId` | One case. If the user may decide it, the page starts its review or picks up the existing one (`POST /api/reviews`), waits while the agent works, then shows the memo, the checks, the evidence behind each ID and the decision form, with only the decisions the user may choose. Otherwise it starts no review: it says why, for example that only a senior analyst can decide an escalated case, and shows the case's decisions |
+| `/cases/:caseId` | One case. If the user may decide it, the page starts its review or picks up the existing one (`POST /api/reviews`), waits while the agent works, then shows the memo, the checks, the evidence behind each ID and the decision form, with only the decisions the user may choose. Otherwise it starts no review: it says why, for example that only a senior analyst can decide an escalated case, and shows the case's decisions. A `docs_requested` case also has a form for the documents the merchant sent (`POST /api/cases/{case_id}/documents`): adding one brings the case back to Pending review, and its new review starts |
 | `/metrics` | The override rate (`GET /api/metrics/override-rate`), for senior analysts only. Only they get the Metrics link in the top bar; anyone else who opens the page gets a notice, and no request is sent |
 
 ## Roles

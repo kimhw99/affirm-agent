@@ -5,8 +5,10 @@ It routes /auth to the auth service, /cases and /metrics to the case service, an
 credentials. Every other request needs a JWT from the auth service. The gateway
 verifies it, drops any X-User-* header the client sent, and forwards who is acting as
 X-User-Id and X-User-Role, without the JWT itself. Requests to the case service carry
-the service token (CASE_SERVICE_TOKEN), and only reads get through: the decision is
-saved by the agent service, never straight from the browser.
+the service token (CASE_SERVICE_TOKEN). Only reads get through to it, and one write:
+POST /cases/{case_id}/documents, where an analyst adds the documents the merchant sent
+for a docs_requested case. A decision is saved by the agent service, never straight
+from the browser, so POST /cases/{case_id}/decisions is 405 here.
 
 A route can be limited to some roles: /metrics is for senior analysts only, so an analyst
 gets 403. Who may review and decide which case depends on the case's status, so the agent
@@ -19,6 +21,7 @@ Compose).
 """
 
 import os
+import re
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
@@ -38,6 +41,10 @@ class Route:
     needs_user: bool        # the request needs a valid JWT
     service_token: bool     # the service gets CASE_SERVICE_TOKEN
     roles: frozenset[str] | None = None     # only these roles (403 for the others); None: any role
+    post_paths: tuple[str, ...] = ()        # paths (regular expressions) that also take POST
+
+    def allows(self, method: str, path: str) -> bool:
+        return method in self.methods or (method == "POST" and any(re.fullmatch(p, path) for p in self.post_paths))
 
 
 # The first segment of the path picks the route.
@@ -45,7 +52,7 @@ ROUTES: dict[str, Route] = {
     "auth": Route("AUTH_SERVICE_URL", "http://auth:8000", frozenset({"GET", "POST"}),
                   needs_user=False, service_token=False),
     "cases": Route("CASE_SERVICE_URL", "http://case:8000", frozenset({"GET"}),
-                   needs_user=True, service_token=True),
+                   needs_user=True, service_token=True, post_paths=(r"cases/[^/]+/documents",)),
     "metrics": Route("CASE_SERVICE_URL", "http://case:8000", frozenset({"GET"}),
                      needs_user=True, service_token=True, roles=frozenset({"senior_analyst"})),
     "reviews": Route("AGENT_SERVICE_URL", "http://agent:8000", frozenset({"GET", "POST"}),
@@ -118,8 +125,8 @@ def create_app(settings: Settings | None = None, transport: httpx.AsyncBaseTrans
         route = ROUTES.get(name)
         if route is None:
             raise HTTPException(404, "not found")
-        if request.method not in route.methods:
-            raise HTTPException(405, f"{request.method} isn't allowed on /{name}")
+        if not route.allows(request.method, path):
+            raise HTTPException(405, f"{request.method} isn't allowed on /{path}")
         current: Settings = request.app.state.settings
         headers = {key: value for key, value in request.headers.items()
                    if key not in HOP_BY_HOP and not key.startswith("x-user-")}

@@ -1,5 +1,6 @@
 """Reads from case_db, returned as the kyb_contracts models the endpoints serve, and
-the one write: saving the analyst's decision (step 11).
+the two writes: saving the analyst's decision (step 11), and saving a document the
+merchant sent for a docs_requested case, which sends the case back to pending_review.
 
 Every function takes a SQLAlchemy Session (main.py opens one per request). The
 queries are built from the ORM models in app/db.py and read through result.mappings(),
@@ -22,7 +23,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, insert, select, text, update
 from sqlalchemy.orm import Session
 
-from kyb_contracts.case_input import BankVerification, CaseInput, Document, OwnerKYC, WebSnapshot
+from kyb_contracts.case_input import BankVerification, CaseInput, CaseStatus, Document, OwnerKYC, WebSnapshot
 from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
@@ -296,6 +297,45 @@ def save_decision(session: Session, record: DecisionRecord) -> bool:
             detail={"decision": record.decision, "agent_recommendation": record.agent_recommendation,
                     "overridden": record.overridden}))
     return True
+
+
+# ---------- The merchant's new documents, for a docs_requested case ----------
+
+class DocumentsNotRequested(Exception):
+    """The case isn't waiting for documents: only a docs_requested case takes new ones."""
+
+
+def next_document_id(ids) -> str:
+    """The ID after the case's highest D ID, by number, so D10 comes after D9."""
+    return f"D{max((int(doc_id[1:]) for doc_id in ids), default=0) + 1}"
+
+
+def add_document(session: Session, case_id: str, document: Document, note: str, actor_id: str) -> Document:
+    """Saves a document the merchant sent, as an analyst typed it in, under the case's next
+    D ID, sends the case back to pending_review and writes an audit log entry, all or nothing.
+
+    Like save_decision, it runs in a transaction of its own, committed before it returns.
+    document's id is replaced by the next one. Returns the saved document. Raises
+    CaseNotFound or DocumentsNotRequested.
+    """
+    waiting, back = CaseStatus.DOCS_REQUESTED.value, CaseStatus.PENDING_REVIEW.value
+    with session.begin():
+        # Locks the case's row, so two documents can't get the same ID, nor a decision come in between.
+        status = session.execute(select(db.Case.status).where(db.Case.case_id == case_id)
+                                 .with_for_update()).scalar_one_or_none()
+        if status is None:
+            raise CaseNotFound(case_id)
+        if status != waiting:
+            raise DocumentsNotRequested(f"case {case_id} is {status}; only a {waiting} case takes new documents")
+        ids = session.scalars(select(db.Document.doc_id).where(db.Document.case_id == case_id))
+        saved = document.model_copy(update={"id": next_document_id(ids)})
+        session.execute(insert(db.Document).values(
+            case_id=case_id, doc_id=saved.id, type=saved.type, extracted=saved.extracted, confidence=saved.confidence))
+        session.execute(update(db.Case).where(db.Case.case_id == case_id).values(status=back, updated_at=func.now()))
+        session.execute(insert(db.AuditLog).values(
+            case_id=case_id, actor_id=actor_id, action="documents_received", from_status=status, to_status=back,
+            detail={"doc_id": saved.id, "type": saved.type, "note": note}))
+    return saved
 
 
 # ---------- For the review app ----------

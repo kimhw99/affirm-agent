@@ -10,6 +10,20 @@ export class ApiError extends Error {
   }
 }
 
+// The backend's reason for an error: FastAPI's detail is a message, or a list of
+// validation errors, each with where it is and its own message.
+function reason(detail, status) {
+  if (typeof detail === "string") return detail;
+  const messages = (Array.isArray(detail) ? detail : [])
+    .filter((error) => typeof error?.msg === "string")
+    .map((error) => {
+      const where = (Array.isArray(error.loc) ? error.loc : []).filter((part) => part !== "body").join(".");
+      const message = error.msg.replace(/^Value error, /, "");
+      return where ? `${where}: ${message}` : message;
+    });
+  return messages.join("; ") || `HTTP ${status}`;
+}
+
 export async function request(path, { method = "GET", body, token } = {}) {
   const headers = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -27,8 +41,7 @@ export async function request(path, { method = "GET", body, token } = {}) {
     data = null; // not JSON, such as a proxy's error page
   }
   if (!response.ok) {
-    const detail = typeof data?.detail === "string" ? data.detail : `HTTP ${response.status}`;
-    throw new ApiError(response.status, detail);
+    throw new ApiError(response.status, reason(data?.detail, response.status));
   }
   return data;
 }
