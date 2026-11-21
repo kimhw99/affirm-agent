@@ -7,6 +7,7 @@ import { AppRoutes, ROUTER_FUTURE } from "./App.jsx";
 import { AuthProvider, SESSION_KEY } from "./auth.jsx";
 
 const USER = { user_id: "u_analyst_01", username: "analyst", display_name: "Demo Analyst", role: "analyst" };
+const SENIOR = { user_id: "u_senior_01", username: "senior", display_name: "Demo Senior Analyst", role: "senior_analyst" };
 const SUMMARY = {
   case_id: "case_1042",
   status: "pending_review",
@@ -27,8 +28,22 @@ const DECISION = {
   overridden: false,
   decided_at: "2026-11-20T10:00:00Z",
 };
+const ESCALATION = {
+  ...DECISION,
+  decision: "escalate",
+  note: "Needs a second look.",
+  agent_recommendation: "insufficient_evidence",
+};
 
-// Answers fetch from a table of "METHOD /api/path" -> body, or a function that returns the body.
+// An answer with a status other than 200, for mockApi.
+class Reply {
+  constructor(status, body) {
+    this.status = status;
+    this.body = body;
+  }
+}
+
+// Answers fetch from a table of "METHOD /api/path" -> body (or a Reply), or a function that returns one.
 function mockApi(routes) {
   const calls = [];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options = {}) => {
@@ -36,8 +51,9 @@ function mockApi(routes) {
     calls.push({ key, headers: options.headers, body: options.body ? JSON.parse(options.body) : undefined });
     const answer = routes[key];
     if (answer === undefined) return new Response(JSON.stringify({ detail: `no mock for ${key}` }), { status: 404 });
-    const body = typeof answer === "function" ? answer() : answer;
-    return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+    const answered = typeof answer === "function" ? answer() : answer;
+    const { status, body } = answered instanceof Reply ? answered : new Reply(200, answered);
+    return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
   });
   return calls;
 }
@@ -52,16 +68,15 @@ function renderAt(path) {
   );
 }
 
-function logIn() {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ token: "test-token", user: USER, expiresAt: Date.now() + 3_600_000 }));
+function logIn(user = USER) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ token: "test-token", user, expiresAt: Date.now() + 3_600_000 }));
 }
 
 describe("review app", () => {
-  it("logs in and shows the analyst's queue with the override rate", async () => {
+  it("logs in and shows the analyst's queue, without the metrics", async () => {
     const calls = mockApi({
       "POST /api/auth/login": { access_token: "test-token", token_type: "bearer", expires_in: 3600, user: USER },
       "GET /api/cases?status=pending_review": [SUMMARY],
-      "GET /api/metrics/override-rate": { decisions: 4, overridden: 1, rate: 0.25, by_recommendation: [] },
     });
     renderAt("/login");
     fireEvent.change(screen.getByLabelText("Username"), { target: { value: "analyst" } });
@@ -69,7 +84,8 @@ describe("review app", () => {
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(await screen.findByRole("link", { name: "case_1042" })).toBeTruthy();
-    expect(await screen.findByText("25%")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Metrics" })).toBeNull();
+    expect(calls.some((call) => call.key.includes("/metrics"))).toBe(false);
     expect(calls[0].body).toEqual({ username: "analyst", password: "a password" });
     const queue = calls.find((call) => call.key === "GET /api/cases?status=pending_review");
     expect(queue.headers.Authorization).toBe("Bearer test-token");
@@ -113,6 +129,7 @@ describe("review app", () => {
     renderAt("/cases/case_1042");
     fireEvent.click(await screen.findByLabelText("Deny"));
     expect(screen.getByText(/counts as an override/)).toBeTruthy();
+    expect(screen.getByLabelText("Escalate")).toBeTruthy();       // a pending case offers every decision
   });
 
   it("waits for a running review", async () => {
@@ -137,6 +154,67 @@ describe("review app", () => {
     expect(await screen.findByText(/can't take a new decision/)).toBeTruthy();
     expect(screen.getByText(/Name change confirmed/)).toBeTruthy();
     expect(calls.some((call) => call.key === "POST /api/reviews")).toBe(false);
+  });
+
+  it("shows an analyst an escalated case read-only, without starting a review", async () => {
+    logIn();
+    const calls = mockApi({
+      "GET /api/cases/case_1042": { ...caseInput, status: "escalated" },
+      "GET /api/cases/case_1042/decisions": [ESCALATION],
+    });
+    renderAt("/cases/case_1042");
+    expect(await screen.findByText("This case is Escalated. Only a senior analyst can decide it.")).toBeTruthy();
+    expect(await screen.findByText(/Needs a second look/)).toBeTruthy();
+    expect(calls.some((call) => call.key === "POST /api/reviews")).toBe(false);
+    expect(screen.queryByRole("alert")).toBeNull();                 // no error, just the explanation
+  });
+
+  it("offers a senior analyst every decision but Escalate on an escalated case", async () => {
+    logIn(SENIOR);
+    const calls = mockApi({
+      "GET /api/cases/case_1042": { ...caseInput, status: "escalated" },
+      "POST /api/reviews": { review_id: "rv_2", created: true, status: "awaiting_decision", review_output: reviewOutput },
+    });
+    renderAt("/cases/case_1042");
+    expect(await screen.findByLabelText("Approve")).toBeTruthy();
+    expect(screen.getByLabelText("Request documents")).toBeTruthy();
+    expect(screen.getByLabelText("Deny")).toBeTruthy();
+    expect(screen.queryByLabelText("Escalate")).toBeNull();
+    expect(calls.some((call) => call.key === "POST /api/reviews")).toBe(true);
+  });
+
+  it("links a senior analyst to the metrics, which show the override rate", async () => {
+    logIn(SENIOR);
+    mockApi({
+      "GET /api/cases?status=escalated": [{ ...SUMMARY, status: "escalated" }],
+      "GET /api/metrics/override-rate": { decisions: 4, overridden: 1, rate: 0.25, by_recommendation: [] },
+    });
+    renderAt("/");
+    fireEvent.click(await screen.findByRole("link", { name: "Metrics" }));
+    expect(await screen.findByText("25%")).toBeTruthy();
+    expect(screen.getByText(/1 of 4 decisions went against/)).toBeTruthy();
+  });
+
+  it("keeps an analyst out of the metrics page without asking the backend", async () => {
+    logIn();
+    const calls = mockApi({});
+    renderAt("/metrics");
+    expect(await screen.findByText("You don't have access to this page.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "← Case queue" })).toBeTruthy();
+    expect(calls).toEqual([]);
+  });
+
+  it("says when the backend refuses an action, and stays logged in", async () => {
+    logIn();
+    mockApi({
+      // The case was escalated after it was loaded, so the agent refuses the analyst's review.
+      "GET /api/cases/case_1042": { ...caseInput, status: "pending_review" },
+      "POST /api/reviews": new Reply(403, { detail: "only senior_analyst can review a case that is escalated" }),
+    });
+    renderAt("/cases/case_1042");
+    expect(await screen.findByText(/You don't have permission to do this\./)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(localStorage.getItem(SESSION_KEY)).not.toBeNull();
   });
 
   it("goes back to the login page when the session has expired", async () => {

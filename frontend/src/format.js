@@ -23,9 +23,46 @@ export function defaultQueue(role) {
   return role === "senior_analyst" ? "escalated" : "pending_review";
 }
 
-// Only these cases can take a decision, so only they get a review when opened.
-export function canDecide(status) {
-  return status === "pending_review" || status === "escalated";
+// What each role may do: the Roles table in docs/auth.md. The backend enforces it (the agent
+// service's MAY_ACT and REFUSED_DECISIONS in services/agent/app/api/reviews.py, and the
+// gateway's routes); the app follows it, so each role only sees what it can use.
+
+// The roles that may start a review of a case, and decide it, in each case status. A case in
+// any other status (approved, denied, docs_requested) can't take a decision.
+export const MAY_DECIDE = {
+  pending_review: ["analyst", "senior_analyst"],
+  escalated: ["senior_analyst"],
+};
+
+// The decisions a case in that status can't take.
+const REFUSED_DECISIONS = {
+  escalated: ["escalate"],
+};
+
+// The roles that see the override rate (GET /metrics/override-rate).
+export const METRICS_ROLES = ["senior_analyst"];
+
+const ROLE_NAMES = { analyst: "an analyst", senior_analyst: "a senior analyst" };
+
+// Whether this role may decide a case in this status. Only then does opening the case start
+// its review.
+export function canDecide(role, status) {
+  return (MAY_DECIDE[status] ?? []).includes(role);
+}
+
+// The decisions this role may choose for a case in this status, as DECISIONS entries: none
+// if it can't decide the case.
+export function allowedDecisions(role, status) {
+  if (!canDecide(role, status)) return [];
+  const refused = REFUSED_DECISIONS[status] ?? [];
+  return DECISIONS.filter((option) => !refused.includes(option.value));
+}
+
+// Why a case is read-only for whoever can't decide it.
+export function readOnlyReason(status) {
+  const roles = MAY_DECIDE[status];
+  if (!roles) return `This case is ${label(status)}, so it can't take a new decision.`;
+  return `This case is ${label(status)}. Only ${roles.map((role) => ROLE_NAMES[role] ?? role).join(" or ")} can decide it.`;
 }
 
 export function isOverride(recommendation, decision) {

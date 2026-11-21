@@ -1,5 +1,8 @@
 // Calls the backend through /api, which nginx (or Vite's dev server) forwards to the gateway.
 
+// What the app says when the backend refuses an action for this user (403).
+export const NO_PERMISSION = "You don't have permission to do this.";
+
 export class ApiError extends Error {
   constructor(status, message) {
     super(message);

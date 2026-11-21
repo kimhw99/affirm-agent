@@ -5,7 +5,7 @@ import Checks from "../components/Checks.jsx";
 import DecisionForm from "../components/DecisionForm.jsx";
 import { EvidencePanel } from "../components/Evidence.jsx";
 import Memo from "../components/Memo.jsx";
-import { canDecide, formatDate, label } from "../format.js";
+import { allowedDecisions, canDecide, formatDate, label, readOnlyReason } from "../format.js";
 
 const POLL_MS = 2000;
 
@@ -51,7 +51,7 @@ function History({ status, decisions }) {
   return (
     <section className="card">
       <h2>Decisions</h2>
-      <p className="muted">This case is {label(status)}, so it can't take a new decision.</p>
+      <p className="muted">{readOnlyReason(status)}</p>
       {decisions === null && <p className="muted">Loading…</p>}
       {decisions?.length === 0 && <p className="muted">No decisions recorded.</p>}
       {decisions?.length > 0 && (
@@ -71,7 +71,7 @@ function History({ status, decisions }) {
 
 export default function Review() {
   const { caseId } = useParams();
-  const { call } = useAuth();
+  const { user, call } = useAuth();
   const [kase, setCase] = useState(null);
   const [review, setReview] = useState(null);
   const [history, setHistory] = useState(null);
@@ -88,6 +88,8 @@ export default function Review() {
     }
   }, [call, caseId]);
 
+  // A case this user may decide gets its review when opened. Any other case is read-only:
+  // the page says why and shows its decisions, and never calls /reviews.
   useEffect(() => {
     let active = true;
     setCase(null);
@@ -99,7 +101,7 @@ export default function Review() {
       .then(async (loaded) => {
         if (!active) return;
         setCase(loaded);
-        if (canDecide(loaded.status)) {
+        if (canDecide(user.role, loaded.status)) {
           await startReview();
         } else {
           const decisions = await call(`/cases/${caseId}/decisions`);
@@ -110,7 +112,7 @@ export default function Review() {
     return () => {
       active = false;
     };
-  }, [call, caseId, startReview]);
+  }, [call, caseId, startReview, user.role]);
 
   // While the agent works, ask again every couple of seconds.
   useEffect(() => {
@@ -147,6 +149,7 @@ export default function Review() {
     );
   }
 
+  const decides = canDecide(user.role, kase.status);
   const output = review?.review_output;
   const index = { ...(output?.report_evidence_index ?? {}), ...(output?.checked_memo?.evidence_index ?? {}) };
   return (
@@ -160,8 +163,8 @@ export default function Review() {
           {error}
         </p>
       )}
-      {!review && !canDecide(kase.status) && <History status={kase.status} decisions={history} />}
-      {!review && canDecide(kase.status) && !error && <p className="muted">Starting the review…</p>}
+      {!review && !decides && <History status={kase.status} decisions={history} />}
+      {!review && decides && !error && <p className="muted">Starting the review…</p>}
       {review?.status === "running" && (
         <p className="muted" role="status">
           The agent is reviewing this case. This page updates by itself.
@@ -184,6 +187,7 @@ export default function Review() {
               <DecisionForm
                 reviewId={review.review_id}
                 recommendation={output.checked_memo?.memo?.recommendation}
+                decisions={allowedDecisions(user.role, kase.status)}
                 onDecided={decided}
               />
             )}
