@@ -11,6 +11,7 @@ The driver is psycopg 3 (postgresql+psycopg://). raw_text, page_text and source_
 are deferred: they're loaded only if asked for by name, and no endpoint asks.
 """
 
+import logging
 import time
 from datetime import date, datetime
 from pathlib import Path
@@ -38,6 +39,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+log = logging.getLogger(__name__)
+
 POOL_SIZE = 5        # connections, as many as psycopg_pool's max_size before
 STARTUP_WAIT = 30    # seconds to wait for the database when the service starts
 
@@ -54,14 +57,19 @@ def make_engine(*, host: str, port: str | int, password: str) -> Engine:
 def wait_for_database(engine: Engine, timeout: float = STARTUP_WAIT) -> None:
     """Connects once, trying again for up to timeout seconds while the database starts."""
     deadline = time.monotonic() + timeout
+    waited = False
     while True:
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             return
-        except OperationalError:
+        except OperationalError as error:
             if time.monotonic() >= deadline:
+                log.error("the database is still unreachable after %d seconds", timeout)
                 raise
+            if not waited:
+                log.warning("waiting for the database: %s", str(error).splitlines()[0])
+                waited = True
             time.sleep(1)
 
 
@@ -75,6 +83,7 @@ def run_schema(engine: Engine, schema: Path) -> None:
         raw.commit()
     finally:
         raw.close()
+    log.info("ran %s", schema.name)
 
 
 class Base(DeclarativeBase):

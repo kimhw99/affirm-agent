@@ -10,8 +10,13 @@ AUTH_DB_HOST and AUTH_DB_PORT (by default localhost and POSTGRES_HOST_PORT), run
 schema.sql, and creates or updates the demo users whose passwords are set
 (DEMO_ANALYST_PASSWORD, DEMO_SENIOR_PASSWORD). JWT_SECRET, at least 32 characters,
 signs the tokens, and JWT_TTL_MINUTES (480 by default) sets how long they last.
+
+It logs (app/logs.py, at LOG_LEVEL) each login, each refused login with the username
+only, each refused /auth/me, and at startup the schema and the demo users it saved,
+each line with the request's X-Request-ID. Never a password, a hash or a token.
 """
 
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -25,11 +30,14 @@ from sqlalchemy.orm import Session
 
 from kyb_contracts.auth import LoginRequest, LoginResponse, User
 
-from . import db, store
+from . import db, logs, store
 from .security import DUMMY_HASH, issue_token, read_token, verify_password
 
 SCHEMA = Path(__file__).resolve().parents[1] / "schema.sql"
 USER_FIELDS = ("user_id", "username", "display_name", "role")
+
+logs.configure()
+log = logging.getLogger(__name__)
 
 
 def jwt_secret() -> str:
@@ -67,6 +75,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Auth service", lifespan=lifespan)
+logs.track_requests(app)
 
 
 def connection(request: Request) -> Iterator[Session]:
@@ -90,9 +99,12 @@ def login(body: LoginRequest, request: Request, session: DbSession):
     # The same check and the same answer either way, so a response doesn't tell which was wrong.
     password_ok = verify_password(body.password, account.password_hash if account else DUMMY_HASH)
     if account is None or not password_ok:
+        # The username only, and the same line either way, as the answer is the same.
+        log.warning("login refused username=%r", logs.safe(body.username, 64))
         raise HTTPException(401, "wrong username or password")
     user = public(account)
     token = issue_token(user, request.app.state.secret, request.app.state.ttl)
+    log.info("login user_id=%s role=%s", user.user_id, user.role)
     return LoginResponse(access_token=token, expires_in=request.app.state.ttl, user=user)
 
 
@@ -100,12 +112,16 @@ def login(body: LoginRequest, request: Request, session: DbSession):
 def me(request: Request, session: DbSession, authorization: Annotated[str | None, Header()] = None):
     scheme, _, token = (authorization or "").partition(" ")
     try:
-        if scheme.lower() != "bearer":
+        if scheme.lower() != "bearer" or not token:
             raise jwt.InvalidTokenError("not a Bearer token")
         claims = read_token(token, request.app.state.secret)
-    except (jwt.InvalidTokenError, ValidationError):
+    except (jwt.InvalidTokenError, ValidationError) as error:
+        why = ("no Bearer token" if scheme.lower() != "bearer" or not token
+               else "an expired token" if isinstance(error, jwt.ExpiredSignatureError) else "an invalid token")
+        log.warning("me refused: %s", why)      # what was wrong, never the token
         raise HTTPException(401, "log in first", headers={"WWW-Authenticate": "Bearer"}) from None
     account = store.find_user_by_id(session, claims.sub)
     if account is None:
+        log.warning("me refused: user_id=%s no longer exists", claims.sub)
         raise HTTPException(401, "this user no longer exists", headers={"WWW-Authenticate": "Bearer"})
     return public(account)

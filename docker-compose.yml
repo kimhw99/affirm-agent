@@ -33,6 +33,7 @@ services:
       CASE_DB_PORT: "5432"
       CASE_DB_PASSWORD: ${CASE_DB_PASSWORD:?set CASE_DB_PASSWORD in .env}
       CASE_SERVICE_TOKEN: ${CASE_SERVICE_TOKEN:?set CASE_SERVICE_TOKEN in .env}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     volumes:
       # For loading the golden cases from inside the container:
       #   docker compose run --rm case python seed.py
@@ -61,6 +62,7 @@ services:
       JWT_TTL_MINUTES: ${JWT_TTL_MINUTES:-480}
       DEMO_ANALYST_PASSWORD: ${DEMO_ANALYST_PASSWORD:-}
       DEMO_SENIOR_PASSWORD: ${DEMO_SENIOR_PASSWORD:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     # Not published: the browser reaches it through the gateway.
     depends_on:
       db:
@@ -86,6 +88,7 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     # Not published: it trusts X-User-Id and X-User-Role, which only the gateway may set.
     depends_on:
       case:
@@ -106,6 +109,7 @@ services:
       AUTH_SERVICE_URL: http://auth:8000
       CASE_SERVICE_URL: http://case:8000
       AGENT_SERVICE_URL: http://agent:8000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       # The browser's only entry point, published on this machine only.
       - "127.0.0.1:${GATEWAY_HOST_PORT:-8080}:8000"

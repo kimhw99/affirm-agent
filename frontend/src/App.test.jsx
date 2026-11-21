@@ -92,6 +92,30 @@ describe("review app", () => {
     expect(queue.headers.Authorization).toBe("Bearer test-token");
   });
 
+  it("logs a refused login and a login to the console, without the password or the token", async () => {
+    const consoleLines = ["info", "warn"].map((method) => vi.spyOn(console, method).mockImplementation(() => {}));
+    let attempts = 0;
+    mockApi({
+      "POST /api/auth/login": () =>
+        attempts++ === 0
+          ? new Reply(401, { detail: "wrong username or password" })
+          : { access_token: "test-token", token_type: "bearer", expires_in: 3600, user: USER },
+      "GET /api/cases?status=pending_review": [SUMMARY],
+    });
+    renderAt("/login");
+    fireEvent.change(screen.getByLabelText("Username"), { target: { value: "analyst" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "a password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+    expect(await screen.findByText("Wrong username or password.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+    expect(await screen.findByRole("link", { name: "case_1042" })).toBeTruthy();
+
+    const written = consoleLines.flatMap((spy) => spy.mock.calls.map(([line]) => line));
+    expect(written.some((line) => / WARNING login\.failed status=401$/.test(line))).toBe(true);
+    expect(written.some((line) => / INFO login user_id=u_analyst_01 role=analyst$/.test(line))).toBe(true);
+    expect(written.join("\n")).not.toMatch(/a password|test-token/);
+  });
+
   it("shows the memo, explains an evidence ID and saves the decision", async () => {
     logIn();
     let status = "pending_review";

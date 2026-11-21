@@ -87,6 +87,35 @@ While someone clicks through, each part's owner can watch theirs. `-f` keeps fol
 | The saved decisions | `docker compose exec db psql -U case_svc -d case_db -c "SELECT review_id, decision, analyst_id, overridden, decided_at FROM decisions"` |
 | Every status change (the audit log) | `docker compose exec db psql -U case_svc -d case_db -c "SELECT case_id, actor_id, action, from_status, to_status, created_at FROM audit_log"` |
 
+### Reading the logs
+
+The gateway, auth, case and agent services write one line per event: the time in UTC, the level, the service, the request's ID and the message.
+
+```text
+gateway-1  | 2026-11-20T21:04:05.123Z INFO gateway request_id=0c6f2a1e-5b7d-4c1e-9f3a-2d8e6b1c4a70 app.main: method=GET path=/cases/case_1042 upstream=case status=200 duration_ms=14 user_id=u_analyst_01 role=analyst
+```
+
+`docker compose logs -f gateway auth case agent` follows all four. `LOG_LEVEL` in `.env` sets how much they write: `INFO` by default, `DEBUG` for more, `WARNING` for warnings and errors only. `docker compose up -d` applies a change.
+
+| Service | What it logs |
+|---|---|
+| gateway | One line per request: the method, the path, the service it went to, the status, how long it took, and the user and role. A refused JWT (401, 403) is a warning, a service out of reach (502) an error |
+| auth | Each login, with the user and role; each refused one, as a warning with the username only; each refused `/auth/me`. At startup, `ran schema.sql` and the demo users it created or updated |
+| case | Each decision saved (the case, the review, the decision and the status it changed) and each document added; each one refused (404, 409, 422), as a warning; each wrong or missing service token. At startup, `ran schema.sql` |
+| agent | Each review started or picked up, and each decision recorded, with the user and role; each one refused, as a warning, or an error if the case service can't answer; a review that failed; the workers' warnings and errors |
+
+Each service also writes uvicorn's line for each request it serves, except the health checks Docker runs every few seconds; on the gateway its own line takes that place. No line holds a password, a JWT, the service token, an OpenAI or LangFuse key, or a full SSN or EIN: each service blanks out any it finds as `[redacted]` (its `app/logs.py`), and the gateway never logs the `Authorization` header or a request's body.
+
+To follow one request through the services, use its request ID. The gateway gives each request one, in the `X-Request-ID` header: it passes the ID to the service it calls and returns it in the response. Each service writes it on its lines for that request, and the agent passes it on when it reads the case or sends the decision to the case service, and to the review it runs in the background. To find an ID, open the browser's developer tools (F12), then Network: click an `/api/...` call, and the ID is `x-request-id` under its response headers. Then:
+
+```bash
+docker compose logs gateway auth case agent | grep 0c6f2a1e-5b7d-4c1e-9f3a-2d8e6b1c4a70
+```
+
+For example, when an analyst opens case_1042, `GET /cases/case_1042` shows up in the gateway's and the case service's lines, and `POST /reviews` in the gateway's, the agent's (`review started`) and the case service's again, as the agent reads the case. The workers' own lookups don't carry it: their client is separate, so in the case service's lines they show `request_id=-`, as does anything logged outside a request, such as at startup.
+
+The review app logs to the browser's console (developer tools, Console), with the time and an event name: `login` and `login.failed`; `review.started`, `review.start_failed` and `review.failed`; `decision.saved` and `decision.failed`; and `api.failed` or `api.unreachable` for each call that fails, with its `request_id` when the gateway answered. Never a password, a token or a note. The frontend service's log, `docker compose logs -f frontend`, is nginx's usual access log: each file and `/api` call the browser asked for.
+
 ## 5. Start over, stop or update
 
 | To | Run |
@@ -140,6 +169,7 @@ It exits with:
 | `seed.py` says "Nothing was loaded: these cases have decisions or audit log entries" | It doesn't replace a case that has decisions. [Start over](#5-start-over-stop-or-update), which deletes them |
 | Every memo recommends Insufficient evidence and cites no evidence | `OPENAI_API_KEY` is empty or wrong; `docker compose logs agent` shows the warning or the error. Fix it in `.env`, then run `docker compose up -d` |
 | "The review failed: …" | The agent hit an error; see `docker compose logs agent`. Then click Start it again |
+| Another error on a page, and it's not clear which service caused it | The browser's console has an `api.failed` line for the call, with its `request_id`; `docker compose logs gateway auth case agent \| grep` that ID shows what each service did with it ([Reading the logs](#reading-the-logs)) |
 | A change to `.env` has no effect | Run `docker compose up -d`, which recreates the services whose settings changed; `docker compose restart` keeps the old settings |
 | New code from `git pull` doesn't show | Rebuild: `docker compose up -d --build --wait` |
 
