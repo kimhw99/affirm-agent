@@ -1,14 +1,20 @@
 """Checks that each golden case's files agree with each other.
 
 A golden case is a folder data/golden/<ec>/<case_id>/, where <ec> is ec1, ec2, ec4
-or combo. It holds two files, each checked against its model in
+or combo. It holds these files, each checked against its model in
 contracts/kyb_contracts/ (other files in the folder are ignored):
 
-    case.json   the case the existing system hands over   CaseInput  (case_input.py)
-    world.json  the mocked official and vendor records    World      (world.py)
+    case.json      the case the existing system hands over   CaseInput       (case_input.py)
+    world.json     the mocked official and vendor records    World           (world.py)
+    expected.json  the expected answer, for the evaluation   ExpectedAnswer  (golden.py)
+
+case.json and world.json are required. A case without expected.json gets a warning
+only, while the answers are still being written; --require-expected makes it a
+problem, for a check before an evaluation.
 
 Once each file passes its model, this script checks what no single model can see:
-- case_id: the folder name and both files agree.
+- case_id: the folder name and every file agree.
+- Expected answer: every D, B, W and K ID that expected.json names is in case.json.
 - TIN: case.json's tin_type and tin_last4 and world.json's tin_record describe the
   same TIN, or neither has one.
 - Vendor checks: checks.tin fits the IRS status in tin_record; checks.sos_name's
@@ -24,17 +30,19 @@ Once each file passes its model, this script checks what no single model can see
   profile_id) are unique, because every world.json goes into the same tables.
 
 Not checked until the team decides: how NAME_UNVERIFIED and ENTITY_NOT_FOUND differ
-(open question 10 in docs/workflow-handoffs.md), and the expected-answer file.
+(open question 10 in docs/workflow-handoffs.md).
 
 Usage, from the repo root (needs pydantic; `pip install -e ./contracts` installs it):
 
     python scripts/validate_golden.py                    # every case under data/golden
     python scripts/validate_golden.py data/golden/ec1    # one edge case's cases
     python scripts/validate_golden.py data/golden/ec1/<case_id>
+    python scripts/validate_golden.py --require-expected # every case must have expected.json
 
 The cross-case checks cover only the cases in that run, so run it with no argument
-before committing. It prints each problem and exits with 1 if there are any, 0 if
-there are none, and 2 if the path isn't a folder.
+before committing. It prints each problem and warning, and exits with 1 if there are
+any problems (warnings don't count), 0 if there are none, and 2 if the path isn't a
+folder.
 """
 
 import argparse
@@ -49,14 +57,18 @@ sys.path.insert(0, str(REPO / "contracts"))  # use this repo's contracts, instal
 from pydantic import BaseModel, ValidationError  # noqa: E402
 
 from kyb_contracts.case_input import CaseInput  # noqa: E402
+from kyb_contracts.golden import ExpectedAnswer  # noqa: E402
 from kyb_contracts.world import World  # noqa: E402
 
 GOLDEN = REPO / "data" / "golden"
 
+# The files every case needs. The seed script loads these two, and only these.
 FILES: dict[str, type[BaseModel]] = {
     "case.json": CaseInput,
     "world.json": World,
 }
+# The expected answer: for the evaluation, never loaded into case_db.
+EXPECTED = "expected.json"
 
 # The flags of each edge case, grouped as in FlagReason (case_input.py).
 EC_FLAGS: dict[str, set[str]] = {
@@ -92,7 +104,9 @@ class GoldenCase:
     folder: Path
     case: CaseInput | None = None
     world: World | None = None
+    expected: ExpectedAnswer | None = None
     problems: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)   # reported, but not a reason to fail
 
     @property
     def label(self) -> str:
@@ -124,28 +138,44 @@ def _describe(error: dict) -> str:
     return f"{where}: {message}" if where else message
 
 
-def load_case(folder: Path) -> GoldenCase:
-    """Read a case folder's two files and check each against its model."""
+def _parse(golden: GoldenCase, name: str, model: type[BaseModel]) -> BaseModel | None:
+    try:
+        return model.model_validate_json((golden.folder / name).read_text(encoding="utf-8"))
+    except ValidationError as error:
+        # Location and message only: never echo a value, in case it's a full TIN.
+        golden.problems += [f"{name}: {_describe(e)}" for e in error.errors()]
+        return None
+
+
+def load_case(folder: Path, require_expected: bool = False) -> GoldenCase:
+    """Read a case folder's files and check each against its model."""
     golden = GoldenCase(folder)
     for name, model in FILES.items():
-        path = folder / name
-        if not path.is_file():
+        if not (folder / name).is_file():
             golden.problems.append(f"{name} is missing")
             continue
-        try:
-            parsed = model.model_validate_json(path.read_text(encoding="utf-8"))
-        except ValidationError as error:
-            # Location and message only: never echo a value, in case it's a full TIN.
-            golden.problems += [f"{name}: {_describe(e)}" for e in error.errors()]
-            continue
-        setattr(golden, name.removesuffix(".json"), parsed)
+        setattr(golden, name.removesuffix(".json"), _parse(golden, name, model))
+    if (folder / EXPECTED).is_file():
+        golden.expected = _parse(golden, EXPECTED, ExpectedAnswer)
+    elif require_expected:
+        golden.problems.append(f"{EXPECTED} is missing")
+    else:
+        golden.warnings.append(f"{EXPECTED} is missing, so the evaluation can't score this case yet")
     return golden
+
+
+def evidence_ids(case: CaseInput) -> set[str]:
+    """The case's D, B, W and K IDs."""
+    ids = {d.id for d in case.documents} | {w.id for w in case.web_snapshot} | {k.id for k in case.owner_kyc}
+    if case.bank_verification is not None:
+        ids.add(case.bank_verification.id)
+    return ids
 
 
 def check_case(golden: GoldenCase) -> None:
     """Add the problems that show only when a case's files are read together."""
     problems = golden.problems
-    for name, parsed in (("case.json", golden.case), ("world.json", golden.world)):
+    for name, parsed in (("case.json", golden.case), ("world.json", golden.world), (EXPECTED, golden.expected)):
         if parsed is not None and parsed.case_id != golden.folder.name:
             problems.append(f"{name}: case_id is {parsed.case_id}, but the folder is {golden.folder.name}")
 
@@ -154,6 +184,11 @@ def check_case(golden: GoldenCase) -> None:
         return  # every other check compares against case.json
     app, checks = case.application, case.checks
     flags = {getattr(flag, "value", flag) for flag in case.flag_reasons}
+
+    if golden.expected is not None:
+        unknown = sorted(golden.expected.fixed_ids() - evidence_ids(case))
+        if unknown:
+            problems.append(f"{EXPECTED}: names {', '.join(unknown)}, but case.json has no such evidence")
 
     if world is not None:
         record = world.tin_record
@@ -214,14 +249,15 @@ def check_across(cases: list[GoldenCase]) -> list[str]:
             for (kind, value), labels in sorted(users.items()) if len(labels) > 1]
 
 
-def validate(path: Path) -> tuple[list[GoldenCase], list[str]]:
+def validate(path: Path, require_expected: bool = False) -> tuple[list[GoldenCase], list[str]]:
     """Check every case under path.
 
-    Returns the cases, each with its own problems, and the problems that belong to
-    no single case (unknown folders, IDs shared across cases).
+    Returns the cases, each with its own problems and warnings, and the problems that
+    belong to no single case (unknown folders, IDs shared across cases). With
+    require_expected, a case without expected.json has a problem instead of a warning.
     """
     folders, problems = find_case_folders(path)
-    cases = [load_case(folder) for folder in folders]
+    cases = [load_case(folder, require_expected) for folder in folders]
     for golden in cases:
         check_case(golden)
     return cases, problems + check_across(cases)
@@ -231,12 +267,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check that each golden case's files agree with each other.")
     parser.add_argument("path", nargs="?", type=Path, default=GOLDEN,
                         help="data/golden (the default), one edge case's folder, or one case folder")
-    path = parser.parse_args(argv).path
+    parser.add_argument("--require-expected", action="store_true",
+                        help="a case without expected.json is a problem, not a warning (before an evaluation)")
+    args = parser.parse_args(argv)
+    path = args.path
     if not path.is_dir():
         print(f"{path} is not a folder")
         return 2
 
-    cases, problems = validate(path)
+    cases, problems = validate(path, require_expected=args.require_expected)
     if not cases:
         print(f"No golden cases under {path} yet.")
     for golden in cases:
@@ -245,14 +284,19 @@ def main(argv: list[str] | None = None) -> int:
             print("\n".join(f"  - {problem}" for problem in golden.problems))
         else:
             print(f"{golden.label}: ok")
+        for warning in golden.warnings:
+            print(f"  warning: {warning}")
     if problems:
         print("Other problems:")
         print("\n".join(f"  - {problem}" for problem in problems))
 
     failed = sum(1 for golden in cases if golden.problems)
+    warned = sum(len(golden.warnings) for golden in cases)
     summary = f"{len(cases)} case(s) checked: {len(cases) - failed} ok, {failed} with problems"
     if problems:
         summary += f"; {len(problems)} other problem(s)"
+    if warned:
+        summary += f"; {warned} warning(s)"
     print(f"\n{summary}.")
     return 1 if failed or problems else 0
 

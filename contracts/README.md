@@ -12,12 +12,13 @@ For a field-by-field walkthrough of `CaseInput` and the KYB background behind it
 | `kyb_contracts/worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult`, with the `CaseContext`, `Finding` and `Source` inside them; `FINDING_FIELDS`, the field names each worker's tools may write | graph, workers |
 | `kyb_contracts/memo.py` | `Memo` (the lead's memo), `CheckResult`, the `evidence_index` entries, `CheckedMemo` (the three together, as the review app shows them) and `Recommendation` | graph (lead, Checks), review app, case service (via `DecisionRecord`) |
 | `kyb_contracts/auth.py` | The roles (`Role`, `ROLES`), `LoginRequest`, `LoginResponse`, `User`, the JWT's `TokenClaims`, and the `X-User-*` headers the gateway sets | auth service, gateway, review app |
+| `kyb_contracts/golden.py` | `ExpectedAnswer`: a golden case's `expected.json`, the answer each review is compared with. What the memo must cite is a D, B, W or K ID, an R record by its source type (`RecordRef`), or `AnyOf` | `scripts/validate_golden.py`, evaluation; never the agent |
 
 ## Rules
 
 - **Structure only.** The contracts check types, formats and IDs, not business rules such as "an LLC must have a state ID". Missing or odd data is exactly what the agent has to handle, so the contract must be able to carry it.
 - **Already parsed.** The application, vendor checks, document fields, bank verification, website fields and KYC results all arrive parsed. Workers fetch stored records by evidence ID and parse nothing.
-- **No full tax IDs.** The application carries `tin_type` and `tin_last4`; owners appear as `owner:P1`. `CaseInput` and `World` reject anything that looks like a full SSN or EIN, and no file or table in this project holds one: the full numbers stay with the existing KYB system.
+- **No full tax IDs.** The application carries `tin_type` and `tin_last4`; owners appear as `owner:P1`. `CaseInput`, `World` and `ExpectedAnswer` reject anything that looks like a full SSN or EIN, and no file or table in this project holds one: the full numbers stay with the existing KYB system.
 - **Merchant claims stay on the Evidence side.** Raw OCR and page text stay in case_db. Documents, bank verification and web snapshots are read only by the Evidence worker; owner KYC (third-party) is read by the Records worker.
 - **Evidence IDs are fixed.** D (documents), B (bank), W (website) and K (KYC) IDs are set when the case arrives and never change.
 - **Unknown fields are errors.** Every model uses `extra="forbid"`, so a typo fails loudly instead of being dropped.
@@ -38,9 +39,9 @@ The tests in `services/agent/tests/` check every example and every contract rule
 
 ## Examples
 
-All data in `examples/` is fictional, and no full SSN or EIN appears in it: `CaseInput` and `World` reject anything that looks like one.
+All data in `examples/` is fictional, and no full SSN or EIN appears in it: `CaseInput`, `World` and `ExpectedAnswer` reject anything that looks like one.
 
-`world/case_1042.json` is the other file of `case_1042`, so the two together show one complete golden case (`case.json` and `world.json` in `data/golden/<ec>/<case_id>/`). How to write one: [data/golden/README.md](../data/golden/README.md).
+`world/case_1042.json` and `expected/case_1042.json` are the other two files of `case_1042`, so the three together show one complete golden case (`case.json`, `world.json` and `expected.json` in `data/golden/<ec>/<case_id>/`). How to write one: [data/golden/README.md](../data/golden/README.md).
 
 `checked_memo.json` is `case_1042`'s memo after Checks: the memo, its `evidence_index` and the `check_result`, as the review app gets them.
 

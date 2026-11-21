@@ -147,6 +147,7 @@ Every format that crosses a service or step boundary lives in the shared package
 | `worker_io.py` | `WorkerInput` (aliases `WorkerTask`, `FollowUp`) and `WorkerResult` | Lead ↔ workers |
 | `memo.py` | `Memo`, `CheckResult`, the `evidence_index` entries, and `CheckedMemo`, which holds the three; `Recommendation` | Lead (the memo) and Checks (the rest) → review app; the case service saves the recommendation in `DecisionRecord` |
 | `auth.py` | `Role`, `LoginRequest`, `LoginResponse`, `User`, `TokenClaims` | Auth service → review app (login) and gateway (the JWT); the gateway → backend services as `X-User-Id` and `X-User-Role` (`docs/auth.md`) |
+| `golden.py` | `ExpectedAnswer`: a golden case's `expected.json` | Golden case authors → evaluation, checked by `scripts/validate_golden.py`. The seed script never loads it, so the agent can't see it |
 
 Whoever produces a format owns it, and the parts that use it review every change in a pull request. `docs/workflow-handoffs.md` (section 2) lists every format and its fields, and `contracts/case_input_guide.md` explains each `CaseInput` field.
 

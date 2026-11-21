@@ -5,7 +5,9 @@ These tests need no database. Loading into a real one is described in docs/datab
 
 import importlib.util
 import json
+import shutil
 import sys
+import types
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
@@ -57,3 +59,51 @@ def test_no_tin_record_and_no_bank_verification_give_no_rows():
     world = world.model_copy(update={"tin_record": None})
     assert seed.case_rows(case)["bank_verifications"] == []
     assert seed.world_rows(world)["mock.tin_records"] == []
+
+
+class FakeConnection:
+    """Stands in for psycopg's connection, and records every statement and its values."""
+
+    def __init__(self):
+        self.statements: list[tuple[str, object]] = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, sql, params=None):
+        self.statements.append((sql, params))
+        return []          # no case has decisions or audit log entries yet
+
+    def rollback(self):
+        pass
+
+    def cursor(self):
+        return self
+
+    def executemany(self, sql, rows):
+        self.statements.append((sql, list(rows)))
+
+
+def test_the_expected_answer_never_reaches_the_database(tmp_path, monkeypatch, capsys):
+    folder = tmp_path / "combo" / "case_1042"
+    shutil.copytree(REPO / "data" / "golden" / "combo" / "case_1042", folder)
+    expected = json.loads((folder / "expected.json").read_text(encoding="utf-8"))
+    expected["notes"] = "ANSWER-ONLY: if this reaches case_db, the agent can read the answer."
+    (folder / "expected.json").write_text(json.dumps(expected), encoding="utf-8")
+
+    conn = FakeConnection()
+    fake_psycopg = types.SimpleNamespace(connect=lambda **_: conn, Error=Exception, OperationalError=Exception)
+    monkeypatch.setitem(sys.modules, "psycopg", fake_psycopg)
+    monkeypatch.setenv("CASE_DB_PASSWORD", "only-for-this-test")
+
+    assert seed.main([str(tmp_path)]) == 0, capsys.readouterr().out
+    cases, _ = seed.validate_golden.validate(tmp_path)
+    assert cases[0].expected is not None           # the answer was there, and valid
+    inserted = {sql.split("INTO", 1)[1].split()[0] for sql, _ in conn.statements if "INSERT INTO" in sql}
+    assert inserted == set(seed.INSERTS)            # case.json's and world.json's tables, nothing else
+    values = json.dumps([params for _, params in conn.statements], default=str)
+    assert "ANSWER-ONLY" not in values
+    assert "expected_decision" not in values and "must_cite" not in values

@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -15,12 +16,21 @@ validate_golden = importlib.util.module_from_spec(_spec)
 sys.modules["validate_golden"] = validate_golden
 _spec.loader.exec_module(validate_golden)
 
+from kyb_contracts.golden import RECORD_SOURCE_TYPES  # noqa: E402
+
 
 def _example() -> dict[str, dict]:
     """The two files of case_1042, taken from contracts/examples/."""
     sources = {"case.json": "case_input", "world.json": "world"}
     return {name: json.loads((EXAMPLES / folder / "case_1042.json").read_text(encoding="utf-8"))
             for name, folder in sources.items()}
+
+
+def _with_expected() -> dict[str, dict]:
+    """case_1042's two files and its expected answer, from contracts/examples/."""
+    files = _example()
+    files["expected.json"] = json.loads((EXAMPLES / "expected" / "case_1042.json").read_text(encoding="utf-8"))
+    return files
 
 
 def _write(root: Path, files: dict[str, dict], ec: str = "combo", case_id: str = "case_1042") -> Path:
@@ -31,8 +41,8 @@ def _write(root: Path, files: dict[str, dict], ec: str = "combo", case_id: str =
     return folder
 
 
-def _problems(root: Path) -> list[str]:
-    cases, problems = validate_golden.validate(root)
+def _problems(root: Path, require_expected: bool = False) -> list[str]:
+    cases, problems = validate_golden.validate(root, require_expected=require_expected)
     return [problem for golden in cases for problem in golden.problems] + problems
 
 
@@ -155,3 +165,107 @@ def test_one_case_folder_can_be_checked_alone(tmp_path):
 
 def test_a_path_that_is_not_a_folder_is_a_usage_error(tmp_path):
     assert validate_golden.main([str(tmp_path / "missing")]) == 2
+
+
+# ---------- expected.json ----------
+
+def test_the_example_case_with_its_expected_answer_passes(tmp_path):
+    _write(tmp_path, _with_expected())
+    cases, problems = validate_golden.validate(tmp_path, require_expected=True)
+    assert problems == [] and cases[0].problems == [] and cases[0].warnings == []
+    assert cases[0].expected.decisions() == ["recommend_clear"]
+    assert cases[0].expected.fixed_ids() == {"D1", "B1", "W1"}
+
+
+def test_the_example_is_case_1042s_expected_answer():
+    golden = REPO / "data" / "golden" / "combo" / "case_1042" / "expected.json"
+    example = EXAMPLES / "expected" / "case_1042.json"
+    assert json.loads(golden.read_text(encoding="utf-8")) == json.loads(example.read_text(encoding="utf-8"))
+
+
+def test_a_missing_expected_answer_is_only_a_warning(tmp_path, capsys):
+    _write(tmp_path, _example())
+    cases, problems = validate_golden.validate(tmp_path)
+    assert problems == [] and cases[0].problems == []
+    assert cases[0].warnings == ["expected.json is missing, so the evaluation can't score this case yet"]
+    assert validate_golden.main([str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "warning: expected.json is missing" in out and "1 warning(s)" in out
+
+
+def test_require_expected_makes_a_missing_answer_a_problem(tmp_path):
+    _write(tmp_path, _example())
+    assert "expected.json is missing" in _problems(tmp_path, require_expected=True)
+    assert validate_golden.main(["--require-expected", str(tmp_path)]) == 1
+
+
+def test_the_expected_answer_must_match_the_folder(tmp_path):
+    files = _with_expected()
+    files["expected.json"]["case_id"] = "case_1043"
+    _write(tmp_path, files)
+    assert "expected.json: case_id is case_1043, but the folder is case_1042" in _problems(tmp_path)
+
+
+def test_every_id_the_answer_names_must_be_in_the_case(tmp_path):
+    files = _with_expected()
+    files["expected.json"]["must_cite"] += ["D7", {"any_of": ["W1", "W9"]}]
+    files["expected.json"]["must_not_cite"] = ["K2"]
+    _write(tmp_path, files)
+    assert "expected.json: names D7, K2, W9, but case.json has no such evidence" in _problems(tmp_path)
+
+
+@pytest.mark.parametrize("change, message", [
+    ({"must_cite": ["R4"]}, "must_cite.0.id: R IDs change from run to run, so describe the record by its source"),
+    ({"must_cite": ["000123456"]}, "must_cite.0.id: not a D, B, W or K evidence ID"),
+    ({"must_cite": [{"source": "sos_regsitry"}]}, "must_cite.0.record.source: Input should be 'sos_registry'"),
+    ({"must_cite": [{"source": "irs_tin_match", "where": {"result": "Match"}}]},
+     "no Records tool writes the finding field(s) ['result']"),
+    ({"must_cite": [{"any_of": ["B1"]}]}, "must_cite.0.any_of.any_of: List should have at least 2 items"),
+    ({"must_cite": [{"any_of": ["B1", {"any_of": ["W1", "D1"]}]}]}, "any_of can't go inside another any_of"),
+    ({"must_not_cite": [{"any_of": ["B1", "W1"]}]}, "any_of can't go inside another any_of, or in must_not_cite"),
+    ({"categories": []}, "categories: List should have at least 1 item"),
+    ({"categories": ["routine"]}, "categories.0: Input should be 'normal'"),
+    ({"categories": ["exception", "exception"]}, "categories lists ['exception'] more than once"),
+    ({"edge_cases": ["EC-3"]}, "edge_cases.0: Input should be 'EC-1'"),
+    ({"expected_decision": "approve"}, "expected_decision: Input should be 'recommend_clear'"),
+    ({"acceptable_decisions": ["recommend_clear"]}, "acceptable_decisions repeats expected_decision"),
+    ({"must_not_cite": ["D1"]}, "['D1'] is in both must_cite and must_not_cite"),
+    ({"max_follow_up_rounds": -1}, "max_follow_up_rounds: Input should be greater than or equal to 0"),
+    ({"notes": ""}, "notes: String should have at least 1 character"),
+    ({"notez": "a typo"}, "notez: Extra inputs are not permitted"),
+])
+def test_an_invalid_expected_answer_is_reported(tmp_path, change, message):
+    files = _with_expected()
+    files["expected.json"].update(change)
+    _write(tmp_path, files)
+    problems = _problems(tmp_path)
+    assert any(p.startswith("expected.json: ") and message in p for p in problems), problems
+
+
+def test_must_cite_forbidden_actions_and_notes_are_required(tmp_path):
+    files = _with_expected()
+    for name in ("must_cite", "forbidden_actions", "notes"):
+        del files["expected.json"][name]
+    _write(tmp_path, files)
+    problems = _problems(tmp_path)
+    for name in ("must_cite", "forbidden_actions", "notes"):
+        assert f"expected.json: {name}: Field required" in problems
+
+
+def test_a_full_tin_in_the_answer_is_reported_without_the_number(tmp_path, capsys):
+    files = _with_expected()
+    files["expected.json"]["notes"] = "Tested with the EIN 00-1234567."
+    _write(tmp_path, files)
+    assert "expected.json: a full SSN or EIN appears in the text; keep only the last 4 digits" in _problems(tmp_path)
+    assert validate_golden.main([str(tmp_path)]) == 1
+    assert "00-1234567" not in capsys.readouterr().out
+
+
+def test_record_sources_are_the_ones_the_records_tools_write():
+    """must_cite names R records by source type, so this list must follow the Records tools."""
+    tools = REPO / "services" / "agent" / "app" / "tools"
+    written: set[str] = set()
+    for name in ("registry.py", "tin_kyc.py"):
+        for call in re.findall(r'source_type=("\w+"(?: if [^,]+ else "\w+")?)', (tools / name).read_text(encoding="utf-8")):
+            written |= set(re.findall(r'"(\w+)"', call))
+    assert written - {"owner_kyc"} == RECORD_SOURCE_TYPES      # owner_kyc gives K sources, whose IDs are fixed

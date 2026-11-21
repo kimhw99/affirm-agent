@@ -88,5 +88,6 @@ The tables aren't a copy of the contracts. A contract describes what crosses a s
 - **Evidence IDs are unique only within a case**, so the keys of those tables start with `case_id`.
 - **Deleting a case deletes all its rows**, including its rows in `mock`, so one case can be reloaded on its own. A case that has decisions or audit log entries can't be deleted, so its history can't disappear by accident. A full reload empties everything with `TRUNCATE cases CASCADE`.
 - **No full TIN or SSN in any table.** The tables hold what `CaseInput` and `world.json` hold: a TIN's type and last 4 digits, and owners as `owner:P1`. The full numbers stay with the existing KYB system, and no golden case holds one.
+- **No expected answers in any table.** The seed script loads a case's `case.json` and `world.json` only. Its `expected.json` stays in `data/golden/` for the evaluation, since the agent reads `case_db` through the case service.
 - **Never returned by any endpoint**: `documents.raw_text` and `web_snapshots.page_text` (raw merchant text; nothing fills them yet), and every `source_case`.
 - **All golden cases share the `mock` tables**, like one real registry, so their record IDs must be unique across cases. `validate_golden.py` checks this.
