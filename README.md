@@ -37,7 +37,8 @@ affirm-agent/
 │   │   ├── worker_io.py          # WorkerInput (aliases WorkerTask, FollowUp), WorkerResult
 │   │   ├── memo.py               # Memo, CheckResult, evidence_index, CheckedMemo; Recommendation
 │   │   ├── auth.py               # Roles, login, the JWT's claims
-│   │   └── decision.py           # DecisionInput, DecisionRecord
+│   │   ├── decision.py           # DecisionInput, DecisionRecord
+│   │   └── golden.py             # ExpectedAnswer (a golden case's expected.json)
 │   └── examples/                 # One valid JSON example per format
 ├── services/
 │   ├── gateway/                  # FastAPI; verifies the JWT and routes by path (docs/auth.md)
@@ -46,7 +47,7 @@ affirm-agent/
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # Review app: React + React Router; nginx serves the pages and forwards /api to the gateway (see its README)
 ├── db/init.sql                   # Creates the three databases and their accounts
-├── data/golden/                  # Golden cases: case.json and world.json per case (see its README)
+├── data/golden/                  # Golden cases: case.json, world.json and expected.json per case (see its README)
 │   ├── ec1/                      # EC-1 cases, one folder per case
 │   ├── ec2/                      # EC-2 cases
 │   ├── ec4/                      # EC-4 cases
@@ -134,4 +135,4 @@ The lead writes the memo (step 8); Checks (code, step 9) adds the evidence index
 
 `AGREES_WITH` lists the decisions that agree with each recommendation; `is_override` applies it, and evaluation uses `overridden` for the override rate.
 
-Examples: `contracts/examples/` (`case_input/*.json`, `world/`, `worker_input_*.json`, `worker_result_records.json`, `checked_memo.json`).
+Examples: `contracts/examples/` (`case_input/*.json`, `world/`, `expected/`, `worker_input_*.json`, `worker_result_records.json`, `checked_memo.json`).

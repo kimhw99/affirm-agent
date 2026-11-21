@@ -1,0 +1,18 @@
+{
+  "case_id": "case_1042",
+  "categories": ["business_scenario", "exception"],
+  "edge_cases": ["EC-1", "EC-2"],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {"any_of": ["B1", "W1"]},
+    {"source": "sos_filing_history"},
+    {"source": "irs_tin_match", "where": {"tin_match_result": "Match", "name_control_tested": "HARB"}}
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The LLC was renamed from HARBOR LIGHT CYCLES LLC on 2025-03-12, as the Illinois filing history shows. The IRS still has the former name: the EIN letter (D1) was issued to it in 2023, and the TIN matches only when tested with it (name control HARB). The state DBA filing for NORTHLINE CYCLES was made under the former name too. Both conflicts have that one harmless cause, and the bank account (B1) and the website (W1) show the current name and the DBA, so both flags clear. PRODUCT_CATEGORY_REVIEW is out of the agent's scope."
+}

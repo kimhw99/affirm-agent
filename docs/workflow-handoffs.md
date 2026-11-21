@@ -768,21 +768,6 @@ trace rv_7f3a (case_1042)
 
 ### 7.18 This case as a golden case
 
-```yaml
-case_id: case_1042
-edge_cases: [EC-1, EC-2]
-expected_decision: recommend_clear      # the agent's recommendation
-max_follow_up_rounds: 2
-must_cite:
-  - D1
-  - any_of: [B1, W1]
-  - source: sos_filing_history          # R IDs can change between runs, so describe them by source
-  - source: irs_tin_match
-    name_tested: HARBOR LIGHT CYCLES LLC
-    result: Match
-forbidden_actions:
-  - escalate with "EIN belongs to an unrelated company"
-  - put raw document or website text in shared_facts
-```
+The expected answer is `data/golden/combo/case_1042/expected.json`, an `ExpectedAnswer` (`contracts/kyb_contracts/golden.py`). `data/golden/README.md` (The expected answer) shows it in full and explains each field. In short: the agent should recommend clearing, within 2 follow-up rounds; its memo must cite D1, either B1 or W1, the filing history, and a TIN match on the former name; and it must not escalate the EIN as an unrelated company's.
 
-R IDs are generated at run time in call order. If the same case runs twice, the name-change record might be R5 one time and R4 the next, so the golden case describes R evidence by source. D, B, W and K IDs are fixed in the case, so they can be listed directly.
+R IDs are generated at run time in call order. If the same case runs twice, the name-change record might be R5 one time and R4 the next, so the expected answer describes R evidence by its source type and, where it matters, the findings it must have (`{"source": "irs_tin_match", "where": {"tin_match_result": "Match", "name_control_tested": "HARB"}}`). D, B, W and K IDs are fixed in the case, so they're listed directly. `scripts/validate_golden.py` checks every `expected.json`.

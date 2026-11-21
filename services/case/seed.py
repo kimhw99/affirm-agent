@@ -3,7 +3,9 @@
 Reads every case under data/golden (or the folder given), checks the cases with
 scripts/validate_golden.py, and loads each case's case.json into the case tables and
 its world.json into the mock tables of services/case/schema.sql. It runs schema.sql
-first, so the tables exist even before the case service has started.
+first, so the tables exist even before the case service has started. It never loads
+expected.json, the case's expected answer: the agent reads case_db through the case
+service, so it must not find the answers there.
 
 Each case replaces what was loaded for it before, so running the script again is
 safe. It all happens in one transaction: if anything fails, nothing changes. A case
