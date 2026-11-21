@@ -20,8 +20,13 @@ connects to case_db as case_svc with CASE_DB_PASSWORD, at CASE_DB_HOST and
 CASE_DB_PORT (by default localhost and POSTGRES_HOST_PORT), and runs schema.sql.
 docker compose up -d starts it next to the database. To run it on this machine
 instead, from services/case: uvicorn app.main:app --port 8001
+
+It logs (app/logs.py, at LOG_LEVEL) each decision and document it saves, each one it
+refuses, and each wrong or missing service token, each line with the request's
+X-Request-ID. Never the token, nor the values of a document it refuses.
 """
 
+import logging
 import os
 import secrets
 from contextlib import asynccontextmanager
@@ -47,9 +52,12 @@ from kyb_contracts.case_input import (
 from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
-from . import db, store
+from . import db, logs, store
 
 SCHEMA = Path(__file__).resolve().parents[1] / "schema.sql"
+
+logs.configure()
+log = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -74,6 +82,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Case service", lifespan=lifespan)
+logs.track_requests(app)
 
 
 def connection(request: Request) -> Iterator[Session]:
@@ -85,6 +94,8 @@ def connection(request: Request) -> Iterator[Session]:
 def require_token(request: Request, authorization: Annotated[str | None, Header()] = None) -> None:
     scheme, _, token = (authorization or "").partition(" ")
     if scheme.lower() != "bearer" or not secrets.compare_digest(token.encode(), request.app.state.token.encode()):
+        log.warning("service token %s method=%s path=%s", "missing" if not token else "wrong",
+                    request.method, logs.safe(request.url.path))    # never the token itself
         raise HTTPException(401, "a valid service token is required", headers={"WWW-Authenticate": "Bearer"})
 
 
@@ -185,17 +196,22 @@ class SaveDecision(BaseModel):
 def save_decision(case_id: str, body: SaveDecision, session: DbSession, response: Response):
     """Saves the decision, sets the case's status from it and writes the audit log, in one transaction."""
     record = body.decision_record
-    if record.case_id != case_id:
-        raise HTTPException(422, f"decision_record.case_id is {record.case_id}, but the path is for {case_id}")
-    status = STATUS_AFTER[record.decision]
-    if body.case_status not in (None, status):
-        raise HTTPException(422, f"{record.decision} sets the case to {status.value}, not {body.case_status.value}")
     try:
-        created = store.save_decision(session, record)
-    except store.CaseNotFound:
-        raise HTTPException(404, "no such case") from None
-    except store.DecisionConflict as error:
-        raise HTTPException(409, str(error)) from None
+        if record.case_id != case_id:
+            raise HTTPException(422, f"decision_record.case_id is {record.case_id}, but the path is for {case_id}")
+        status = STATUS_AFTER[record.decision]
+        if body.case_status not in (None, status):
+            raise HTTPException(422, f"{record.decision} sets the case to {status.value}, not {body.case_status.value}")
+        try:
+            created = store.save_decision(session, record)
+        except store.CaseNotFound:
+            raise HTTPException(404, "no such case") from None
+        except store.DecisionConflict as error:
+            raise HTTPException(409, str(error)) from None
+    except HTTPException as refused:
+        log.warning("decision refused case_id=%s review_id=%s decision=%s status=%d: %s", logs.safe(case_id, 64),
+                    record.review_id, record.decision, refused.status_code, refused.detail)
+        raise
     if not created:
         response.status_code = 200  # already saved: a retry
     return SaveDecision(decision_record=record, case_status=status)
@@ -255,14 +271,20 @@ def add_document(case_id: str, body: NewDocument, session: DbSession,
                  x_user_id: Annotated[str | None, Header()] = None,
                  x_user_role: Annotated[str | None, Header()] = None):
     """Saves the document under the case's next D ID and sends the case back to pending_review, in one transaction."""
-    actor = acting_user(x_user_id, x_user_role)
-    document = checked_document(body)
     try:
-        saved = store.add_document(session, case_id, document, body.note.strip(), actor)
-    except store.CaseNotFound:
-        raise HTTPException(404, "no such case") from None
-    except store.DocumentsNotRequested as error:
-        raise HTTPException(409, str(error)) from None
+        actor = acting_user(x_user_id, x_user_role)
+        document = checked_document(body)
+        try:
+            saved = store.add_document(session, case_id, document, body.note.strip(), actor)
+        except store.CaseNotFound:
+            raise HTTPException(404, "no such case") from None
+        except store.DocumentsNotRequested as error:
+            raise HTTPException(409, str(error)) from None
+    except HTTPException as refused:
+        # The reason only: it names fields, never their values, which may hold a full TIN.
+        log.warning("document refused case_id=%s type=%s status=%d: %s", logs.safe(case_id, 64),
+                    logs.safe(body.type, 40), refused.status_code, refused.detail)
+        raise
     return DocumentAdded(document=saved, case_status=CaseStatus.PENDING_REVIEW)
 
 

@@ -4,6 +4,7 @@ so they run without a database (tests/test_auth.py).
 Each function takes a SQLAlchemy Session and works with the ORM model in app/db.py.
 """
 
+import logging
 import os
 
 from sqlalchemy import select
@@ -12,6 +13,8 @@ from sqlalchemy.orm import Session
 
 from . import db
 from .security import hash_password
+
+log = logging.getLogger(__name__)
 
 # The demo users: user_id, username, display name, role, and the variable with the password.
 DEMO_USERS = [
@@ -36,8 +39,13 @@ def save_demo_users(session: Session) -> None:
     rows = [{"user_id": user_id, "username": username, "display_name": name, "role": role,
              "password_hash": hash_password(password)}
             for user_id, username, name, role, variable in DEMO_USERS if (password := os.environ.get(variable))]
+    skipped = [username for _, username, _, _, variable in DEMO_USERS if not os.environ.get(variable)]
+    if skipped:
+        log.info("demo users without a password, so not created: %s", ", ".join(skipped))
     if not rows:
         return
     statement = insert(db.User).values(rows)
     session.execute(statement.on_conflict_do_update(
         index_elements=["user_id"], set_={column: statement.excluded[column] for column in UPDATED_ON_CONFLICT}))
+    log.info("demo users created or updated: %s",
+             ", ".join(f"{row['username']} ({row['user_id']}, {row['role']})" for row in rows))

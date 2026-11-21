@@ -32,6 +32,10 @@ The tests use the agent's example review (`services/agent/examples/review_output
 | `/cases/:caseId` | One case. If the user may decide it, the page starts its review or picks up the existing one (`POST /api/reviews`), waits while the agent works, then shows the memo, the checks, the evidence behind each ID and the decision form, with only the decisions the user may choose. Otherwise it starts no review: it says why, for example that only a senior analyst can decide an escalated case, and shows the case's decisions. A `docs_requested` case also has a form for the documents the merchant sent (`POST /api/cases/{case_id}/documents`): adding one brings the case back to Pending review, and its new review starts |
 | `/metrics` | The override rate (`GET /api/metrics/override-rate`), for senior analysts only. Only they get the Metrics link in the top bar; anyone else who opens the page gets a notice, and no request is sent |
 
+## Logs
+
+`src/log.js` writes what the app does to the browser's console: logins, reviews started or failed, decisions saved or failed, and each API call that fails, with the `request_id` the gateway answered with, to find the services' lines for it ([docs/local-testing.md](../docs/local-testing.md#reading-the-logs)). It never writes a password, a token or a note.
+
 ## Roles
 
 What each role may do is the Roles table in [docs/auth.md](../docs/auth.md). The backend enforces it; the app follows it (`src/format.js`: `canDecide`, `allowedDecisions`, `METRICS_ROLES`), so each role only sees the pages and actions it can use. When the two disagree, the backend wins: a 403 shows "You don't have permission to do this." and keeps the user logged in, while a 401 means the session is over and goes back to the login page.

@@ -11,6 +11,11 @@ task with the reason; without ``OPENAI_API_KEY`` every worker task fails. Review
 run end to end and every check that needs a worker ends as a GAP
 (insufficient_evidence) instead of guessing. Both cases are logged as warnings at
 startup, so a review full of GAPs is never a surprise.
+
+Logging (app/api/logs.py): every line goes to stderr with the time (UTC), the level,
+the service, the request's X-Request-ID and the message, at LOG_LEVEL (INFO when unset).
+The ID comes from the gateway; the case-service client passes it on, so the case
+service's lines for a review's case and decision carry it too.
 """
 
 from __future__ import annotations
@@ -22,6 +27,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI
 
+from app.api import logs
 from app.api.reviews import router
 from app.api.service import ReviewService
 from app.clients.case_service import CaseServiceClient
@@ -31,7 +37,18 @@ from app.graph.workflow import Deps, build_graph
 from app.llm import openai_api_key
 from app.observability.tracing import langfuse_callbacks
 
+logs.configure()
 log = logging.getLogger(__name__)
+
+
+class RequestIdCaseServiceClient(CaseServiceClient):
+    """The case-service client, passing on the X-Request-ID of the request being handled."""
+
+    def _headers(self) -> dict[str, str]:
+        headers = super()._headers()
+        if (current := logs.request_id.get()) != logs.NO_REQUEST:
+            headers[logs.HEADER] = current
+        return headers
 
 
 def _worker_client() -> tuple[Any, Optional[str]]:
@@ -59,7 +76,7 @@ def _warn_if_workers_cannot_run(*workers: Any) -> None:
 
 def create_app(deps: Optional[Deps] = None, case_client: Any = None, background: bool = True) -> FastAPI:
     callbacks = langfuse_callbacks()
-    case_client = case_client or CaseServiceClient()
+    case_client = case_client or RequestIdCaseServiceClient()
     if deps is None:
         clock = lambda: datetime.now(timezone.utc)  # noqa: E731
         worker_client, why = _worker_client()
@@ -74,6 +91,7 @@ def create_app(deps: Optional[Deps] = None, case_client: Any = None, background:
             callbacks=callbacks,
         )
     app = FastAPI(title="KYB agent service")
+    logs.track_requests(app)
     app.state.reviews = ReviewService(build_graph(deps), callbacks=callbacks)
     app.state.case_client = case_client
     app.state.background = background
