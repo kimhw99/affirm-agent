@@ -1,8 +1,9 @@
-# Case service: the API (app/) and the seed script (seed.py)
+# Case service: the API (app/, through SQLAlchemy) and the seed script (seed.py, psycopg directly)
 fastapi>=0.110
 uvicorn>=0.29
 pydantic>=2.7
-psycopg[binary,pool]>=3.1
+sqlalchemy>=2.0
+psycopg[binary]>=3.1        # SQLAlchemy's driver (postgresql+psycopg://), and seed.py's
 
 # Tests
 pytest>=8.0
