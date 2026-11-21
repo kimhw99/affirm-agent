@@ -103,10 +103,11 @@ sequenceDiagram
 
     UI->>GW: POST /reviews {case_id}
     GW->>AG: forward (JWT verified)
-    AG-->>GW: 202 {review_id, status: running}
-    GW-->>UI: 202
     AG->>CS: GET /cases/{case_id}
     CS-->>AG: CaseInput
+    Note over AG: checks the role against the case's status (403 or 409 otherwise)
+    AG-->>GW: 202 {review_id, status: running}
+    GW-->>UI: 202
     Note over AG: steps 2–9 run in the background
     loop until the status changes
         UI->>GW: GET /reviews/{review_id}
@@ -121,7 +122,9 @@ sequenceDiagram
     GW-->>UI: memo and evidence
     UI->>GW: POST /reviews/{review_id}/decision {decision, note}
     GW->>AG: forward
-    Note over AG: checks the role, takes analyst_id from the JWT, resumes the graph
+    AG->>CS: GET /cases/{case_id}
+    CS-->>AG: CaseInput
+    Note over AG: checks the role and the decision against the case's status now, takes analyst_id from the JWT, resumes the graph
     AG->>CS: save DecisionRecord, new status and audit log (step 11)
     CS-->>AG: saved
     AG-->>GW: decision saved

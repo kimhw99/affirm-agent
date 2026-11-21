@@ -8,12 +8,24 @@ How users log in, what the JWT carries, and how the gateway tells the backend se
 
 ## Roles
 
-| Role | Who | Can |
+| Role | Who | The queue starts on |
 |---|---|---|
-| `analyst` | Reviews cases | Open cases and reviews, start a review and decide it. The queue shows the cases waiting for review (`pending_review`) |
-| `senior_analyst` | Takes escalated cases | The same. The queue shows the escalated cases |
+| `analyst` | Reviews the cases waiting for review | `pending_review` |
+| `senior_analyst` | Takes the escalated cases, and sees the override rate | `escalated` |
 
-The queue itself comes with the review app (BEAC-15).
+What each role may do. The backend enforces every rule, whatever the review app shows:
+
+| Action | `analyst` | `senior_analyst` | Checked by |
+|---|---|---|---|
+| See the queue, open a case, see its decisions | Yes | Yes | The gateway lets both roles through (`services/gateway/app/main.py`, `verify`) |
+| `GET /metrics/override-rate` | 403 | Yes | The gateway: the `metrics` route's `roles` (`services/gateway/app/main.py`, `ROUTES`) |
+| A `pending_review` case: start a review, decide it (`approve`, `request_docs`, `escalate`, `deny`) | Yes | Yes | The agent service (`services/agent/app/api/reviews.py`, `MAY_ACT`) |
+| An `escalated` case: start a review, decide it | 403 | Yes, but not `escalate` (409) | The agent service (`reviews.py`, `MAY_ACT` and `REFUSED_DECISIONS`) |
+| An `approved`, `denied` or `docs_requested` case: start a review or decide it | 409 | 409 | The agent service (`reviews.py`). The case service refuses a decision on such a case too (409, `services/case/app/store.py`) |
+
+`POST /reviews` takes only `{"case_id"}` (422 for anything else), and the agent service reads the case from the case service, so a review is always of the stored case. It reads the case's status each time it checks a rule: when a review starts, and again before it resumes the graph with a decision, so a refused decision changes nothing. If the case service still refuses the decision when the graph sends it (step 11), for example because another review decided the case first, `POST /reviews/{review_id}/decision` answers 409 (502 for any other error) and the review fails: `GET /reviews/{review_id}` says `failed`, with the reason, and starting a review of the case again runs a new one.
+
+The queue each role starts on is the review app's default (BEAC-15); either role can choose another status.
 
 ## Logging in
 
@@ -40,12 +52,12 @@ The browser loads the review app from `http://localhost:3000` (`APP_HOST_PORT`),
 |---|---|---|---|
 | `/auth/...` | Auth service | No: the auth service checks its own credentials | GET, POST |
 | `/cases/...` | Case service | Yes | GET |
-| `/metrics/...` | Case service | Yes | GET |
+| `/metrics/...` | Case service | Yes, with the `senior_analyst` role | GET |
 | `/reviews/...` | Agent service | Yes | GET, POST |
 
 For `/cases`, `/metrics` and `/reviews`, the gateway:
 
-1. Verifies the JWT: 401 if it's missing, invalid or expired, and 403 if its role isn't one of the two above.
+1. Verifies the JWT: 401 if it's missing, invalid or expired, and 403 if its role isn't one of the two above, or for `/metrics`, isn't `senior_analyst`.
 2. Drops any `X-User-*` header the client sent, and sets `X-User-Id` (the `sub`) and `X-User-Role`.
 3. Doesn't pass the JWT on. Requests to the case service carry the service token (`CASE_SERVICE_TOKEN`) instead.
 

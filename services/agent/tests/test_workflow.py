@@ -5,6 +5,7 @@ from datetime import timedelta
 from fastapi.testclient import TestClient
 from langgraph.types import Command
 
+from case_service_fake import FakeCaseService
 from conftest import NOW, TODAY
 from fakes import (
     ScriptedWorker,
@@ -211,19 +212,23 @@ def test_llm_cannot_explain_without_real_citations(case_1042):
 
 # ---------- API ----------
 
-def _client(sink=None):
-    deps = _deps(records_1042, evidence_1042, sink=sink)
-    return TestClient(create_app(deps=deps, case_client=object(), background=False)), deps
+ANALYST = {"X-User-Id": "u1", "X-User-Role": "analyst"}     # as the gateway forwards them
+
+
+def _client(case):
+    """The API with the case service faked: POST /reviews reads the case from it by case_id."""
+    cases = FakeCaseService(case)
+    deps = _deps(records_1042, evidence_1042, sink=cases.send_decision)
+    return TestClient(create_app(deps=deps, case_client=cases, background=False)), deps, cases
 
 
 def test_api_start_is_idempotent_and_decision_resumes(case_1042):
-    sink: list = []
-    client, deps = _client(sink.append)
-    r1 = client.post("/reviews", json={"case": case_1042})
+    client, deps, cases = _client(case_1042)
+    r1 = client.post("/reviews", json={"case_id": "case_1042"}, headers=ANALYST)
     assert r1.status_code == 202 and r1.json()["created"] is True
     rid = r1.json()["review_id"]
     assert r1.json()["status"] == "awaiting_decision"
-    r2 = client.post("/reviews", json={"case": case_1042})
+    r2 = client.post("/reviews", json={"case_id": "case_1042"}, headers=ANALYST)
     assert r2.json()["review_id"] == rid and r2.json()["created"] is False
     assert len(deps.evidence_worker.calls) == 1                   # no second run
 
@@ -234,28 +239,27 @@ def test_api_start_is_idempotent_and_decision_resumes(case_1042):
     assert client.post(f"/reviews/{rid}/decision", json={"decision": "approve"}).status_code == 403
     assert client.post(f"/reviews/{rid}/decision", json={"decision": "approve"},
                        headers={"X-User-Id": "u1", "X-User-Role": "viewer"}).status_code == 403
-    r = client.post(f"/reviews/{rid}/decision", json={"decision": "approve", "note": "fine"},
-                    headers={"X-User-Id": "u1", "X-User-Role": "analyst"})
+    r = client.post(f"/reviews/{rid}/decision", json={"decision": "approve", "note": "fine"}, headers=ANALYST)
     assert r.status_code == 200 and r.json()["status"] == "done"
-    assert sink[0]["case_status"] == "approved"
-    again = client.post(f"/reviews/{rid}/decision", json={"decision": "deny"},
-                        headers={"X-User-Id": "u1", "X-User-Role": "analyst"})
+    assert cases.saved[0]["case_status"] == "approved"
+    again = client.post(f"/reviews/{rid}/decision", json={"decision": "deny"}, headers=ANALYST)
     assert again.status_code == 409
 
 
 def test_api_same_case_with_new_evidence_starts_a_new_review(case_1042):
-    client, _ = _client()
-    rid = client.post("/reviews", json={"case": case_1042}).json()["review_id"]
+    client, _, _ = _client(case_1042)       # the fake case service holds this same dict
+    rid = client.post("/reviews", json={"case_id": "case_1042"}, headers=ANALYST).json()["review_id"]
     case_1042["documents"].append({"id": "D2", "type": "irs_147c",
                                    "extracted": {"name": "NORTHLINE BICYCLE WORKS LLC", "ein_last4": "4567"},
                                    "confidence": 0.9})
-    rid2 = client.post("/reviews", json={"case": case_1042}).json()["review_id"]
+    rid2 = client.post("/reviews", json={"case_id": "case_1042"}, headers=ANALYST).json()["review_id"]
     assert rid2 != rid
 
 
-def test_api_rejects_a_payload_without_a_case_id():
-    client, _ = _client()
-    assert client.post("/reviews", json={"case": {"flag_reasons": ["TIN_MISMATCH"]}}).status_code == 422
+def test_api_rejects_a_payload_without_a_case_id(case_1042):
+    client, _, _ = _client(case_1042)
+    for body in ({}, {"case_id": "1042"}, {"case": {"flag_reasons": ["TIN_MISMATCH"]}}):
+        assert client.post("/reviews", json=body, headers=ANALYST).status_code == 422
     assert client.get("/reviews/rv_nope").status_code == 404
 
 

@@ -69,10 +69,26 @@ def test_cases_get_the_service_token_and_the_query(gateway):
 
 def test_metrics_go_to_the_case_service_with_the_service_token(gateway):
     client, seen = gateway
-    client.get("/metrics/override-rate", headers=auth())
+    assert client.get("/metrics/override-rate", headers=auth("senior_analyst")).status_code == 200
     (request,) = seen
     assert str(request.url) == "http://case/metrics/override-rate"
     assert request.headers["authorization"] == "Bearer service-token"
+    assert request.headers["x-user-role"] == "senior_analyst"
+
+
+def test_an_analyst_cant_see_the_override_rate(gateway):
+    client, seen = gateway
+    response = client.get("/metrics/override-rate", headers=auth("analyst"))
+    assert response.status_code == 403 and "senior_analyst" in response.json()["detail"]
+    assert seen == []
+
+
+@pytest.mark.parametrize("role", ["analyst", "senior_analyst"])
+def test_either_role_sees_the_queue_the_cases_their_decisions_and_reviews(gateway, role):
+    client, seen = gateway
+    paths = ["/cases?status=escalated", "/cases/case_1042", "/cases/case_1042/decisions", "/reviews/rv_1"]
+    assert [client.get(path, headers=auth(role)).status_code for path in paths] == [200] * len(paths)
+    assert len(seen) == len(paths)
 
 
 @pytest.mark.parametrize("headers, status", [
@@ -84,7 +100,7 @@ def test_metrics_go_to_the_case_service_with_the_service_token(gateway):
 ])
 def test_a_bad_or_missing_token_stops_at_the_gateway(gateway, headers, status):
     client, seen = gateway
-    for path in ("/cases/case_1042", "/reviews/rv_1"):
+    for path in ("/cases/case_1042", "/metrics/override-rate", "/reviews/rv_1"):
         assert client.get(path, headers=headers).status_code == status
     assert seen == []
 

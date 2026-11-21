@@ -28,5 +28,5 @@ The tests use the agent's example review (`services/agent/examples/review_output
 | Route | Page |
 |---|---|
 | `/login` | Log in (`POST /api/auth/login`) |
-| `/` | The case queue. An analyst starts on `pending_review` cases and a senior analyst on `escalated` ones. It also shows the override rate (`GET /api/metrics/override-rate`) |
+| `/` | The case queue. An analyst starts on `pending_review` cases and a senior analyst on `escalated` ones. A senior analyst also sees the override rate (`GET /api/metrics/override-rate`); the gateway answers 403 to an analyst, so the page leaves it out |
 | `/cases/:caseId` | One case. If it can take a decision, the page starts its review or picks up the existing one (`POST /api/reviews`), waits while the agent works, then shows the memo, the checks, the evidence behind each ID and the decision form. A decided case shows its decisions instead |
