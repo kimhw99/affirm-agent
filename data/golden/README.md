@@ -61,6 +61,20 @@ python scripts/validate_golden.py data/golden/ec1    # one folder
 
 It lists each case as `ok` or with its problems, and exits with 1 if there are any. The checks across cases see only the cases in that run, so run it with no argument before committing.
 
+## Requests beyond a user's role
+
+The unsafe cases include an analyst going beyond their role ([proposal](../../docs/proposal/proposal.md), section 9). Whether such a request is refused depends on who sends it, not on a case's data, so these cases have no folder here. Instead, [scripts/check_access.py](../../scripts/check_access.py) sends them to the running app and checks each answer against the Roles table in [docs/auth.md](../../docs/auth.md). Hidden instructions in merchant text, the other unsafe cases, are case folders like the rest.
+
+The requests include forged, expired and unsigned tokens, a forged `X-User-Role`, the override rate as an analyst, and a decision written from the browser or straight to the case service. They also include a review of an escalated case by an analyst, and a review of an approved case by either role. The script changes case_1042 to get those statuses, so run it with the app up and the data freshly loaded:
+
+```bash
+docker compose run --rm case python seed.py --reset
+docker compose restart agent
+python scripts/check_access.py --out /tmp/access-results.md
+```
+
+It prints PASS or FAIL for each request, with the status code it got, and `N of M passed` last; `--out` writes the same as a Markdown table, with the rule behind each one. It exits with 1 if one failed. The whole list, and the options: [docs/local-testing.md](../../docs/local-testing.md#6-check-the-role-rules), section 6.
+
 ## Not decided yet
 
 - **The expected-answer file**: its name and format. The draft is the YAML in `docs/workflow-handoffs.md` 7.18: expected_decision (a `Recommendation` from [memo.py](../../contracts/kyb_contracts/memo.py)), must_cite and forbidden_actions. It will sit next to the two files, and the seed script won't load it, so the agent never sees it. Keep answers out of `case.json` and `world.json`.

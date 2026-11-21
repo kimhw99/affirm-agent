@@ -98,6 +98,35 @@ While someone clicks through, each part's owner can watch theirs. `-f` keeps fol
 
 The agent keeps its reviews in memory for now ([services/agent/README.md](../services/agent/README.md)). Restarting it, or `docker compose down`, drops them, and a case that can still take a decision gets a new review when it's next opened. Without the restart after `--reset`, the agent would still remember the old reviews, and case_1042 would open on its finished review instead of a new one. The restart takes a few seconds; `docker compose ps` shows the agent healthy again.
 
+## 6. Check the role rules
+
+`scripts/check_access.py` sends the running app the requests a user must not get away with, and checks each answer against the Roles table in [auth.md](auth.md). It's the golden dataset's check for an analyst going beyond their role ([data/golden/README.md](../data/golden/README.md), Requests beyond a user's role).
+
+| While case_1042 is | It expects |
+|---|---|
+| `pending_review` | 401 for no token, a token signed with another key, an expired one and an unsigned one (alg none). 403 for the override rate as an analyst, with or without a forged `X-User-Role`, and 200 for a senior analyst. 405 for a decision written from the browser. 422 for a review with the case sent along. 409 for documents the case isn't waiting for. 401 for the case service on this machine without the service token, or with a user's JWT, and 200 with the service token |
+| `escalated`, once the analyst escalates it | 403 for an analyst's review of it, with or without a forged `X-User-Role` or `X_User_Role`. 403 for an analyst deciding the senior analyst's review of it. 409 for the senior analyst escalating it again |
+| `approved`, once the senior analyst approves it | 409 for a review of it, as either role |
+
+It changes case_1042 as steps 5 and 12 do, so start from freshly loaded data, and load it again afterwards. From the repo root, with the `.venv` from [Automated tests](#automated-tests), which has httpx and pyjwt:
+
+```bash
+docker compose run --rm case python seed.py --reset
+docker compose restart agent
+python scripts/check_access.py --out /tmp/access-results.md
+```
+
+It reads the demo passwords, `CASE_SERVICE_TOKEN` and `JWT_SECRET` from `.env`. It never prints or writes any of them, nor a token.
+
+For each request it prints PASS or FAIL with the status code it got, and the last line says how many passed. Where a status code alone could come from another rule, the answer's reason must match too: an expired token must be refused as expired, not as invalid.
+
+It exits with:
+- 0 if every request got its expected answer;
+- 1 if one didn't;
+- 2 if it couldn't start, before changing anything. For example: the app isn't up, case_1042 isn't freshly loaded, or the agent wasn't restarted after the data was loaded again.
+
+`--out` also writes the results as a Markdown table, with what each service answered and the rule behind each request. `--help` lists the other options: another `.env`, the gateway's and the case service's URLs, another case, and how long to wait for a review (300 seconds by default).
+
 ## Troubleshooting
 
 | What you see | Why, and what to do |

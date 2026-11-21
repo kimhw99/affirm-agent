@@ -52,7 +52,9 @@ affirm-agent/
 │   ├── ec4/                      # EC-4 cases
 │   └── combo/                    # Cases that combine edge cases
 ├── eval/                         # Evaluation runner, single-agent baseline, results
-└── scripts/validate_golden.py    # Checks that each golden case’s files agree with each other
+└── scripts/
+    ├── validate_golden.py        # Checks that each golden case’s files agree with each other
+    └── check_access.py           # Checks that the running app refuses requests beyond a user's role
 ```
 
 ### `services/agent/app/`

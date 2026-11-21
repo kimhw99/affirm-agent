@@ -91,3 +91,5 @@ curl -s localhost:8080/cases/case_1042 -H "Authorization: Bearer $TOKEN"
 curl -s localhost:8080/reviews -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' -d '{"case_id": "case_1042"}'
 ```
+
+To check the Roles table and the gateway's rules against the running app all at once, run `python scripts/check_access.py` ([local-testing.md](local-testing.md#6-check-the-role-rules), section 6).
