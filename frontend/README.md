@@ -28,5 +28,10 @@ The tests use the agent's example review (`services/agent/examples/review_output
 | Route | Page |
 |---|---|
 | `/login` | Log in (`POST /api/auth/login`) |
-| `/` | The case queue. An analyst starts on `pending_review` cases and a senior analyst on `escalated` ones. A senior analyst also sees the override rate (`GET /api/metrics/override-rate`); the gateway answers 403 to an analyst, so the page leaves it out |
-| `/cases/:caseId` | One case. If it can take a decision, the page starts its review or picks up the existing one (`POST /api/reviews`), waits while the agent works, then shows the memo, the checks, the evidence behind each ID and the decision form. A decided case shows its decisions instead |
+| `/` | The case queue. An analyst starts on `pending_review` cases and a senior analyst on `escalated` ones |
+| `/cases/:caseId` | One case. If the user may decide it, the page starts its review or picks up the existing one (`POST /api/reviews`), waits while the agent works, then shows the memo, the checks, the evidence behind each ID and the decision form, with only the decisions the user may choose. Otherwise it starts no review: it says why, for example that only a senior analyst can decide an escalated case, and shows the case's decisions |
+| `/metrics` | The override rate (`GET /api/metrics/override-rate`), for senior analysts only. Only they get the Metrics link in the top bar; anyone else who opens the page gets a notice, and no request is sent |
+
+## Roles
+
+What each role may do is the Roles table in [docs/auth.md](../docs/auth.md). The backend enforces it; the app follows it (`src/format.js`: `canDecide`, `allowedDecisions`, `METRICS_ROLES`), so each role only sees the pages and actions it can use. When the two disagree, the backend wins: a 403 shows "You don't have permission to do this." and keeps the user logged in, while a 401 means the session is over and goes back to the login page.

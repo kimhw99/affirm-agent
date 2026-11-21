@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
-import OverrideRate from "../components/OverrideRate.jsx";
 import { CASE_STATUSES, defaultQueue, formatDate, label } from "../format.js";
 
 export default function Queue() {
@@ -39,7 +38,6 @@ export default function Queue() {
           </select>
         </label>
       </div>
-      <OverrideRate />
       {error && (
         <p className="error" role="alert">
           {error}

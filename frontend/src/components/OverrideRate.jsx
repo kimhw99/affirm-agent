@@ -2,22 +2,31 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../auth.jsx";
 import { label, percent } from "../format.js";
 
-// BEAC-20: how often analysts decide against the agent's recommendation.
+// BEAC-20: how often analysts decide against the agent's recommendation. On the metrics
+// page, which only senior analysts reach (App.jsx).
 export default function OverrideRate() {
   const { call } = useAuth();
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
     call("/metrics/override-rate")
       .then((result) => active && setStats(result))
-      .catch(() => active && setStats(null)); // the queue still works without it
+      .catch((err) => active && setError(`Couldn't load the override rate: ${err.message}`));
     return () => {
       active = false;
     };
   }, [call]);
 
-  if (!stats) return null;
+  if (error) {
+    return (
+      <p className="error" role="alert">
+        {error}
+      </p>
+    );
+  }
+  if (!stats) return <p className="muted">Loading…</p>;
   return (
     <section className="card metrics" aria-label="Override rate">
       <div>

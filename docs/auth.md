@@ -13,7 +13,7 @@ How users log in, what the JWT carries, and how the gateway tells the backend se
 | `analyst` | Reviews the cases waiting for review | `pending_review` |
 | `senior_analyst` | Takes the escalated cases, and sees the override rate | `escalated` |
 
-What each role may do. The backend enforces every rule, whatever the review app shows:
+What each role may do. The backend enforces every rule, whatever the review app shows. The review app follows the same table (`frontend/src/format.js`), so each role only sees what it can use; a change here needs the same change there:
 
 | Action | `analyst` | `senior_analyst` | Checked by |
 |---|---|---|---|

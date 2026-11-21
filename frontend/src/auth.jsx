@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { ApiError, request } from "./api.js";
+import { ApiError, NO_PERMISSION, request } from "./api.js";
 
 // The session (token, user, expiry) is kept in localStorage, so a reload keeps you logged in.
 export const SESSION_KEY = "kyb-review-session";
@@ -38,13 +38,16 @@ export function AuthProvider({ children }) {
     setSession(next);
   }, []);
 
-  // Calls the API with the session's token. A 401 means the session is over.
+  // Calls the API with the session's token. A 401 means the session is over, so it logs out.
+  // A 403 only means this user may not do that: the session goes on, and the page shows
+  // NO_PERMISSION instead of the backend's wording.
   const call = useCallback(
     async (path, options = {}) => {
       try {
         return await request(path, { ...options, token: session?.token });
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) logout();
+        if (error instanceof ApiError && error.status === 403) throw new ApiError(403, NO_PERMISSION);
         throw error;
       }
     },

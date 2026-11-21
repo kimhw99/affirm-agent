@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../auth.jsx";
-import { DECISIONS, isOverride, label } from "../format.js";
+import { isOverride, label } from "../format.js";
 
 // Step 10: the analyst's decision, which resumes the review (POST /reviews/{id}/decision).
-export default function DecisionForm({ reviewId, recommendation, onDecided }) {
+// `decisions` are the choices this user has for this case (format.js, allowedDecisions), so
+// a senior analyst can't escalate an escalated case again.
+export default function DecisionForm({ reviewId, recommendation, decisions, onDecided }) {
   const { call } = useAuth();
   const [decision, setDecision] = useState("");
   const [note, setNote] = useState("");
@@ -32,7 +34,7 @@ export default function DecisionForm({ reviewId, recommendation, onDecided }) {
       )}
       <fieldset>
         <legend>Decision</legend>
-        {DECISIONS.map((option) => (
+        {decisions.map((option) => (
           <label key={option.value} className="choice">
             <input
               type="radio"
