@@ -16,7 +16,7 @@ validate_golden = importlib.util.module_from_spec(_spec)
 sys.modules["validate_golden"] = validate_golden
 _spec.loader.exec_module(validate_golden)
 
-from kyb_contracts.golden import RECORD_SOURCE_TYPES  # noqa: E402
+from kyb_contracts.golden import RECORD_SOURCE_TYPES, WORKER_TOOLS  # noqa: E402
 
 
 def _example() -> dict[str, dict]:
@@ -259,6 +259,46 @@ def test_a_full_tin_in_the_answer_is_reported_without_the_number(tmp_path, capsy
     assert "expected.json: a full SSN or EIN appears in the text; keep only the last 4 digits" in _problems(tmp_path)
     assert validate_golden.main([str(tmp_path)]) == 1
     assert "00-1234567" not in capsys.readouterr().out
+
+
+def _with_tool_calls(tool_calls: dict) -> dict[str, dict]:
+    files = _with_expected()
+    files["expected.json"]["tool_calls"] = tool_calls
+    return files
+
+
+def test_the_example_checks_both_workers_tool_calls():
+    tool_calls = _with_expected()["expected.json"]["tool_calls"]
+    assert set(tool_calls) == {"records", "evidence"}
+    assert {c["tool"] for c in tool_calls["evidence"]["must_call"]} == set(WORKER_TOOLS["evidence"])
+
+
+def test_every_id_a_tool_call_names_must_be_in_the_case(tmp_path):
+    _write(tmp_path, _with_tool_calls({"evidence": {"must_call": [{"tool": "get_document", "source": "D7"}]}}))
+    assert "expected.json: names D7, but case.json has no such evidence" in _problems(tmp_path)
+
+
+@pytest.mark.parametrize("tool_calls, message", [
+    ({"records": {"must_call": [{"tool": "get_document", "source": "D1"}]}},
+     "get_document is not one of the records worker's tools"),
+    ({"evidence": {"must_call": [{"tool": "check_tin_match"}]}}, "check_tin_match is not one of the evidence worker's tools"),
+    ({"records": {"must_call": [{"tool": "lookup_irs"}]}}, "lookup_irs is not a worker tool"),
+    ({"records": {"must_call": [{"tool": "check_tin_match", "source": "sos_registry"}]}},
+     "check_tin_match returns sources of type ['irs_tin_match']"),
+    ({"records": {"must_call": [{"tool": "get_kyc_result", "source": "R2"}]}},
+     "get_kyc_result returns the case's K evidence, so its source is an ID such as K1"),
+    ({"evidence": {"must_call": [{"tool": "get_document", "source": "B1"}]}},
+     "get_document returns the case's D evidence"),
+    ({"records": {"must_call": [{"tool": "search_dba", "where": {"bank_status": "verified"}}]}},
+     "no records tool writes the finding field(s) ['bank_status']"),
+    ({"records": {"max_calls": 0}}, "max_calls: Input should be greater than or equal to 1"),
+    ({"records": {"max_repeats": -1}}, "max_repeats: Input should be greater than or equal to 0"),
+    ({"registry": {}}, "tool_calls.registry: Extra inputs are not permitted"),
+])
+def test_an_invalid_tool_call_expectation_is_reported(tmp_path, tool_calls, message):
+    _write(tmp_path, _with_tool_calls(tool_calls))
+    problems = _problems(tmp_path)
+    assert any(p.startswith("expected.json: ") and message in p for p in problems), problems
 
 
 def test_record_sources_are_the_ones_the_records_tools_write():

@@ -15,7 +15,7 @@ from kyb_contracts.worker_io import WorkerResult
 from app.clients.case_client import CaseServiceError
 from app.tools import EVIDENCE_TOOLS, RECORDS_TOOLS
 from app.tools._common import UNTRUSTED_CLOSE, UNTRUSTED_OPEN
-from app.workers import WorkerSummary, run_evidence_worker, run_records_worker
+from app.workers import WorkerSummary, record_tool_paths, run_evidence_worker, run_records_worker
 from app.workers.base import RECOMMENDATION_REMOVED, strip_recommendation
 
 _ids = count(1)
@@ -277,6 +277,48 @@ def test_parallel_calls_past_the_budget_are_not_run():
     assert result.tool_calls_used == 2
     assert [s.source_id for s in result.sources] == ["R1", "R2"]
     assert result.status == "completed"        # budget used, but nothing left open
+
+
+def test_the_tool_path_is_recorded_in_order():
+    llm = ScriptedLLM(steps=[
+        calls(("get_registry_entity", {}), ("get_document", {"doc_id": "D1"})),             # not a records tool
+        calls(("check_tin_match", {"name": "Northline Bicycle Works LLC"}),
+              ("get_kyc_result", {"owner_ref": "P1"})),                                       # invalid argument
+        calls(("check_tin_match", {"name": "Northline Cycles"}),                              # same name control
+              ("get_kyc_result", {})),                                                        # past the budget
+    ])
+    with record_tool_paths() as paths:
+        result = run_records_worker(task("case_1042", "records", max_tool_calls=5, follow_up_of="t1"), fake_client(),
+                                    llm=llm, now=NOW)
+
+    [path] = paths
+    assert (path.task_id, path.case_id, path.worker) == ("t1", "case_1042", "records")
+    assert [(c.turn, c.tool, c.status, c.source_ids) for c in path.tool_calls] == [
+        (1, "get_registry_entity", "ok", ["R1"]),
+        (1, "get_document", "rejected", []),
+        (2, "check_tin_match", "ok", ["R2"]),
+        (2, "get_kyc_result", "rejected", []),
+        (3, "check_tin_match", "repeat", ["R2"]),
+        (3, "get_kyc_result", "over_budget", []),
+    ]
+    assert path.tool_calls[2].args == {"name": "Northline Bicycle Works LLC"}
+    assert result.tool_calls_used == 5 == path.tool_calls_used
+
+
+def test_the_lead_never_gets_the_tool_path():
+    # What the Lead receives has findings and sources, never which tools ran.
+    assert not {"tool_calls", "tool_path", "tools"} & set(WorkerResult.model_fields)
+    llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))])
+    result = run_records_worker(task("case_1042", "records", follow_up_of="t0"), fake_client(), llm=llm, now=NOW)
+    assert "get_registry_entity" not in result.model_dump_json()
+
+
+def test_without_a_recorder_the_tool_path_goes_nowhere():
+    with record_tool_paths() as paths:
+        pass
+    llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))])
+    run_records_worker(task("case_1042", "records", follow_up_of="t0"), fake_client(), llm=llm, now=NOW)
+    assert paths == []
 
 
 def test_invalid_arguments_are_reported_to_the_model():

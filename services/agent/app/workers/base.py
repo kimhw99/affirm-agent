@@ -24,6 +24,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from kyb_contracts.tool_path import ToolCall, ToolPath
 from kyb_contracts.worker_io import HypothesisSignal, WorkerInput, WorkerResult
 
 from app.clients.case_client import CaseDataClient
@@ -31,6 +32,7 @@ from app.tools import TOOLS_FOR
 from app.tools._common import ToolContext, ToolSpec, redact
 
 from .checklist import missing_steps, reminder
+from .tool_path import publish
 from .prompts import SUMMARY_INSTRUCTIONS, render_findings, render_task, system_prompt
 
 log = logging.getLogger(__name__)
@@ -69,6 +71,11 @@ class WorkerState(TypedDict, total=False):
     llm_error: Optional[str]
     summary: Optional[WorkerSummary]
     summary_error: Optional[str]
+
+
+def _redact_args(args: dict[str, Any]) -> dict[str, Any]:
+    """The model's arguments as recorded in the tool path: strings redacted, like everything shared."""
+    return {k: redact(v) if isinstance(v, str) else v for k, v in args.items()}
 
 
 def _error_text(error: BaseException) -> str:
@@ -117,21 +124,32 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
     def run_tools(state: WorkerState) -> dict:
         used = state.get("tool_calls_used", 0)
         budget_hit = state.get("budget_hit", False)
+        turn = sum(1 for m in state["messages"] if isinstance(m, AIMessage) and m.tool_calls)
         replies = []
         for call in state["messages"][-1].tool_calls:
+            args = call.get("args") or {}
+            sources: list[str] = []
             if used >= budget:
                 budget_hit = True
+                status = "over_budget"
                 content = json.dumps({"tool": call["name"], "rejected": "not run: the tool-call budget is used up"})
             else:
                 used += 1  # every requested call counts, including rejected ones
                 spec = tools.get(call["name"])
                 if spec is None:
+                    status = "rejected"
                     content = json.dumps({"tool": call["name"],
                                           "rejected": f"{call['name']} is not available to the {worker} worker; "
                                                       f"available: {sorted(tools)}"})
                 else:
-                    content = spec.run(ctx, call.get("args") or {}).llm_view()
+                    output = spec.run(ctx, args)
+                    sources = [s.source_id for s in output.sources]
+                    status = ("rejected" if output.rejected else "error" if output.error
+                              else "repeat" if output.cached else "ok")
+                    content = output.llm_view()
                 content += f"\n[budget: {budget - used} tool call(s) left]"
+            ctx.tool_path.append(ToolCall(turn=turn, tool=call["name"], args=_redact_args(args),
+                                          source_ids=sources, status=status))
             replies.append(ToolMessage(content=content, tool_call_id=call["id"], name=call["name"]))
         ctx.tool_calls_used = used
         return {"messages": replies, "tool_calls_used": used, "budget_hit": budget_hit or used >= budget}
@@ -285,7 +303,22 @@ def run_worker(task: WorkerInput, client: CaseDataClient, llm: Any = None, confi
             "tool_calls_used": 0, "budget_hit": False,
         }
         state = graph.invoke(initial, config=run_config)
-        return assemble_result(task, ctx, state)
+        result = assemble_result(task, ctx, state)
     except Exception as error:  # graph, recursion limit, model setup
         log.exception("%s worker failed on %s", worker, task.task_id)
-        return assemble_result(task, ctx, state, error=f"worker failed: {_error_text(error)}")
+        result = assemble_result(task, ctx, state, error=f"worker failed: {_error_text(error)}")
+    publish_tool_path(task, ctx, result)
+    return result
+
+
+def publish_tool_path(task: WorkerInput, ctx: ToolContext, result: WorkerResult) -> None:
+    """Hand the task's tool path to the evaluation's recorder, if one is set up (tool_path.py).
+    It never goes into the WorkerResult: the Lead doesn't see which tools ran."""
+    try:
+        listed = {s.source_id for s in result.sources}
+        calls = [c if set(c.source_ids) <= listed else   # a result that failed validation lists no sources
+                 c.model_copy(update={"source_ids": [s for s in c.source_ids if s in listed]})
+                 for c in ctx.tool_path]
+        publish(ToolPath(task_id=task.task_id, case_id=task.context.case_id, worker=task.worker, tool_calls=calls))
+    except Exception:  # noqa: BLE001 - the evaluation's record must never break a review
+        log.exception("could not publish the tool path of %s", task.task_id)

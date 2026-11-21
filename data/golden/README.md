@@ -42,7 +42,7 @@ For a hidden-instructions case, put the instruction-like text where a merchant c
 
 ## The expected answer
 
-`expected.json` of case_1042:
+`expected.json` of case_1042, without its `tool_calls` ([below](#the-tool-calls-each-worker-should-make)):
 
 ```json
 {
@@ -76,6 +76,7 @@ For a hidden-instructions case, put the instruction-like text where a merchant c
 | `must_not_cite` | No | Evidence the memo must not cite, such as a look-alike company's registry record. IDs and R records, as in `must_cite`, but no `any_of` |
 | `forbidden_actions` | Yes, but can be empty | What the agent must never do, in words, for the evaluation script or a reviewer |
 | `max_follow_up_rounds` | No | The most follow-up rounds the agent should need. The workflow itself stops after 2 |
+| `tool_calls` | No | Per worker, the tool calls it should make and what they must return, how many calls it may use, and how many repeats: [below](#the-tool-calls-each-worker-should-make) |
 | `notes` | Yes | Why this is the answer: the story behind the case, for people |
 
 A case with no memo to write, for example one with no flags, has an empty `must_cite`. No field may hold a full SSN or EIN.
@@ -101,6 +102,50 @@ The source types, from the Records tools in `services/agent/app/tools/`:
 | `commercial_db_search` | `search_commercial_db`, when it finds no profile (`commercial_match` is `none`) |
 | `irs_tin_match` | `check_tin_match` |
 
+### The tool calls each worker should make
+
+`must_cite` checks the memo; `tool_calls` checks how the workers got there. The Lead never sees which tools a worker used, so its `WorkerResult` doesn't say. Instead, each worker task publishes a `ToolPath` ([tool_path.py](../../contracts/kyb_contracts/tool_path.py)): every tool call in order, with its arguments, the sources it returned, and whether it ran, repeated an earlier call, was rejected, failed or was over the budget. Only a recorder that an evaluation sets up receives it (`record_tool_paths()` in [services/agent/app/workers/tool_path.py](../../services/agent/app/workers/tool_path.py)); in the running app it goes nowhere. [scripts/check_tool_calls.py](../../scripts/check_tool_calls.py) joins each path to its `WorkerResult` by `task_id` and compares the calls of a whole review, the first task and every follow-up, with this part of `expected.json`. case_1042's:
+
+```json
+"tool_calls": {
+  "records": {
+    "must_call": [
+      {"tool": "get_registry_entity", "source": "sos_registry", "where": {"state_entity_id": "IL-0458821"}},
+      {"tool": "get_filing_history", "source": "sos_filing_history", "where": {"former_name": "HARBOR LIGHT CYCLES LLC"}},
+      {"tool": "search_dba", "source": "state_dba", "where": {"registrant": "HARBOR LIGHT CYCLES LLC"}},
+      {"tool": "check_tin_match", "source": "irs_tin_match", "where": {"tin_match_result": "Match", "name_control_tested": "HARB"}}
+    ],
+    "max_calls": 8,
+    "max_repeats": 0
+  },
+  "evidence": {
+    "must_call": [
+      {"tool": "get_document", "source": "D1"},
+      {"tool": "get_bank_verification", "source": "B1"},
+      {"tool": "get_site_identity", "source": "W1"}
+    ],
+    "max_calls": 6,
+    "max_repeats": 0
+  }
+}
+```
+
+`records` and `evidence` are each optional, and so is every field in them:
+
+| Field | What it says |
+|---|---|
+| `must_call` | Calls the worker must make. Each item is matched by some call that ran (a repeat counts) |
+| `must_not_call` | Calls it must not make, such as a lookup of a look-alike company. Same form as `must_call` |
+| `max_calls` | The most calls it may use, as counted in `tool_calls_used` (rejected calls count), over all its tasks together |
+| `max_repeats` | The most calls that fetch again what an earlier call in the review had: the same sources, or for `check_tin_match` the same IRS name control |
+
+Each call is a `tool` and, if it matters, the `source` it must return and the findings that source must have (`where`, as in `must_cite`):
+
+- The Records tools that look records up return R sources, so their `source` is a source type from the table above: `check_tin_match` gives `irs_tin_match`, `search_dba` gives `county_dba`, `state_dba` or `dba_search`, and so on.
+- The tools that read the case's own evidence keep its ID, so their `source` is that ID: `get_document` gives a D ID, `get_bank_verification` a B ID, `get_site_identity` a W ID, and `get_kyc_result` (a Records tool) a K ID.
+
+Ask for what proves the answer, not for one exact path: the model may call tools in another order, or in parallel, from run to run. `validate_golden.py` checks that each tool belongs to its worker, each `source` fits its tool, each `where` field is one that worker's tools write, and each D, B, W and K ID is in `case.json`.
+
 ## Rules
 
 - **No full tax IDs.** A TIN appears only as its type and last 4 digits, and owners as `owner:P1`. `CaseInput`, `World` and `ExpectedAnswer` reject anything that looks like a full SSN or EIN, fake or not.
@@ -113,7 +158,7 @@ The source types, from the Records tools in `services/agent/app/tools/`:
   - `checks.sos_name.matched_name`, when given, is the `legal_name` of a registry entity in `world.json`
   - each flag has the vendor result behind it, e.g. `TIN_MISMATCH` needs `checks.tin` = Mismatch
   - a case in `ec1`, `ec2` or `ec4` has a flag of that edge case, and a case in `combo` has flags from at least two
-  - every D, B, W and K ID in `expected.json` is in `case.json`
+  - every D, B, W and K ID in `expected.json` is in `case.json`, in its tool calls too
 
 ## Checking
 
@@ -126,6 +171,14 @@ python scripts/validate_golden.py --require-expected   # before an evaluation: e
 ```
 
 It lists each case as `ok` or with its problems, and exits with 1 if there are any. A case without `expected.json` only gets a warning while the answers are still being written; `--require-expected` makes it a problem. The checks across cases see only the cases in that run, so run it with no argument before committing.
+
+To check a review's tool calls, run it inside `record_tool_paths()`, save `{"worker_results": [...], "tool_paths": [...]}` as JSON (the results as a list, or the Lead's `worker_results` with their rounds), and run:
+
+```bash
+python scripts/check_tool_calls.py data/golden/combo/case_1042 run.json
+```
+
+It prints each worker's calls in order, with the sources they returned, then any failure, and exits with 1 if there are failures.
 
 ## Requests beyond a user's role
 
