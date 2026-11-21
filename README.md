@@ -41,8 +41,8 @@ affirm-agent/
 │   └── examples/                 # One valid JSON example per format
 ├── services/
 │   ├── gateway/                  # FastAPI; verifies the JWT and routes by path (docs/auth.md)
-│   ├── auth/                     # Login, JWT, roles (auth_db, tables in schema.sql)
-│   ├── case/                     # Cases, decisions, audit log (case_db): API in app/, tables in schema.sql, seed.py loads the golden cases
+│   ├── auth/                     # Login, JWT, roles (auth_db: tables in schema.sql, SQLAlchemy models in app/db.py)
+│   ├── case/                     # Cases, decisions, audit log (case_db): API in app/ (SQLAlchemy models in db.py, queries in store.py), tables in schema.sql, seed.py loads the golden cases
 │   └── agent/                    # LangGraph workflow and its API; see below
 ├── frontend/                     # Review app: React + React Router; nginx serves the pages and forwards /api to the gateway (see its README)
 ├── db/init.sql                   # Creates the three databases and their accounts

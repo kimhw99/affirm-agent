@@ -55,7 +55,7 @@ flowchart TB
 | Auth service | Logs users in and issues JWTs that carry the user's role | XL |
 | Case service | Stores cases and serves them as `CaseInput` (`GET /cases/{case_id}`), plus the read endpoints the workers' tools call (`docs/case-service-endpoints.md`). Never stores a full TIN or SSN. Saves each decision, the new case status and the audit log in one transaction | XL |
 | Agent service | The `/reviews` API (XL) around the LangGraph workflow (H) and the two workers and their tools (E). Starts a review in the background, pauses it for the analyst, and resumes it with the decision | XL + H + E |
-| PostgreSQL | One database per service: `auth_db` (users and roles), `case_db` (cases, mock official records, decisions, audit log) and `agent_db` (the graph's checkpoints, so a paused review survives a restart). See `docs/database.md` | XL (auth_db, case_db), H (checkpoints) |
+| PostgreSQL | One database per service: `auth_db` (users and roles), `case_db` (cases, mock official records, decisions, audit log) and `agent_db` (the graph's checkpoints, so a paused review survives a restart). The auth and case services use theirs through SQLAlchemy 2.x. See `docs/database.md` | XL (auth_db, case_db), H (checkpoints) |
 | Mock official records | Tables in `case_db` that the Records worker's tools search, through case-service endpoints 1–6, in place of real state, DBA, IRS and commercial sources. Loaded from each golden case's `world.json` | XL (tables and endpoints); everyone writes the records in their golden cases |
 | LangFuse | A trace for every node, LLM call and tool call | H |
 

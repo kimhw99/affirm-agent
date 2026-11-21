@@ -1,7 +1,8 @@
 """The case service's API without a database: each test replaces the store's functions.
 
 What the SQL returns is checked by running the service against a seeded database
-(docs/database.md).
+(docs/database.md). How the searches put the query into their SQL is checked here,
+with a session that only records what it's given.
 """
 
 from pathlib import Path
@@ -36,7 +37,9 @@ ENDPOINTS = [
 LOOKUPS = [endpoint for endpoint in ENDPOINTS if not endpoint[2].startswith("search_")]
 
 
-class FakeConnection:
+class FakeSession:
+    """Stands in for the request's SQLAlchemy Session; only /health uses it directly."""
+
     def execute(self, *args):
         return None
 
@@ -44,7 +47,7 @@ class FakeConnection:
 @pytest.fixture
 def client():
     main.app.state.token = TOKEN
-    main.app.dependency_overrides[main.connection] = FakeConnection
+    main.app.dependency_overrides[main.connection] = FakeSession
     yield TestClient(main.app)  # not used as a context manager, so startup doesn't connect
     main.app.dependency_overrides.clear()
 
@@ -130,6 +133,51 @@ def test_search_words_drop_designators_and_joiners():
     assert store.search_words("The Smith & Sons Co") == ["smith", "sons"]
     assert store.search_words("LLC") == ["llc"]  # nothing else to match on, so it's kept
     assert store.search_words(None) == []
+
+
+class RecordingSession:
+    """A session that records each statement and its parameters, and finds nothing."""
+
+    def __init__(self):
+        self.calls = []
+
+    def execute(self, statement, params=None):
+        self.calls.append((statement, params or {}))
+        return self
+
+    def mappings(self):
+        return []
+
+
+def test_searches_bind_the_query_instead_of_writing_it_into_the_sql():
+    session = RecordingSession()
+    hostile = "Zyxq'); DROP TABLE cases; --"
+    assert store.search_registry(session, "IL", name=hostile, officer="Dana Park", address="Fulton") == []
+    assert store.search_dba(session, "IL", hostile, county="Cook County") == []
+    assert store.search_commercial(session, "IL", name=hostile, address="Fulton") == []
+    assert len(session.calls) == 3
+    for statement, params in session.calls:
+        sql = str(statement)
+        assert "zyxq" not in sql.lower() and "drop" not in sql.lower()
+        # Every value is a parameter SQLAlchemy found in the text, so none was dropped or written in.
+        assert set(statement.compile().params) == set(params)
+        assert params["state"] == "IL" and "%zyxq%" in params.values()
+    assert session.calls[1][1]["county"] == "Cook County"
+
+
+def test_a_search_with_nothing_to_match_on_never_reaches_the_database():
+    session = RecordingSession()
+    assert store.search_registry(session, "IL", name="%_") == []
+    assert store.search_commercial(session, "IL", name=None, address="--") == []
+    assert session.calls == []
+
+
+def test_a_search_scores_each_word_and_keeps_every_criterion():
+    sql, params = store.search_sql("mock.commercial_profiles", "profile_id", "state = upper(:state)", "business_name",
+                                   [("business_name ILIKE {pattern}", "Green Leaf"), ("address ILIKE {pattern}", "Ash")])
+    assert params == {"c0_w0": "%green%", "c0_w1": "%leaf%", "c1_w0": "%ash%"}
+    assert "(business_name ILIKE :c0_w0)::int + (business_name ILIKE :c0_w1)::int AS hits0" in sql
+    assert "WHERE hits0 > 0 AND hits1 > 0 ORDER BY hits0 + hits1 DESC, business_name LIMIT 20" in sql
 
 
 # ---------- POST /cases/{case_id}/decisions (step 11) ----------

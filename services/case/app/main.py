@@ -11,10 +11,12 @@ Until the auth service issues service JWTs (BEAC-14), the token is a shared secr
 the agent sends CASE_SERVICE_TOKEN as a Bearer token, and this service compares it
 with its own CASE_SERVICE_TOKEN.
 
-When it starts, it connects to case_db as case_svc with CASE_DB_PASSWORD, at
-CASE_DB_HOST and CASE_DB_PORT (by default localhost and POSTGRES_HOST_PORT), and runs
-schema.sql. docker compose up -d starts it next to the database. To run it on this
-machine instead, from services/case: uvicorn app.main:app --port 8001
+The database is reached through SQLAlchemy 2.x with the psycopg 3 driver (app/db.py
+has the engine and the ORM models; app/store.py the queries). When it starts, it
+connects to case_db as case_svc with CASE_DB_PASSWORD, at CASE_DB_HOST and
+CASE_DB_PORT (by default localhost and POSTGRES_HOST_PORT), and runs schema.sql.
+docker compose up -d starts it next to the database. To run it on this machine
+instead, from services/case: uvicorn app.main:app --port 8001
 """
 
 import os
@@ -24,18 +26,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Iterator
 
-import psycopg
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from psycopg.conninfo import make_conninfo
-from psycopg.rows import dict_row
-from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from kyb_contracts.case_input import BankVerification, CaseInput, CaseStatus, Document, OwnerKYC, WebSnapshot
 from kyb_contracts.decision import STATUS_AFTER, DecisionRecord
 from kyb_contracts.world import CommercialProfile, DbaFiling, Filing, RegistryEntity, TinRecord
 
-from . import store
+from . import db, store
 
 SCHEMA = Path(__file__).resolve().parents[1] / "schema.sql"
 
@@ -48,28 +48,26 @@ async def lifespan(app: FastAPI):
                if not value]
     if missing:
         raise RuntimeError(f"set {' and '.join(missing)} (see .env.example)")
-    conninfo = make_conninfo(
+    engine = db.make_engine(
         host=os.environ.get("CASE_DB_HOST", "localhost"),
         port=os.environ.get("CASE_DB_PORT") or os.environ.get("POSTGRES_HOST_PORT") or "55432",
-        dbname="case_db", user="case_svc", password=password)
-    pool = ConnectionPool(conninfo, min_size=1, max_size=5, kwargs={"row_factory": dict_row}, open=False)
-    pool.open(wait=True, timeout=30)
-    with pool.connection() as conn:
-        conn.execute(SCHEMA.read_text(encoding="utf-8"))
-    app.state.token, app.state.pool = token, pool
+        password=password)
+    db.wait_for_database(engine)
+    db.run_schema(engine, SCHEMA)
+    app.state.token, app.state.engine = token, engine
     try:
         yield
     finally:
-        pool.close()
+        engine.dispose()
 
 
 app = FastAPI(title="Case service", lifespan=lifespan)
 
 
-def connection(request: Request) -> Iterator[psycopg.Connection]:
-    """A pooled database connection for one request."""
-    with request.app.state.pool.connection() as conn:
-        yield conn
+def connection(request: Request) -> Iterator[Session]:
+    """A database session for one request. Reads need no commit; save_decision commits its own transaction."""
+    with Session(request.app.state.engine) as session:
+        yield session
 
 
 def require_token(request: Request, authorization: Annotated[str | None, Header()] = None) -> None:
@@ -78,7 +76,7 @@ def require_token(request: Request, authorization: Annotated[str | None, Header(
         raise HTTPException(401, "a valid service token is required", headers={"WWW-Authenticate": "Bearer"})
 
 
-Conn = Annotated[psycopg.Connection, Depends(connection)]
+DbSession = Annotated[Session, Depends(connection)]
 State = Annotated[str, Query(pattern=r"^[A-Za-z]{2}$")]
 router = APIRouter(dependencies=[Depends(require_token)])
 
@@ -91,73 +89,73 @@ def found(value, what: str):
 
 
 @app.get("/health")
-def health(conn: Conn) -> dict[str, str]:
-    conn.execute("SELECT 1")
+def health(session: DbSession) -> dict[str, str]:
+    session.execute(text("SELECT 1"))
     return {"status": "ok"}
 
 
 @router.get("/cases/{case_id}", response_model=CaseInput)
-def get_case(case_id: str, conn: Conn):
-    return found(store.get_case(conn, case_id), "case")
+def get_case(case_id: str, session: DbSession):
+    return found(store.get_case(session, case_id), "case")
 
 
 # ---------- Records worker: official and third-party data (endpoints 1-7) ----------
 
 @router.get("/registry/search", response_model=list[RegistryEntity])
-def search_registry(conn: Conn, state: State, name: str | None = None, officer: str | None = None,
+def search_registry(session: DbSession, state: State, name: str | None = None, officer: str | None = None,
                     address: str | None = None):
     if not (name or officer or address):
         raise HTTPException(422, "give at least one of name, officer or address")
-    return store.search_registry(conn, state, name, officer, address)
+    return store.search_registry(session, state, name, officer, address)
 
 
 @router.get("/registry/entities/{state}/{state_entity_id}", response_model=RegistryEntity)
-def get_registry_entity(state: str, state_entity_id: str, conn: Conn):
-    return found(store.get_registry_entity(conn, state, state_entity_id), "registry entity")
+def get_registry_entity(state: str, state_entity_id: str, session: DbSession):
+    return found(store.get_registry_entity(session, state, state_entity_id), "registry entity")
 
 
 @router.get("/registry/entities/{state}/{state_entity_id}/filings", response_model=list[Filing])
-def get_filings(state: str, state_entity_id: str, conn: Conn):
-    return found(store.get_filings(conn, state, state_entity_id), "registry entity")
+def get_filings(state: str, state_entity_id: str, session: DbSession):
+    return found(store.get_filings(session, state, state_entity_id), "registry entity")
 
 
 @router.get("/registry/dba", response_model=list[DbaFiling])
-def search_dba(conn: Conn, state: State, name: str, county: str | None = None):
-    return store.search_dba(conn, state, name, county)
+def search_dba(session: DbSession, state: State, name: str, county: str | None = None):
+    return store.search_dba(session, state, name, county)
 
 
 @router.get("/commercial/search", response_model=list[CommercialProfile])
-def search_commercial(conn: Conn, state: State, name: str | None = None, address: str | None = None):
+def search_commercial(session: DbSession, state: State, name: str | None = None, address: str | None = None):
     if not (name or address):
         raise HTTPException(422, "give name or address")
-    return store.search_commercial(conn, state, name, address)
+    return store.search_commercial(session, state, name, address)
 
 
 @router.get("/cases/{case_id}/tin-record", response_model=TinRecord)
-def get_tin_record(case_id: str, conn: Conn):
-    return found(store.get_tin_record(conn, case_id), "TIN record")
+def get_tin_record(case_id: str, session: DbSession):
+    return found(store.get_tin_record(session, case_id), "TIN record")
 
 
 @router.get("/cases/{case_id}/owner-kyc/{kyc_id}", response_model=OwnerKYC)
-def get_owner_kyc(case_id: str, kyc_id: str, conn: Conn):
-    return found(store.get_owner_kyc(conn, case_id, kyc_id), "KYC result")
+def get_owner_kyc(case_id: str, kyc_id: str, session: DbSession):
+    return found(store.get_owner_kyc(session, case_id, kyc_id), "KYC result")
 
 
 # ---------- Evidence worker: merchant evidence (endpoints 8-10) ----------
 
 @router.get("/cases/{case_id}/documents/{doc_id}", response_model=Document)
-def get_document(case_id: str, doc_id: str, conn: Conn):
-    return found(store.get_document(conn, case_id, doc_id), "document")
+def get_document(case_id: str, doc_id: str, session: DbSession):
+    return found(store.get_document(session, case_id, doc_id), "document")
 
 
 @router.get("/cases/{case_id}/bank-verification/{bank_id}", response_model=BankVerification)
-def get_bank_verification(case_id: str, bank_id: str, conn: Conn):
-    return found(store.get_bank_verification(conn, case_id, bank_id), "bank verification")
+def get_bank_verification(case_id: str, bank_id: str, session: DbSession):
+    return found(store.get_bank_verification(session, case_id, bank_id), "bank verification")
 
 
 @router.get("/cases/{case_id}/web-snapshots/{web_id}", response_model=WebSnapshot)
-def get_web_snapshot(case_id: str, web_id: str, conn: Conn):
-    return found(store.get_web_snapshot(conn, case_id, web_id), "web snapshot")
+def get_web_snapshot(case_id: str, web_id: str, session: DbSession):
+    return found(store.get_web_snapshot(session, case_id, web_id), "web snapshot")
 
 
 # ---------- Step 11: the analyst's decision ----------
@@ -172,7 +170,7 @@ class SaveDecision(BaseModel):
 
 
 @router.post("/cases/{case_id}/decisions", status_code=201, response_model=SaveDecision)
-def save_decision(case_id: str, body: SaveDecision, conn: Conn, response: Response):
+def save_decision(case_id: str, body: SaveDecision, session: DbSession, response: Response):
     """Saves the decision, sets the case's status from it and writes the audit log, in one transaction."""
     record = body.decision_record
     if record.case_id != case_id:
@@ -181,7 +179,7 @@ def save_decision(case_id: str, body: SaveDecision, conn: Conn, response: Respon
     if body.case_status not in (None, status):
         raise HTTPException(422, f"{record.decision} sets the case to {status.value}, not {body.case_status.value}")
     try:
-        created = store.save_decision(conn, record)
+        created = store.save_decision(session, record)
     except store.CaseNotFound:
         raise HTTPException(404, "no such case") from None
     except store.DecisionConflict as error:
@@ -227,21 +225,21 @@ def _rate(part: int, whole: int) -> float | None:
 
 
 @router.get("/cases", response_model=list[CaseSummary])
-def list_cases(conn: Conn, status: CaseStatus | None = None):
+def list_cases(session: DbSession, status: CaseStatus | None = None):
     """The case queue: every case, or the ones with this status, oldest first."""
-    return store.list_cases(conn, status.value if status else None)
+    return store.list_cases(session, status.value if status else None)
 
 
 @router.get("/cases/{case_id}/decisions", response_model=list[DecisionRecord])
-def list_decisions(case_id: str, conn: Conn):
+def list_decisions(case_id: str, session: DbSession):
     """The case's decisions, oldest first."""
-    return found(store.list_decisions(conn, case_id), "case")
+    return found(store.list_decisions(session, case_id), "case")
 
 
 @router.get("/metrics/override-rate", response_model=OverrideRate)
-def override_rate(conn: Conn):
+def override_rate(session: DbSession):
     groups = [RecommendationOverrides(**row, rate=_rate(row["overridden"], row["decisions"]))
-              for row in store.override_counts(conn)]
+              for row in store.override_counts(session)]
     decisions = sum(group.decisions for group in groups)
     overridden = sum(group.overridden for group in groups)
     return OverrideRate(decisions=decisions, overridden=overridden, rate=_rate(overridden, decisions),

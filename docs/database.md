@@ -1,9 +1,9 @@
 # Databases
 
-One PostgreSQL server holds three databases, one per service. This doc covers what each holds, how they're created, and the tables in `case_db`.
+One PostgreSQL server holds three databases, one per service. This doc covers what each holds, how they're created, how the services use them, and the tables in `case_db`.
 
 - Databases and accounts: [db/init.sql](../db/init.sql)
-- `case_db` tables: [services/case/schema.sql](../services/case/schema.sql)
+- `case_db` tables: [services/case/schema.sql](../services/case/schema.sql), and their SQLAlchemy models in [services/case/app/db.py](../services/case/app/db.py)
 - Loading the golden cases: [services/case/seed.py](../services/case/seed.py)
 - What the case service serves from them: [case-service-endpoints.md](case-service-endpoints.md)
 
@@ -41,7 +41,17 @@ Then open the review app at `http://localhost:3000` and log in as `analyst` or `
 
 For the whole walk-through, with what to check in the browser and fixes for common problems, see [local-testing.md](local-testing.md).
 
-Both `seed.py` and the case service run `schema.sql` when they start. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. Running `seed.py` again replaces each case's rows; `--reset` empties `case_db` first. To change a table, edit `schema.sql`, delete the database volume with `docker compose down -v` (all three databases), then start the database and run `seed.py` again. The data always comes from `data/golden/`, so nothing is lost.
+Both `seed.py` and the case service run `schema.sql` when they start. Every statement uses `IF NOT EXISTS`, so running it again changes nothing. Running `seed.py` again replaces each case's rows; `--reset` empties `case_db` first. To change a table, edit `schema.sql` and the service's ORM model ([below](#how-the-services-use-their-databases)), delete the database volume with `docker compose down -v` (all three databases), then start the database and run `seed.py` again. The data always comes from `data/golden/`, so nothing is lost.
+
+## How the services use their databases
+
+The auth and case services reach PostgreSQL through SQLAlchemy 2.x, with the psycopg 3 driver (`postgresql+psycopg://`):
+
+- **One ORM model per table**, in each service's `app/db.py` (`DeclarativeBase` and `Mapped`), with the column names, types, primary keys and foreign keys of its `schema.sql`. `schema.sql` still creates the tables, and neither service calls `metadata.create_all`, so a change to a table goes into both files. A test fails until they agree: `services/case/tests/test_db.py` and `services/auth/tests/test_auth.py`.
+- **One engine per service**, opened when it starts: at most 5 connections, each checked before it's used. The service waits up to 30 seconds for the database, runs its `schema.sql` through the driver in one go, and gives each request its own `Session`.
+- **The queries are in `app/store.py`.** Logins, the demo users' upsert (`INSERT ... ON CONFLICT DO UPDATE`), the case lookups, the queue, the decisions and the override rate are ORM queries. The registry, DBA and commercial searches are SQL text for Postgres's `ILIKE`, `unnest` and `jsonb_array_elements`, run through SQLAlchemy; the words searched for go in only as bound parameters. Saving a decision locks the case's row (`SELECT ... FOR UPDATE`), then writes the decision, the case's new status and the audit log entry, all in one transaction.
+
+`services/case/seed.py`, the command-line loader, uses psycopg directly.
 
 ## case_db
 
