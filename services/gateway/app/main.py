@@ -8,6 +8,10 @@ X-User-Id and X-User-Role, without the JWT itself. Requests to the case service 
 the service token (CASE_SERVICE_TOKEN), and only reads get through: the decision is
 saved by the agent service, never straight from the browser.
 
+A route can be limited to some roles: /metrics is for senior analysts only, so an analyst
+gets 403. Who may review and decide which case depends on the case's status, so the agent
+service checks that (docs/auth.md, Roles).
+
 Settings: JWT_SECRET (the auth service's, at least 32 characters), CASE_SERVICE_TOKEN,
 and the services' base URLs AUTH_SERVICE_URL, CASE_SERVICE_URL and AGENT_SERVICE_URL
 (by default http://auth:8000, http://case:8000 and http://agent:8000, as in Docker
@@ -33,6 +37,7 @@ class Route:
     methods: frozenset[str]
     needs_user: bool        # the request needs a valid JWT
     service_token: bool     # the service gets CASE_SERVICE_TOKEN
+    roles: frozenset[str] | None = None     # only these roles (403 for the others); None: any role
 
 
 # The first segment of the path picks the route.
@@ -42,7 +47,7 @@ ROUTES: dict[str, Route] = {
     "cases": Route("CASE_SERVICE_URL", "http://case:8000", frozenset({"GET"}),
                    needs_user=True, service_token=True),
     "metrics": Route("CASE_SERVICE_URL", "http://case:8000", frozenset({"GET"}),
-                     needs_user=True, service_token=True),
+                     needs_user=True, service_token=True, roles=frozenset({"senior_analyst"})),
     "reviews": Route("AGENT_SERVICE_URL", "http://agent:8000", frozenset({"GET", "POST"}),
                      needs_user=True, service_token=False),
 }
@@ -120,6 +125,8 @@ def create_app(settings: Settings | None = None, transport: httpx.AsyncBaseTrans
                    if key not in HOP_BY_HOP and not key.startswith("x-user-")}
         if route.needs_user:
             claims = verify(headers.pop("authorization", None), current.jwt_secret)
+            if route.roles is not None and claims.role not in route.roles:
+                raise HTTPException(403, f"/{name} is only for {' or '.join(sorted(route.roles))}")
             headers[USER_ID_HEADER], headers[USER_ROLE_HEADER] = claims.sub, claims.role
         if route.service_token:
             headers["authorization"] = f"Bearer {current.service_token}"

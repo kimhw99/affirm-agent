@@ -199,7 +199,7 @@ The review app calls these through the gateway, which adds the service token ([a
 
 - `GET /cases?status=pending_review`: the case queue, oldest first. Each row has `case_id`, `status`, `legal_name`, `dba`, `state`, `flag_reasons`, `created_at` and `updated_at`. Without `status` it lists every case; an unknown status is 422.
 - `GET /cases/{case_id}/decisions`: the case's `DecisionRecord`s, oldest first. 404 for an unknown case.
-- `GET /metrics/override-rate`: how often analysts decide against the agent's recommendation (BEAC-20). It returns `decisions`, `overridden` and `rate` (`null` before the first decision), and the same three per recommendation in `by_recommendation`.
+- `GET /metrics/override-rate`: how often analysts decide against the agent's recommendation (BEAC-20). It returns `decisions`, `overridden` and `rate` (`null` before the first decision), and the same three per recommendation in `by_recommendation`. Only senior analysts get it: the gateway answers 403 to an analyst ([auth.md](auth.md)).
 
 ## Seed data
 

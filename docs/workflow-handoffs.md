@@ -290,7 +290,7 @@ So the name now differs by source: the state has the new name, while the IRS and
 
 ### 7.3 Step 1, Case JSON: the case arrives
 
-The existing system stores the case in the case service. The analyst clicks "Start review" in the UI (reviews could also start automatically when a case arrives). The frontend calls `POST /reviews`, the agent service returns a `review_id` (here `rv_7f3a`), then loads the case from the case service in the background. This case is `contracts/examples/case_input/case_1042.json`:
+The existing system stores the case in the case service. The analyst clicks "Start review" in the UI (reviews could also start automatically when a case arrives). The frontend calls `POST /reviews` with the case ID. The agent service loads the case from the case service, checks that the analyst's role may review a case in its status (`docs/auth.md`, Roles), and returns a `review_id` (here `rv_7f3a`); the review then runs in the background. This case is `contracts/examples/case_input/case_1042.json`:
 
 ```json
 {

@@ -6,7 +6,10 @@
   key, so the backend's retry starts a fresh run instead of getting the failure back.
 - ``status``: running | awaiting_decision | done | failed (the review status, not the case status).
 - ``decide``: resumes the paused graph with the analyst's decision; the graph then hands
-  the result back to the backend (``Deps.result_sink``).
+  the result back to the backend (``Deps.result_sink``). If that fails, for example
+  because the case service refuses the decision (409), the review fails like a crashed
+  run: ``status`` says ``failed`` with the reason, its key is released, and
+  ``DecisionFailed`` carries the case service's status code, if it answered.
 
 thread_id = review_id, so a paused review survives as long as the checkpointer does.
 """
@@ -18,6 +21,7 @@ import threading
 import uuid
 from typing import Any, Optional
 
+import httpx
 from langgraph.types import Command
 
 from app.graph.orchestrator import IdempotencyStore, idempotency_key
@@ -34,6 +38,36 @@ class NotAwaitingDecision(RuntimeError):
     pass
 
 
+class DecisionFailed(RuntimeError):
+    """The decision couldn't be finished, so the review failed. ``status_code`` is the case
+    service's answer when it refused the decision, None for any other error."""
+
+    def __init__(self, message: str, status_code: Optional[int] = None):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+def _case_service_answer(exc: BaseException) -> Optional[httpx.Response]:
+    """The case service's response, if an HTTP error from it raised ``exc`` or caused it."""
+    seen: set[int] = set()
+    current: Optional[BaseException] = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, httpx.HTTPStatusError):
+            return current.response
+        current = current.__cause__ or current.__context__
+    return None
+
+
+def _detail(response: httpx.Response) -> str:
+    """The reason the case service gave (FastAPI's ``detail``), or its status line."""
+    try:
+        detail = response.json().get("detail")
+    except (ValueError, AttributeError):
+        detail = None
+    return str(detail or response.reason_phrase or response.status_code)
+
+
 class ReviewService:
     def __init__(self, graph, store: Optional[IdempotencyStore] = None, callbacks: Optional[list] = None):
         self.graph = graph
@@ -41,6 +75,7 @@ class ReviewService:
         self.callbacks = callbacks or []
         self._errors: dict[str, str] = {}
         self._known: set[str] = set()
+        self._keys: dict[str, str] = {}      # review_id -> its idempotency key, released if it fails
         self._lock = threading.Lock()
 
     def _config(self, review_id: str) -> dict[str, Any]:
@@ -56,6 +91,7 @@ class ReviewService:
             return review_id, False
         with self._lock:
             self._known.add(review_id)
+            self._keys[review_id] = key
         if background:
             threading.Thread(target=self._run, args=(review_id, raw_case, key), daemon=True).start()
         else:
@@ -97,8 +133,23 @@ class ReviewService:
         if current["status"] != "awaiting_decision":
             raise NotAwaitingDecision(f"review {review_id} is {current['status']}")
         resume = {"decision": decision.decision, "note": decision.note, "analyst_id": analyst_id}
-        self.graph.invoke(Command(resume=resume), self._config(review_id))
+        try:
+            self.graph.invoke(Command(resume=resume), self._config(review_id))
+        except Exception as exc:  # noqa: BLE001
+            # Otherwise the graph stays stopped at step 11, so status() would say running for
+            # good, and the key would hand that stuck review to every retry.
+            log.exception("the decision on review %s failed", review_id)
+            answer = _case_service_answer(exc)
+            if answer is not None:
+                message = f"the case service refused the decision ({answer.status_code}): {_detail(answer)}"
+            else:
+                message = f"{type(exc).__name__}: {exc}"
+            self._errors[review_id] = message
+            key = self._keys.get(review_id)
+            if key is not None:
+                self.store.release(key)   # as in _run: starting it again runs a new review
+            raise DecisionFailed(message, answer.status_code if answer is not None else None) from exc
         return self.status(review_id)
 
 
-__all__ = ["NotAwaitingDecision", "ReviewNotFound", "ReviewService"]
+__all__ = ["DecisionFailed", "NotAwaitingDecision", "ReviewNotFound", "ReviewService"]

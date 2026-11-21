@@ -44,19 +44,21 @@ These steps take case_1042 through an analyst's decision and then a senior analy
 | # | Do | You should see |
 |---|---|---|
 | 1 | Log in as `analyst` with a wrong password | "Wrong username or password." |
-| 2 | Log in as `analyst` with the right one | "Demo Analyst · Analyst" at the top. The case queue, on Pending review, with case_1042. Above the cases, the override rate: "0 of 0 decisions went against the agent's recommendation." |
+| 2 | Log in as `analyst` with the right one | "Demo Analyst · Analyst" at the top, and the case queue, on Pending review, with case_1042. No override rate: only a senior analyst sees it |
 | 3 | Open case_1042 | "The agent is reviewing this case. This page updates by itself.", then the agent's memo, the checks and the decision form. Without an OpenAI key this takes a few seconds, and the memo recommends Insufficient evidence, with both flags (DBA_UNVERIFIED, TIN_MISMATCH) unresolved; with a key it takes longer |
 | 4 | Click an evidence ID (R1, D1, …) in the memo or the checks | The panel on the right: the evidence's source, type, date and excerpt. This needs an OpenAI key: without one, nothing cites evidence, so there's no ID to click |
 | 5 | Choose Escalate, write a note, and click Submit decision | "Decision saved" and "The case is now Escalated." If the recommendation is anything but Escalate or Insufficient evidence, a warning first says this counts as an override |
-| 6 | Click ← Case queue | case_1042 has left Pending review; choose Escalated under Status to find it. The override rate now counts 1 decision |
-| 7 | Reload the page, then click Log out | Still logged in after the reload; Log out goes back to the login page |
-| 8 | Log in as `senior` | "Demo Senior Analyst · Senior analyst" at the top, and the queue on Escalated, with case_1042 |
-| 9 | Open case_1042 | A new review runs, because the case has changed, then the memo and the decision form |
-| 10 | Choose Approve, write a note, and click Submit decision | Unless the recommendation is Recommend clear, a warning first says this counts as an override. Then "Decision saved", "against the agent's recommendation" and "The case is now Approved." |
-| 11 | Click ← Case queue, then choose All cases under Status | case_1042 is Approved. The override rate counts both decisions |
-| 12 | Open case_1042 again | "This case is Approved, so it can't take a new decision.", and both decisions, by `u_analyst_01` and `u_senior_01`, each override marked "(override)" |
+| 6 | Click ← Case queue | case_1042 has left Pending review; choose Escalated under Status to find it |
+| 7 | Open case_1042 from there | "Couldn't start the review: only senior_analyst can review a case that is escalated" |
+| 8 | Reload the page, then click Log out | Still logged in after the reload; Log out goes back to the login page |
+| 9 | Log in as `senior` | "Demo Senior Analyst · Senior analyst" at the top, the queue on Escalated, with case_1042, and the override rate, which counts the analyst's decision: "… of 1 decisions went against the agent's recommendation." |
+| 10 | Open case_1042 | A new review runs, because the case has changed, then the memo and the decision form |
+| 11 | Choose Escalate and click Submit decision | "Couldn't save the decision: case_1042 is already escalated, so decide something other than escalate". The form stays, for another choice |
+| 12 | Choose Approve, write a note, and click Submit decision | Unless the recommendation is Recommend clear, a warning first says this counts as an override. Then "Decision saved", "against the agent's recommendation" and "The case is now Approved." |
+| 13 | Click ← Case queue, then choose All cases under Status | case_1042 is Approved. The override rate counts both decisions |
+| 14 | Open case_1042 again | "This case is Approved, so it can't take a new decision.", and both decisions, by `u_analyst_01` and `u_senior_01`, each override marked "(override)" |
 
-Without an OpenAI key, Escalate in step 5 agrees with the recommendation and Approve in step 10 doesn't, so the override rate ends at 50%: 1 of 2 decisions.
+Without an OpenAI key, Escalate in step 5 agrees with the recommendation and Approve in step 12 doesn't, so the override rate ends at 50%: 1 of 2 decisions.
 
 To go through the steps again, [start over](#5-start-over-stop-or-update) first. For now `data/golden` holds only case_1042; once it holds more cases, open a few: each gets its own review.
 

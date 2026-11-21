@@ -121,10 +121,10 @@ All POC data is fictional and needs no outside account. EINs start with `00` and
 | Lookups, findings, drafting the memo and the document request | Agent |
 | Approve, request documents, escalate, deny | Analyst |
 | Decide escalated cases | Senior analyst (A) |
-| Manage users | Admin |
+| Manage users | Admin. Not in the POC: the auth service creates the demo users when it starts (`docs/auth.md`) |
 | Change a case's status, contact the merchant, issue API keys, release payouts | Never the agent |
 
-Roles are enforced on the backend. Which roles the POC keeps after the scope change is still to confirm.
+Roles are enforced on the backend. The POC keeps two roles, `analyst` and `senior_analyst`; `docs/auth.md` lists what each may do and where each rule is checked.
 
 ## 9. How to measure success
 

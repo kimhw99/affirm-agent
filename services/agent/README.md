@@ -205,9 +205,12 @@ ranges (20 apart).
 | case_4402 | Sole proprietor; hidden instructions on the website | recommend_clear; W1 flagged in the notes |
 
 **To BEAC-5 (review app, integration).** `GET /reviews/{id}` returns `status` plus a
-`ReviewOutput` once `awaiting_decision`. The decision endpoint reads the user from
-`X-User-Id` / `X-User-Role` (set by the gateway after it verifies the JWT; to confirm);
-`analyst` and `senior_analyst` may decide. The result goes back via
+`ReviewOutput` once `awaiting_decision`. `POST /reviews` takes only `{case_id}` and reads
+the case from the case service. It and the decision endpoint read the user from
+`X-User-Id` / `X-User-Role` (set by the gateway after it verifies the JWT) and check the
+role against the case's current status: either role for a `pending_review` case, only
+`senior_analyst` for an `escalated` one, neither for any other (`docs/auth.md`, Roles).
+The result goes back via
 `POST {CASE_SERVICE_URL}/cases/{case_id}/decisions` with
 `{decision_record, case_status}`; that path is a proposal to confirm.
 
