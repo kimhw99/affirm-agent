@@ -13,9 +13,9 @@ from helpers import NOW, TIN_LIKE, fake_client, task
 from kyb_contracts.worker_io import WorkerResult
 
 from app.clients.case_client import CaseServiceError
-from app.tools import EVIDENCE_TOOLS, RECORDS_TOOLS
+from app.tools import EVIDENCE_TOOLS, RECORDS_TOOLS, TOOLS_FOR, ToolContext
 from app.tools._common import UNTRUSTED_CLOSE, UNTRUSTED_OPEN
-from app.workers import WorkerSummary, record_tool_paths, run_evidence_worker, run_records_worker
+from app.workers import WorkerSummary, build_worker_graph, record_tool_paths, run_evidence_worker, run_records_worker
 from app.workers.base import RECOMMENDATION_REMOVED, strip_recommendation
 
 _ids = count(1)
@@ -311,6 +311,16 @@ def test_the_lead_never_gets_the_tool_path():
     llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))])
     result = run_records_worker(task("case_1042", "records", follow_up_of="t0"), fake_client(), llm=llm, now=NOW)
     assert "get_registry_entity" not in result.model_dump_json()
+
+
+@pytest.mark.parametrize("worker", ["records", "evidence"])
+def test_graph_nodes_carry_the_worker_name(worker):
+    # The Lead runs both workers inside its run_worker node and LangFuse draws its graph by
+    # node name: shared names (agent, tools, ...) would merge the two workers into one path.
+    ctx = ToolContext(fake_client(), task("case_1042", worker), now=NOW)
+    graph = build_worker_graph(worker, TOOLS_FOR[worker], ScriptedLLM(), ctx)
+    nodes = set(graph.get_graph().nodes) - {"__start__", "__end__"}
+    assert nodes == {f"{worker}_{n}" for n in ("agent", "tools", "summarize", "remind")}
 
 
 def test_without_a_recorder_the_tool_path_goes_nowhere():

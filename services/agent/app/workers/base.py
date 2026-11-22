@@ -83,8 +83,14 @@ def _error_text(error: BaseException) -> str:
 
 
 def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: ToolContext):
-    """Compile the agent -> tools -> ... -> summarize graph for one task."""
+    """Compile the agent -> tools -> ... -> summarize graph for one task.
+
+    The nodes carry the worker's name (records_agent, evidence_tools, ...): the Lead runs both
+    workers inside its one run_worker node, and LangFuse draws its graph by node name, so
+    shared names would merge the two workers into one path.
+    """
     task = ctx.task
+    AGENT, TOOLS, SUMMARIZE, REMIND = (f"{worker}_{n}" for n in ("agent", "tools", "summarize", "remind"))
     budget = task.max_tool_calls
     bound = llm.bind_tools([spec.openai_schema() for spec in tools.values()])
 
@@ -102,13 +108,13 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
         if state.get("llm_error"):
             return END
         if state.get("budget_hit"):
-            return "summarize"
+            return SUMMARIZE
         last = state["messages"][-1]
         if isinstance(last, AIMessage) and last.tool_calls:
-            return "tools"
+            return TOOLS
         if state.get("tool_calls_used", 0) < budget and _new_steps(state):
-            return "remind"
-        return "summarize"
+            return REMIND
+        return SUMMARIZE
 
     def _new_steps(state: WorkerState) -> list[str]:
         sent = set(state.get("reminded") or [])
@@ -155,7 +161,7 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
         return {"messages": replies, "tool_calls_used": used, "budget_hit": budget_hit or used >= budget}
 
     def after_tools(state: WorkerState) -> str:
-        return "summarize" if state.get("tool_calls_used", 0) >= budget else "agent"
+        return SUMMARIZE if state.get("tool_calls_used", 0) >= budget else AGENT
 
     def summarize(state: WorkerState, config) -> dict:
         note = ""
@@ -174,15 +180,15 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
         return {"summary": summary}
 
     graph = StateGraph(WorkerState)
-    graph.add_node("agent", agent)
-    graph.add_node("tools", run_tools)
-    graph.add_node("summarize", summarize)
-    graph.add_node("remind", remind)
-    graph.add_edge(START, "agent")
-    graph.add_conditional_edges("agent", after_agent, ["tools", "remind", "summarize", END])
-    graph.add_edge("remind", "agent")
-    graph.add_conditional_edges("tools", after_tools, ["agent", "summarize"])
-    graph.add_edge("summarize", END)
+    graph.add_node(AGENT, agent)
+    graph.add_node(TOOLS, run_tools)
+    graph.add_node(SUMMARIZE, summarize)
+    graph.add_node(REMIND, remind)
+    graph.add_edge(START, AGENT)
+    graph.add_conditional_edges(AGENT, after_agent, [TOOLS, REMIND, SUMMARIZE, END])
+    graph.add_edge(REMIND, AGENT)
+    graph.add_conditional_edges(TOOLS, after_tools, [AGENT, SUMMARIZE])
+    graph.add_edge(SUMMARIZE, END)
     return graph.compile()
 
 
