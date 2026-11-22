@@ -1,0 +1,71 @@
+{
+  "case_id": "case_4517",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Fairhaven Books Inc",
+    "address": "7447 Market Ave, Nashville, TN 37252",
+    "tin_type": "EIN",
+    "tin_last4": "2027",
+    "state": "TN",
+    "state_entity_id": "TN-2692125",
+    "entity_type": "CORPORATION",
+    "formation_date": "2026-09-21",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vera Yamamoto",
+        "role": "President"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Quentin Pellegrini",
+        "role": "Secretary"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "FAIRHAVEN BOOKS INC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "FAIRHAVEN BOOKS INC",
+    "status": "verified",
+    "verified_at": "2026-11-16"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://fairhaven.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Fairhaven Books Inc",
+        "address": "7447 Market Ave, Nashville, TN 37252"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

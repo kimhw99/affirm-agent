@@ -1,0 +1,51 @@
+{
+  "case_id": "case_1113",
+  "registry": [
+    {
+      "state": "NJ",
+      "state_entity_id": "NJ-2655029",
+      "legal_name": "BELLHAVEN FOOTWEAR LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-09-03",
+      "registered_address": "7481 Harbor Ave, Newark, NJ 07122",
+      "officers": [
+        {
+          "name": "Una Halvorsen",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Fiona Yamamoto",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NJ-2655029-1",
+          "event_type": "formation",
+          "effective_date": "2021-09-03",
+          "old_value": null,
+          "new_value": "BELLHAVEN FOOTWEAR LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60223",
+      "state": "NJ",
+      "business_name": "BELLHAVEN SHOES",
+      "address": "7481 Harbor Ave, Newark, NJ 07122",
+      "first_seen": "2022-02-05",
+      "last_updated": "2026-10-15"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3644",
+    "irs_status": "issued",
+    "irs_name": "BELLHAVEN FOOTWEAR LLC"
+  }
+}

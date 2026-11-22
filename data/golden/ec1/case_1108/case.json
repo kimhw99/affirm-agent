@@ -1,0 +1,73 @@
+{
+  "case_id": "case_1108",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Umberleigh Pet Supply LLC",
+    "address": "2419 Mill Dr, Houston, TX 77007",
+    "tin_type": "EIN",
+    "tin_last4": "5523",
+    "state": "TX",
+    "state_entity_id": "TX-2100018",
+    "entity_type": "LLC",
+    "formation_date": "2021-06-20",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Emeka Jovanovic",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "GULLHAVEN PET SUPPLY LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles_of_amendment",
+      "extracted": {
+        "old_name": "Umberleigh Pet Supply LLC",
+        "new_name": "Gullhaven Pet Supply LLC",
+        "state_entity_id": "TX-2100018",
+        "date": "2026-03-23"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GULLHAVEN PET SUPPLY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://gullhaven.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Gullhaven Pet Supply LLC",
+        "address": "2419 Mill Dr, Houston, TX 77007"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

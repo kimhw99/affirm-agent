@@ -1,0 +1,61 @@
+{
+  "case_id": "case_4516",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Highbury Optical LLC",
+    "address": "4501 Willow Pkwy, Boston, MA 02144",
+    "tin_type": "EIN",
+    "tin_last4": "9206",
+    "state": "MA",
+    "state_entity_id": "MA-2507075",
+    "entity_type": "LLC",
+    "formation_date": "2026-09-16",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Omar Valdivia",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "HIGHBURY OPTICAL LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "HIGHBURY OPTICAL LLC",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://highbury.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Highbury Optical LLC",
+        "address": "4501 Willow Pkwy, Boston, MA 02144"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

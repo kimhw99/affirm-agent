@@ -1,0 +1,67 @@
+{
+  "case_id": "case_5116",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Gorsedale Optical LLC",
+    "dba": "Gorsedale Eyewear",
+    "address": "9562 Market Way, Tucson, AZ 85792",
+    "tin_type": "EIN",
+    "tin_last4": "5359",
+    "state": "AZ",
+    "state_entity_id": null,
+    "entity_type": "LLC",
+    "formation_date": "2018-11-29",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Farah Eriksen",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GORSEDALE OPTICAL LLC DBA GORSEDALE EYEWEAR",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://gorsedaleeyewear.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Gorsedale Optical LLC",
+        "address": "9562 Market Way, Tucson, AZ 85792",
+        "dba": "Gorsedale Eyewear"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

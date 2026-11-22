@@ -1,0 +1,30 @@
+{
+  "case_id": "case_2126",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "county_dba"
+    },
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "name_control_tested": "KEYS",
+        "tin_match_result": "Match"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The IRS has the EIN under the trade name 'KEYSTONE TILE STUDIO' instead of the legal name. The DBA filing ties that trade name to this entity."
+}

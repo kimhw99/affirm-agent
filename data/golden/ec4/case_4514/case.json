@@ -1,0 +1,83 @@
+{
+  "case_id": "case_4514",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Lattice Rugs Inc",
+    "address": "4562 Linden Pkwy, Philadelphia, PA 19162",
+    "tin_type": "EIN",
+    "tin_last4": "1587",
+    "state": "PA",
+    "state_entity_id": null,
+    "entity_type": "CORPORATION",
+    "formation_date": "2020-02-22",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Tobias Esposito",
+        "role": "President"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Grant Valdivia",
+        "role": "Secretary"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Lattice Rugs Inc",
+        "state": "DE",
+        "state_entity_id": "DE-2900033",
+        "formation_date": "2020-02-22"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "LATTICE RUGS INC",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://lattice.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Lattice Rugs Inc",
+        "address": "4562 Linden Pkwy, Philadelphia, PA 19162"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

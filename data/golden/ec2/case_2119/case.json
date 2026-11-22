@@ -1,0 +1,82 @@
+{
+  "case_id": "case_2119",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Lanternfly Skincare LLC",
+    "address": "7282 Beacon St, Spokane, WA 99275",
+    "tin_type": "EIN",
+    "tin_last4": "2069",
+    "state": "WA",
+    "state_entity_id": "WA-2285091",
+    "entity_type": "LLC",
+    "formation_date": "2021-06-07",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Keiko Lindqvist",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Oksana Fontaine",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "LANTERNFLY SKINCARE LLC"
+    },
+    "tin": {
+      "result": "Not Found"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Lanternfly Skincare LLC",
+        "tin_type": "EIN",
+        "tin_last4": "0269"
+      },
+      "confidence": 0.91
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "LANTERNFLY SKINCARE LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://lanternfly.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "legal_name": "Lanternfly Skincare LLC",
+        "address": "7282 Beacon St, Spokane, WA 99275"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

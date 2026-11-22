@@ -1,0 +1,47 @@
+{
+  "case_id": "case_2129",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-2211159",
+      "legal_name": "DAPPLETON SKINCARE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2018-07-20",
+      "registered_address": "6192 Summit Way, Orlando, FL 32832",
+      "officers": [
+        {
+          "name": "Uriel Xu",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-2211159-1",
+          "event_type": "formation",
+          "effective_date": "2018-07-20",
+          "old_value": null,
+          "new_value": "DAPPLETON SKINCARE LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61098",
+      "state": "FL",
+      "business_name": "DAPPLETON SKINCARE LLC",
+      "address": "6192 Summit Way, Orlando, FL 32832",
+      "first_seen": "2018-12-02",
+      "last_updated": "2026-10-18"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "6116",
+    "irs_status": "issued",
+    "irs_name": "URIEL XU"
+  }
+}

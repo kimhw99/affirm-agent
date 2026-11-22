@@ -1,0 +1,47 @@
+{
+  "case_id": "case_5122",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396176",
+      "legal_name": "SALTCEDAR JEWELRY LLC",
+      "former_names": [
+        "KINGFISHER JEWELRY LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-12-14",
+      "registered_address": "6276 Canal Rd, Portland, OR 97281",
+      "officers": [
+        {
+          "name": "Delia Tanaka",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396176-1",
+          "event_type": "formation",
+          "effective_date": "2021-12-14",
+          "old_value": null,
+          "new_value": "KINGFISHER JEWELRY LLC"
+        },
+        {
+          "event_id": "OR-2396176-2",
+          "event_type": "name_change",
+          "effective_date": "2026-03-21",
+          "old_value": "KINGFISHER JEWELRY LLC",
+          "new_value": "SALTCEDAR JEWELRY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "4714",
+    "irs_status": "issued",
+    "irs_name": "KINGFISHER JEWELRY LLC"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "case_id": "case_5109",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "OH-CUYAHOGA-2019-010902",
+      "state": "OH",
+      "county": "Cuyahoga",
+      "dba": "INKWELL WOODSHOP",
+      "registrant": "WILLA RAHIMI",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2019-02-17",
+      "expires": "2029-02-17",
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "0019",
+    "irs_status": "issued",
+    "irs_name": "WILLA ZIELINSKI"
+  }
+}

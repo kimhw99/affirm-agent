@@ -1,0 +1,61 @@
+{
+  "case_id": "case_1110",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Oldcastle Tea Company LLC",
+    "address": "4334 Juniper Pkwy, Detroit, MI 48291",
+    "tin_type": "EIN",
+    "tin_last4": "5464",
+    "state": "MI",
+    "state_entity_id": "MI-2729085",
+    "entity_type": "LLC",
+    "formation_date": "2023-01-10",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Farah Zamora",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "ALDERBROOK TEA COMPANY LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "ALDERBROOK TEA COMPANY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://alderbrook.example/about",
+      "captured_at": "2026-11-16",
+      "extracted": {
+        "legal_name": "Alderbrook Tea Company LLC",
+        "address": "4334 Juniper Pkwy, Detroit, MI 48291"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

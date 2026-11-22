@@ -1,0 +1,52 @@
+{
+  "case_id": "case_4529",
+  "registry": [
+    {
+      "state": "MI",
+      "state_entity_id": "MI-2729167",
+      "legal_name": "NORRLAND BAKERY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2017-04-15",
+      "registered_address": "7780 Juniper Way, Detroit, MI 48288",
+      "officers": [
+        {
+          "name": "Wesley Sokolov",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MI-2729167-1",
+          "event_type": "formation",
+          "effective_date": "2017-04-15",
+          "old_value": null,
+          "new_value": "NORRLAND BAKERY LLC"
+        },
+        {
+          "event_id": "MI-2729167-2",
+          "event_type": "dissolution",
+          "effective_date": "2025-11-10",
+          "old_value": "active",
+          "new_value": "dissolved"
+        },
+        {
+          "event_id": "MI-2729167-3",
+          "event_type": "reinstatement",
+          "effective_date": "2026-01-16",
+          "old_value": "dissolved",
+          "new_value": "active"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7136",
+    "irs_status": "issued",
+    "irs_name": "NORRLAND BAKERY LLC"
+  }
+}

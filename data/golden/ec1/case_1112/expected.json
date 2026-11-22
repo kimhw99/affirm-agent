@@ -1,0 +1,29 @@
+{
+  "case_id": "case_1112",
+  "categories": [
+    "business_scenario",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "TX-2100021"
+      }
+    },
+    {
+      "source": "county_dba"
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "treat the trade name and the legal name as two different businesses",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant entered its trade name 'Cindervale Bridal Boutique' as the legal name. The entity ID belongs to 'CINDERVALE BRIDAL INC', and an active county DBA filing registers 'CINDERVALE BRIDAL BOUTIQUE' to that entity."
+}

@@ -1,0 +1,34 @@
+{
+  "case_id": "case_4527",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "AZ-PIMA-2022-010792",
+      "state": "AZ",
+      "county": "Pima",
+      "dba": "DAISYFIELD GUITARS",
+      "registrant": "QUENTIN ACHEBE; RAFAEL OKAFOR",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2022-07-25",
+      "expires": "2032-07-25",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61426",
+      "state": "AZ",
+      "business_name": "DAISYFIELD GUITARS",
+      "address": "2509 Sycamore Pkwy, Tucson, AZ 85729",
+      "first_seen": "2022-12-22",
+      "last_updated": "2026-09-03"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3388",
+    "irs_status": "issued",
+    "irs_name": "ACHEBE & OKAFOR"
+  }
+}

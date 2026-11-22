@@ -1,0 +1,45 @@
+{
+  "case_id": "case_1124",
+  "registry": [
+    {
+      "state": "WA",
+      "state_entity_id": "WA-2285030",
+      "legal_name": "BIRCHMONT OPTICAL GROUP LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "dissolved",
+      "formation_date": "2016-08-04",
+      "registered_address": "2721 Willow Way, Spokane, WA 99204",
+      "officers": [
+        {
+          "name": "Willa Achebe",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "WA-2285030-1",
+          "event_type": "formation",
+          "effective_date": "2016-08-04",
+          "old_value": null,
+          "new_value": "BIRCHMONT OPTICAL GROUP LLC"
+        },
+        {
+          "event_id": "WA-2285030-2",
+          "event_type": "dissolution",
+          "effective_date": "2025-05-21",
+          "old_value": "active",
+          "new_value": "dissolved"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "0933",
+    "irs_status": "issued",
+    "irs_name": "BIRCHMONT OPTICAL LLC"
+  }
+}

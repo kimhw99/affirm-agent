@@ -1,0 +1,78 @@
+{
+  "case_id": "case_1102",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Goldcrest Mattress LLC",
+    "dba": "Goldcrest Sleep",
+    "address": "5230 Linden Pkwy, Trenton, NJ 08668",
+    "tin_type": "EIN",
+    "tin_last4": "6926",
+    "state": "NJ",
+    "state_entity_id": "NJ-2655017",
+    "entity_type": "LLC",
+    "formation_date": "2022-05-11",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Rafael Quintero",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "GOLDCREST MATTRESS, L.L.C."
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Goldcrest Mattress, L.L.C.",
+        "state": "NJ",
+        "state_entity_id": "NJ-2655017",
+        "formation_date": "2022-05-11"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GOLDCREST MATTRESS LLC DBA GOLDCREST SLEEP",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://goldcrestsleep.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Goldcrest Mattress LLC",
+        "address": "5230 Linden Pkwy, Trenton, NJ 08668",
+        "dba": "Goldcrest Sleep"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "case_id": "case_2122",
+  "registry": [
+    {
+      "state": "MA",
+      "state_entity_id": "MA-2507043",
+      "legal_name": "HAZELMERE FOOTWEAR LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2020-02-20",
+      "registered_address": "1033 Prospect Ln, Worcester, MA 01678",
+      "officers": [
+        {
+          "name": "Yara Mbeki",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Farah Sokolov",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MA-2507043-1",
+          "event_type": "formation",
+          "effective_date": "2020-02-20",
+          "old_value": null,
+          "new_value": "HAZELMERE FOOTWEAR LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60947",
+      "state": "MA",
+      "business_name": "HAZELMERE FOOTWEAR LLC",
+      "address": "1033 Prospect Ln, Worcester, MA 01678",
+      "first_seen": "2020-06-11",
+      "last_updated": "2026-10-16"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6678",
+    "irs_status": "not_found",
+    "irs_name": null
+  }
+}

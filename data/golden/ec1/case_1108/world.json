@@ -1,0 +1,56 @@
+{
+  "case_id": "case_1108",
+  "registry": [
+    {
+      "state": "TX",
+      "state_entity_id": "TX-2100018",
+      "legal_name": "GULLHAVEN PET SUPPLY LLC",
+      "former_names": [
+        "UMBERLEIGH PET SUPPLY LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-06-20",
+      "registered_address": "2419 Mill Dr, Houston, TX 77007",
+      "officers": [
+        {
+          "name": "Emeka Jovanovic",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TX-2100018-1",
+          "event_type": "formation",
+          "effective_date": "2021-06-20",
+          "old_value": null,
+          "new_value": "UMBERLEIGH PET SUPPLY LLC"
+        },
+        {
+          "event_id": "TX-2100018-2",
+          "event_type": "name_change",
+          "effective_date": "2026-03-23",
+          "old_value": "UMBERLEIGH PET SUPPLY LLC",
+          "new_value": "GULLHAVEN PET SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60112",
+      "state": "TX",
+      "business_name": "GULLHAVEN PETS",
+      "address": "2419 Mill Dr, Houston, TX 77007",
+      "first_seen": "2021-11-18",
+      "last_updated": "2026-10-16"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5523",
+    "irs_status": "issued",
+    "irs_name": "GULLHAVEN PET SUPPLY LLC"
+  }
+}

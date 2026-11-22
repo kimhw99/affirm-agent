@@ -1,0 +1,38 @@
+{
+  "case_id": "case_4516",
+  "registry": [
+    {
+      "state": "MA",
+      "state_entity_id": "MA-2507075",
+      "legal_name": "HIGHBURY OPTICAL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-09-16",
+      "registered_address": "4501 Willow Pkwy, Boston, MA 02144",
+      "officers": [
+        {
+          "name": "Omar Valdivia",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MA-2507075-1",
+          "event_type": "formation",
+          "effective_date": "2026-09-16",
+          "old_value": null,
+          "new_value": "HIGHBURY OPTICAL LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9206",
+    "irs_status": "issued",
+    "irs_name": "HIGHBURY OPTICAL LLC"
+  }
+}

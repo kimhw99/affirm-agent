@@ -1,0 +1,88 @@
+{
+  "case_id": "case_2125",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Bluefen Outdoor Gear LLC",
+    "dba": "Bluefen Outfitters",
+    "address": "466 Sycamore Blvd, Orlando, FL 32882",
+    "tin_type": "EIN",
+    "tin_last4": "1446",
+    "state": "FL",
+    "state_entity_id": "FL-2211138",
+    "entity_type": "LLC",
+    "formation_date": "2019-04-12",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Mateo Rasmussen",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Camila Pellegrini",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "BLUEFEN OUTDOOR GEAR LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "extracted": {
+        "name": "BLUEFEN OUTFITTERS",
+        "ein_last4": "1446",
+        "name_control": "BLUE",
+        "date": "2026-10-16"
+      },
+      "confidence": 0.99
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "BLUEFEN OUTDOOR GEAR LLC DBA BLUEFEN OUTFITTERS",
+    "status": "verified",
+    "verified_at": "2026-11-16"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://bluefenoutfitters.example/about",
+      "captured_at": "2026-11-16",
+      "extracted": {
+        "legal_name": "Bluefen Outdoor Gear LLC",
+        "address": "466 Sycamore Blvd, Orlando, FL 32882",
+        "dba": "Bluefen Outfitters"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

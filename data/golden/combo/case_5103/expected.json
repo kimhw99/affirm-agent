@@ -1,0 +1,40 @@
+{
+  "case_id": "case_5103",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "former_name": "ELMHAVEN FOOTWEAR LLC"
+      }
+    },
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "name_control_tested": "ELMH",
+        "tin_match_result": "Match"
+      }
+    },
+    {
+      "any_of": [
+        "B1",
+        "W1"
+      ]
+    }
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Renamed from 'Elmhaven Footwear LLC' on 2025-10-20. The IRS and the DBA filing still carry the old name; the DBA filing names the same entity ID. The CP575 shows the old name with the same EIN."
+}

@@ -1,0 +1,61 @@
+{
+  "case_id": "case_2129",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Dappleton Skincare LLC",
+    "address": "6192 Summit Way, Orlando, FL 32832",
+    "tin_type": "SSN",
+    "tin_last4": "6116",
+    "state": "FL",
+    "state_entity_id": "FL-2211159",
+    "entity_type": "LLC",
+    "formation_date": "2018-07-20",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Uriel Xu",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "DAPPLETON SKINCARE LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "DAPPLETON SKINCARE LLC",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://dappleton.example/about",
+      "captured_at": "2026-11-11",
+      "extracted": {
+        "legal_name": "Dappleton Skincare LLC",
+        "address": "6192 Summit Way, Orlando, FL 32832"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

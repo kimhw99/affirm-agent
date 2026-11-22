@@ -1,0 +1,51 @@
+{
+  "case_id": "case_1127",
+  "registry": [
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581035",
+      "legal_name": "RUSHMERE TILE AND STONE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-04-13",
+      "registered_address": "1025 Orchard Blvd, Philadelphia, PA 19140",
+      "officers": [
+        {
+          "name": "Samir Szabo",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Uriel Whitcombe",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581035-1",
+          "event_type": "formation",
+          "effective_date": "2019-04-13",
+          "old_value": null,
+          "new_value": "RUSHMERE TILE AND STONE LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60448",
+      "state": "PA",
+      "business_name": "RUSHMERE TILE STUDIO",
+      "address": "1025 Orchard Blvd, Philadelphia, PA 19140",
+      "first_seen": "2019-09-28",
+      "last_updated": "2026-09-29"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5450",
+    "irs_status": "issued",
+    "irs_name": "RUSHMERE TILE AND STONE LLC"
+  }
+}

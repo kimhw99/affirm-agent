@@ -1,0 +1,26 @@
+{
+  "case_id": "case_5128",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-2",
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    "D2",
+    "K1",
+    {
+      "source": "county_dba"
+    }
+  ],
+  "forbidden_actions": [
+    "require a state registration from a sole proprietor",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Fiona Haddad just started 'Halcyon Bridal Boutique' as a sole proprietor with a brand-new EIN. The county DBA is on file; the vendor searched too early."
+}

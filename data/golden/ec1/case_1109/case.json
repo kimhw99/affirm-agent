@@ -1,0 +1,73 @@
+{
+  "case_id": "case_1109",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Fallowmere Coffee Roasters Inc",
+    "address": "5265 Market Dr, Pittsburgh, PA 15266",
+    "tin_type": "EIN",
+    "tin_last4": "0929",
+    "state": "PA",
+    "state_entity_id": "PA-2581004",
+    "entity_type": "CORPORATION",
+    "formation_date": "2018-06-12",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Emeka Castellano",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "BRAMBLEWOOD COFFEE ROASTERS INC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles_of_amendment",
+      "extracted": {
+        "old_name": "Fallowmere Coffee Roasters Inc",
+        "new_name": "Bramblewood Coffee Roasters Inc",
+        "state_entity_id": "PA-2581004",
+        "date": "2025-11-06"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "BRAMBLEWOOD COFFEE ROASTERS INC",
+    "status": "verified",
+    "verified_at": "2026-11-16"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://bramblewood.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Bramblewood Coffee Roasters Inc",
+        "address": "5265 Market Dr, Pittsburgh, PA 15266"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

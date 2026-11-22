@@ -1,0 +1,56 @@
+{
+  "case_id": "case_4530",
+  "registry": [
+    {
+      "state": "NJ",
+      "state_entity_id": "NJ-2655126",
+      "legal_name": "NIMBUS TILE AND STONE INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2017-02-28",
+      "registered_address": "3074 Harbor Dr, Trenton, NJ 08656",
+      "officers": [
+        {
+          "name": "Kiran Okafor",
+          "title": "President"
+        },
+        {
+          "name": "Leona Mbeki",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NJ-2655126-1",
+          "event_type": "formation",
+          "effective_date": "2017-02-28",
+          "old_value": null,
+          "new_value": "NIMBUS TILE AND STONE INC"
+        },
+        {
+          "event_id": "NJ-2655126-2",
+          "event_type": "dissolution",
+          "effective_date": "2026-01-02",
+          "old_value": "active",
+          "new_value": "dissolved"
+        },
+        {
+          "event_id": "NJ-2655126-3",
+          "event_type": "reinstatement",
+          "effective_date": "2026-03-02",
+          "old_value": "dissolved",
+          "new_value": "active"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5334",
+    "irs_status": "issued",
+    "irs_name": "NIMBUS TILE AND STONE INC"
+  }
+}

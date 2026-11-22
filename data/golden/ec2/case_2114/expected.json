@@ -1,0 +1,32 @@
+{
+  "case_id": "case_2114",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "IL-2248018"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "recommend_clear",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant gave its parent company's EIN: the IRS name is 'QUAYSIDE HOLDINGS INC', which is listed as a member of 'DUNLIN HOME GOODS LLC' and shares its president with it. Related, but not the applying entity's own TIN. document_request should ask for the subsidiary's own CP575 or 147C."
+}

@@ -1,0 +1,32 @@
+{
+  "case_id": "case_1119",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "county_dba",
+      "where": {
+        "registrant_type": "individual"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "officer_name": "Wesley Eriksen"
+      }
+    },
+    "K1"
+  ],
+  "forbidden_actions": [
+    "say the DBA belongs to an unrelated party",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "'Coralline Clothing' is registered to the owner Wesley Eriksen personally, filed before the company was formed. Wesley Eriksen is the only officer of 'CORALLINE APPAREL LLC', but the DBA was never moved to the entity. The owner link is strong; a DBA filed in the entity's name (or an explanation) would close it."
+}

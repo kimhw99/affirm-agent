@@ -1,0 +1,42 @@
+{
+  "case_id": "case_4503",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174123",
+      "legal_name": "KESTREL APPAREL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-11-14",
+      "registered_address": "7470 Hawthorne Dr, Buffalo, NY 14277",
+      "officers": [
+        {
+          "name": "Andre Moreau",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Mateo Yilmaz",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174123-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-14",
+          "old_value": null,
+          "new_value": "KESTREL APPAREL LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2417",
+    "irs_status": "issued",
+    "irs_name": "KESTREL APPAREL LLC"
+  }
+}

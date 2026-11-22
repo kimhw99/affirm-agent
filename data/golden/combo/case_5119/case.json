@@ -1,0 +1,62 @@
+{
+  "case_id": "case_5119",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Kindlewood Garden Supply LLC",
+    "address": "4245 Linden Pkwy, Philadelphia, PA 19158",
+    "tin_type": "EIN",
+    "tin_last4": "3655",
+    "state": "PA",
+    "state_entity_id": "PA-2581145",
+    "entity_type": "LLC",
+    "formation_date": "2026-10-28",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Camila Kaminski",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "KINDLEWOOD GARDEN SUPPLY, L.L.C."
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "KINDLEWOOD GARDEN SUPPLY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-07"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://kindlewood.example/about",
+      "captured_at": "2026-11-07",
+      "extracted": {
+        "legal_name": "Kindlewood Garden Supply LLC",
+        "address": "4245 Linden Pkwy, Philadelphia, PA 19158"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

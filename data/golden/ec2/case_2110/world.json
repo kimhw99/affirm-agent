@@ -1,0 +1,80 @@
+{
+  "case_id": "case_2110",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396072",
+      "legal_name": "TINDERBOX COFFEE ROASTERS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-11-01",
+      "registered_address": "1007 Maple Blvd, Portland, OR 97290",
+      "officers": [
+        {
+          "name": "Avery Okafor",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396072-1",
+          "event_type": "formation",
+          "effective_date": "2021-11-01",
+          "old_value": null,
+          "new_value": "TINDERBOX COFFEE ROASTERS LLC"
+        }
+      ]
+    },
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692094",
+      "legal_name": "HOLLYHOCK JEWELRY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2011-11-14",
+      "registered_address": "9490 Lake Blvd, Nashville, TN 37264",
+      "officers": [
+        {
+          "name": "Gideon Kaminski",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692094-1",
+          "event_type": "formation",
+          "effective_date": "2011-11-14",
+          "old_value": null,
+          "new_value": "HOLLYHOCK JEWELRY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60724",
+      "state": "OR",
+      "business_name": "TINDERBOX COFFEE ROASTERS LLC",
+      "address": "1007 Maple Blvd, Portland, OR 97290",
+      "first_seen": "2022-02-09",
+      "last_updated": "2026-10-24"
+    },
+    {
+      "profile_id": "CDB-60757",
+      "state": "TN",
+      "business_name": "HOLLYHOCK JEWELRY LLC",
+      "address": "9490 Lake Blvd, Nashville, TN 37264",
+      "first_seen": "2019-02-28",
+      "last_updated": "2026-09-11"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9435",
+    "irs_status": "issued",
+    "irs_name": "HOLLYHOCK JEWELRY LLC"
+  }
+}

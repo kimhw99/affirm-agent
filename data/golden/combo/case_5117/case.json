@@ -1,0 +1,67 @@
+{
+  "case_id": "case_5117",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Rosemoor Kitchenware Inc",
+    "dba": "Rosemoor Kitchen",
+    "address": "7747 Market Dr, Minneapolis, MN 55476",
+    "tin_type": "EIN",
+    "tin_last4": "5710",
+    "state": "MN",
+    "state_entity_id": null,
+    "entity_type": "CORPORATION",
+    "formation_date": "2021-12-18",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Ximena Vasquez",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "ROSEMOOR KITCHENWARE INC DBA ROSEMOOR KITCHEN",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://rosemoorkitchen.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Rosemoor Kitchenware Inc",
+        "address": "7747 Market Dr, Minneapolis, MN 55476",
+        "dba": "Rosemoor Kitchen"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

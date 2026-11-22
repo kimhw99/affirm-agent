@@ -1,0 +1,64 @@
+{
+  "case_id": "case_2127",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-2211144",
+      "legal_name": "QUARRYSTONE PET SUPPLY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-11-06",
+      "registered_address": "6596 Willow Dr, Tampa, FL 33673",
+      "officers": [
+        {
+          "name": "Luis Rahimi",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Una Brannigan",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-2211144-1",
+          "event_type": "formation",
+          "effective_date": "2021-11-06",
+          "old_value": null,
+          "new_value": "QUARRYSTONE PET SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "FL-HILLSBOROUGH-2022-010603",
+      "state": "FL",
+      "county": "Hillsborough",
+      "dba": "QUARRYSTONE PETS",
+      "registrant": "QUARRYSTONE PET SUPPLY LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "FL-2211144",
+      "filed": "2022-01-03",
+      "expires": "2037-01-03",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61053",
+      "state": "FL",
+      "business_name": "QUARRYSTONE PETS",
+      "address": "6596 Willow Dr, Tampa, FL 33673",
+      "first_seen": "2022-01-14",
+      "last_updated": "2026-10-30"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3854",
+    "irs_status": "issued",
+    "irs_name": "QUARRYSTONE PETS"
+  }
+}

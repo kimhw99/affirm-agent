@@ -1,0 +1,38 @@
+{
+  "case_id": "case_1125",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692004",
+      "legal_name": "VERDANT RUGS GROUP LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2015-11-10",
+      "registered_address": "4354 Canal Blvd, Nashville, TN 37223",
+      "officers": [
+        {
+          "name": "Leona Kowalczyk",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692004-1",
+          "event_type": "formation",
+          "effective_date": "2015-11-10",
+          "old_value": null,
+          "new_value": "VERDANT RUGS GROUP LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3794",
+    "irs_status": "issued",
+    "irs_name": "VERDANT RUGS LLC"
+  }
+}

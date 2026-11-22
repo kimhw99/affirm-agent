@@ -1,0 +1,82 @@
+{
+  "case_id": "case_2121",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Millrace Apparel LLC",
+    "address": "2641 Union Ave, Nashville, TN 37229",
+    "tin_type": "EIN",
+    "tin_last4": "5215",
+    "state": "TN",
+    "state_entity_id": "TN-2692103",
+    "entity_type": "LLC",
+    "formation_date": "2017-12-19",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vikram Xu",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Tobias Ilunga",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "MILLRACE APPAREL LLC"
+    },
+    "tin": {
+      "result": "Not Found"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Millrace Apparel LLC",
+        "tin_type": "EIN",
+        "tin_last4": "2515"
+      },
+      "confidence": 0.95
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "MILLRACE APPAREL LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://millrace.example/about",
+      "captured_at": "2026-11-07",
+      "extracted": {
+        "legal_name": "Millrace Apparel LLC",
+        "address": "2641 Union Ave, Nashville, TN 37229"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

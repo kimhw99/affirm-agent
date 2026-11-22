@@ -1,0 +1,47 @@
+{
+  "case_id": "case_5124",
+  "registry": [
+    {
+      "state": "NC",
+      "state_entity_id": "NC-2433103",
+      "legal_name": "WAYMARK TOYS LLC",
+      "former_names": [
+        "EVERLY TOYS LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-10-09",
+      "registered_address": "5750 Prospect Blvd, Asheville, NC 28890",
+      "officers": [
+        {
+          "name": "Jonah Lindqvist",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NC-2433103-1",
+          "event_type": "formation",
+          "effective_date": "2019-10-09",
+          "old_value": null,
+          "new_value": "EVERLY TOYS LLC"
+        },
+        {
+          "event_id": "NC-2433103-2",
+          "event_type": "name_change",
+          "effective_date": "2026-05-11",
+          "old_value": "EVERLY TOYS LLC",
+          "new_value": "WAYMARK TOYS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3505",
+    "irs_status": "issued",
+    "irs_name": "EVERLY TOYS LLC"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "case_id": "case_2116",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174055",
+      "legal_name": "HEATHERLY FURNITURE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-10-28",
+      "registered_address": "9564 Ridge Rd, Albany, NY 12238",
+      "officers": [
+        {
+          "name": "Yusuf Jovanovic",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Priya Rahimi",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174055-1",
+          "event_type": "formation",
+          "effective_date": "2026-10-28",
+          "old_value": null,
+          "new_value": "HEATHERLY FURNITURE LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3946",
+    "irs_status": "not_issued",
+    "irs_name": null
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "case_id": "case_2103",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "former_name": "ORCHARDGATE PET SUPPLY LLC"
+      }
+    },
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "name_control_tested": "ORCH",
+        "tin_match_result": "Match"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The company renamed itself from 'Orchardgate Pet Supply LLC' to 'Ironweed Pet Supply LLC' on 2025-11-23 but never told the IRS, which still has the old name. TIN matching under the old name succeeds."
+}

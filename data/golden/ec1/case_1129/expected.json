@@ -1,0 +1,27 @@
+{
+  "case_id": "case_1129",
+  "categories": [
+    "normal"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "TX-2100036"
+      }
+    },
+    {
+      "source": "county_dba"
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Suffix variant ('Obsidian Furniture Inc' vs 'OBSIDIAN FURNITURE, INCORPORATED') plus a county DBA the vendor missed. The county filing names the entity by ID."
+}

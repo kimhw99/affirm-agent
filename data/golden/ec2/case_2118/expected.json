@@ -1,0 +1,24 @@
+{
+  "case_id": "case_2118",
+  "categories": [
+    "business_scenario",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MI-2729128"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Formed 2026-10-28; the EIN is too new for IRS matching. No CP575 was uploaded, so nothing shows the EIN was assigned. document_request should ask for the CP575."
+}

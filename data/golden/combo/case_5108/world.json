@@ -1,0 +1,25 @@
+{
+  "case_id": "case_5108",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "CA-FRESNO-2020-010894",
+      "state": "CA",
+      "county": "Fresno",
+      "dba": "SILVERBIRCH BRIDAL BOUTIQUE",
+      "registrant": "NOLAN SZABO",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2020-09-17",
+      "expires": "2030-09-17",
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "1138",
+    "irs_status": "issued",
+    "irs_name": "NOLAN ILUNGA"
+  }
+}

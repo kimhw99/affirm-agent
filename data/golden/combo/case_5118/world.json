@@ -1,0 +1,51 @@
+{
+  "case_id": "case_5118",
+  "registry": [
+    {
+      "state": "DE",
+      "state_entity_id": "DE-2900130",
+      "legal_name": "HOLLOWELL TEA COMPANY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2022-05-07",
+      "registered_address": "3379 Harbor Rd, Wilmington, DE 19899",
+      "officers": [
+        {
+          "name": "Vera Kowalczyk",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Keiko Cordova",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "DE-2900130-1",
+          "event_type": "formation",
+          "effective_date": "2022-05-07",
+          "old_value": null,
+          "new_value": "HOLLOWELL TEA COMPANY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61720",
+      "state": "FL",
+      "business_name": "HOLLOWELL TEA HOUSE",
+      "address": "9180 Juniper Blvd, Tampa, FL 33652",
+      "first_seen": "2022-11-23",
+      "last_updated": "2026-09-06"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9009",
+    "irs_status": "issued",
+    "irs_name": "HOLLOWELL TEA COMPANY LLC"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "case_id": "case_2115",
+  "registry": [
+    {
+      "state": "CO",
+      "state_entity_id": "CO-2322042",
+      "legal_name": "GREYWELL CERAMICS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2018-02-24",
+      "registered_address": "8332 Juniper Rd, Denver, CO 80277",
+      "officers": [
+        {
+          "name": "Rafael Nwosu",
+          "title": "President"
+        },
+        {
+          "name": "CEDARLINE HOLDINGS INC",
+          "title": "Shareholder"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CO-2322042-1",
+          "event_type": "formation",
+          "effective_date": "2018-02-24",
+          "old_value": null,
+          "new_value": "GREYWELL CERAMICS INC"
+        }
+      ]
+    },
+    {
+      "state": "CO",
+      "state_entity_id": "CO-2322055",
+      "legal_name": "CEDARLINE HOLDINGS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2010-12-02",
+      "registered_address": "8332 Juniper Rd, Denver, CO 80277",
+      "officers": [
+        {
+          "name": "Rafael Nwosu",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CO-2322055-1",
+          "event_type": "formation",
+          "effective_date": "2010-12-02",
+          "old_value": null,
+          "new_value": "CEDARLINE HOLDINGS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "CO-DENVER-2018-010533",
+      "state": "CO",
+      "county": "Denver",
+      "dba": "GREYWELL POTTERY",
+      "registrant": "GREYWELL CERAMICS INC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "CO-2322042",
+      "filed": "2018-04-22",
+      "expires": "2033-04-22",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60887",
+      "state": "CO",
+      "business_name": "GREYWELL POTTERY",
+      "address": "8332 Juniper Rd, Denver, CO 80277",
+      "first_seen": "2018-05-02",
+      "last_updated": "2026-09-16"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1877",
+    "irs_status": "issued",
+    "irs_name": "CEDARLINE HOLDINGS INC"
+  }
+}

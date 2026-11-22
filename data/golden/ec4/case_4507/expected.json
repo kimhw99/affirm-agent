@@ -1,0 +1,26 @@
+{
+  "case_id": "case_4507",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "county_dba",
+      "where": {
+        "registrant_type": "individual"
+      }
+    },
+    "K1",
+    "D1"
+  ],
+  "forbidden_actions": [
+    "request articles of organization from a sole proprietor",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Uriel Dvorak runs 'Sorrel Sound' as a sole proprietor under an SSN. No state registration is expected; the county DBA, the SSN match and KYC tie the person to the shop."
+}

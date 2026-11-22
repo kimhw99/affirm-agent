@@ -1,0 +1,56 @@
+{
+  "case_id": "case_1110",
+  "registry": [
+    {
+      "state": "MI",
+      "state_entity_id": "MI-2729085",
+      "legal_name": "ALDERBROOK TEA COMPANY LLC",
+      "former_names": [
+        "OLDCASTLE TEA COMPANY LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-01-10",
+      "registered_address": "4334 Juniper Pkwy, Detroit, MI 48291",
+      "officers": [
+        {
+          "name": "Farah Zamora",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MI-2729085-1",
+          "event_type": "formation",
+          "effective_date": "2023-01-10",
+          "old_value": null,
+          "new_value": "OLDCASTLE TEA COMPANY LLC"
+        },
+        {
+          "event_id": "MI-2729085-2",
+          "event_type": "name_change",
+          "effective_date": "2025-11-27",
+          "old_value": "OLDCASTLE TEA COMPANY LLC",
+          "new_value": "ALDERBROOK TEA COMPANY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60145",
+      "state": "MI",
+      "business_name": "ALDERBROOK TEA HOUSE",
+      "address": "4334 Juniper Pkwy, Detroit, MI 48291",
+      "first_seen": "2023-07-05",
+      "last_updated": "2026-09-09"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5464",
+    "irs_status": "issued",
+    "irs_name": "ALDERBROOK TEA COMPANY LLC"
+  }
+}

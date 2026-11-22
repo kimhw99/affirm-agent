@@ -1,0 +1,32 @@
+{
+  "case_id": "case_2112",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "NY-2174043"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "recommend_clear",
+    "explain the mismatch as a name-control formatting issue",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The EIN on file at the IRS belongs to 'EVENFALL PET SUPPLY LLC', an unrelated active company in NY with different officers. No name change links the two. The W-9 just repeats the application."
+}

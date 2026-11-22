@@ -1,0 +1,75 @@
+{
+  "case_id": "case_1112",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Cindervale Bridal Boutique",
+    "address": "2845 Foundry Dr, San Antonio, TX 78204",
+    "tin_type": "EIN",
+    "tin_last4": "9169",
+    "state": "TX",
+    "state_entity_id": "TX-2100021",
+    "entity_type": "CORPORATION",
+    "formation_date": "2022-04-03",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Emeka Okafor",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "CINDERVALE BRIDAL INC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Cindervale Bridal Boutique",
+        "registrant": "Cindervale Bridal Inc",
+        "jurisdiction": "Bexar County, TX",
+        "filed": "2022-05-14",
+        "expires": "2037-05-14"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "CINDERVALE BRIDAL INC DBA CINDERVALE BRIDAL BOUTIQUE",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://cindervalebridalboutique.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "legal_name": "Cindervale Bridal Inc",
+        "address": "2845 Foundry Dr, San Antonio, TX 78204",
+        "dba": "Cindervale Bridal Boutique"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "case_id": "case_1107",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Yarro-wfield Mattress LLC",
+    "address": "3825 Orchard Ave, Phoenix, AZ 85003",
+    "tin_type": "EIN",
+    "tin_last4": "8857",
+    "state": "AZ",
+    "state_entity_id": "AZ-2470021",
+    "entity_type": "LLC",
+    "formation_date": "2017-11-30",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vera Halvorsen",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Mara Quintero",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "YARROWFIELD MATTRESS LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "YARROWFIELD MATTRESS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://yarrowfield.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Yarro-wfield Mattress LLC",
+        "address": "3825 Orchard Ave, Phoenix, AZ 85003"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

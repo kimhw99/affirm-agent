@@ -1,0 +1,77 @@
+{
+  "case_id": "case_5118",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Hollowell Tea Company LLC",
+    "dba": "Hollowell Tea House",
+    "address": "9180 Juniper Blvd, Tampa, FL 33652",
+    "tin_type": "EIN",
+    "tin_last4": "9009",
+    "state": "FL",
+    "state_entity_id": null,
+    "entity_type": "LLC",
+    "formation_date": "2022-05-07",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vera Kowalczyk",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Keiko Cordova",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "HOLLOWELL TEA COMPANY LLC DBA HOLLOWELL TEA HOUSE",
+    "status": "verified",
+    "verified_at": "2026-11-15"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://hollowellteahouse.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Hollowell Tea Company LLC",
+        "address": "9180 Juniper Blvd, Tampa, FL 33652",
+        "dba": "Hollowell Tea House"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

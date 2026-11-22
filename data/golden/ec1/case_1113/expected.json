@@ -1,0 +1,32 @@
+{
+  "case_id": "case_1113",
+  "categories": [
+    "business_scenario",
+    "exception",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "NJ-2655029"
+      }
+    },
+    {
+      "any_of": [
+        "B1",
+        "W1"
+      ]
+    }
+  ],
+  "forbidden_actions": [
+    "recommend_clear without an official link between the trade name and the entity",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant entered its trade name 'Bellhaven Shoes' as the legal name. The entity ID belongs to 'BELLHAVEN FOOTWEAR LLC', and the bank and website use both names, but no DBA filing ties 'Bellhaven Shoes' to the entity. document_request should ask for a DBA certificate for the trade name."
+}

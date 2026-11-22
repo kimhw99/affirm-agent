@@ -1,0 +1,84 @@
+{
+  "case_id": "case_2109",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Goldfinch Ceramics LLC",
+    "address": "559 Canal Rd, Boulder, CO 80312",
+    "tin_type": "EIN",
+    "tin_last4": "6840",
+    "state": "CO",
+    "state_entity_id": "CO-2322019",
+    "entity_type": "LLC",
+    "formation_date": "2023-12-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Rafael Yilmaz",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "GOLDFINCH CERAMICS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Rafael Yilmaz",
+        "tin_type": "EIN",
+        "tin_last4": "6840",
+        "business_name": "Goldfinch Ceramics LLC"
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "D2",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "RAFAEL YILMAZ",
+        "ein_last4": "6840",
+        "name_control": "RAFA",
+        "date": "2023-12-09"
+      },
+      "confidence": 0.92
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GOLDFINCH CERAMICS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://goldfinch.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Goldfinch Ceramics LLC",
+        "address": "559 Canal Rd, Boulder, CO 80312"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

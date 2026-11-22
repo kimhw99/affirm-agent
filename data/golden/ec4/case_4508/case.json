@@ -1,0 +1,78 @@
+{
+  "case_id": "case_4508",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Vera Quintero",
+    "dba": "Valemont Eyewear",
+    "address": "8008 Beacon Blvd, Minneapolis, MN 55431",
+    "tin_type": "SSN",
+    "tin_last4": "8640",
+    "state": "MN",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2020-06-01",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vera Quintero",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Valemont Eyewear",
+        "registrant": "Vera Quintero",
+        "jurisdiction": "Hennepin County, MN",
+        "filed": "2020-06-11",
+        "expires": "2030-06-11"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "VERA QUINTERO DBA VALEMONT EYEWEAR",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://valemonteyewear.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "address": "8008 Beacon Blvd, Minneapolis, MN 55431",
+        "dba": "Valemont Eyewear"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

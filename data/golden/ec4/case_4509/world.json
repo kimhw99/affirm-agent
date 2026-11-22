@@ -1,0 +1,25 @@
+{
+  "case_id": "case_4509",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "TN-DAVIDSON-2018-010676",
+      "state": "TN",
+      "county": "Davidson",
+      "dba": "OAKHURST POTTERY",
+      "registrant": "FIONA GUTIERREZ",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2018-10-16",
+      "expires": "2028-10-16",
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "3283",
+    "irs_status": "issued",
+    "irs_name": "FIONA GUTIERREZ"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "case_id": "case_1118",
+  "registry": [
+    {
+      "state": "AZ",
+      "state_entity_id": "AZ-2470056",
+      "legal_name": "JASPERTON FOOTWEAR INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2018-01-05",
+      "registered_address": "5208 Maple Dr, Phoenix, AZ 85032",
+      "officers": [
+        {
+          "name": "Ivan Abernathy",
+          "title": "President"
+        },
+        {
+          "name": "Yusuf Haddad",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "AZ-2470056-1",
+          "event_type": "formation",
+          "effective_date": "2018-01-05",
+          "old_value": null,
+          "new_value": "JASPERTON FOOTWEAR INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "AZ-MARICOPA-2020-010225",
+      "state": "AZ",
+      "county": "Maricopa",
+      "dba": "JASPERTON SHOES",
+      "registrant": "JASPERTON FOOTWEAR INC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "AZ-2470056",
+      "filed": "2020-10-01",
+      "expires": "2025-10-01",
+      "status": "expired"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60270",
+      "state": "AZ",
+      "business_name": "JASPERTON SHOES",
+      "address": "5208 Maple Dr, Phoenix, AZ 85032",
+      "first_seen": "2018-03-24",
+      "last_updated": "2026-09-14"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5431",
+    "irs_status": "issued",
+    "irs_name": "JASPERTON FOOTWEAR INC"
+  }
+}

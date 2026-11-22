@@ -1,0 +1,83 @@
+{
+  "case_id": "case_4513",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Riverbend Toys LLC",
+    "address": "8833 Orchard Blvd, Orlando, FL 32802",
+    "tin_type": "EIN",
+    "tin_last4": "6594",
+    "state": "FL",
+    "state_entity_id": null,
+    "entity_type": "LLC",
+    "formation_date": "2018-07-25",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Blake Lachance",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Kiran Halvorsen",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Riverbend Toys LLC",
+        "state": "DE",
+        "state_entity_id": "DE-2900028",
+        "formation_date": "2018-07-25"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "RIVERBEND TOYS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://riverbend.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Riverbend Toys LLC",
+        "address": "8833 Orchard Blvd, Orlando, FL 32802"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

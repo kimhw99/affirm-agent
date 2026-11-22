@@ -1,0 +1,73 @@
+{
+  "case_id": "case_4524",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Thistledown Bicycle Works LLC",
+    "address": "179 Hawthorne Rd, Pittsburgh, PA 15261",
+    "tin_type": "EIN",
+    "tin_last4": "8419",
+    "state": "PA",
+    "state_entity_id": "PA-2581121",
+    "entity_type": "LLC",
+    "formation_date": "2025-12-16",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Blake Ilunga",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Thistledown Bicycle Works LLC",
+        "state": "PA",
+        "state_entity_id": "PA-2581121",
+        "formation_date": "2025-12-16"
+      },
+      "confidence": 0.7
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "THISTLEDOWN BICYCLE WORKS LLC",
+    "status": "failed"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://thistledown.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Thistledown Bicycle Works LLC",
+        "address": "179 Hawthorne Rd, Pittsburgh, PA 15261"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "fail"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "case_id": "case_2130",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "officer_name": "Talia Mbeki"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate with \"SSN belongs to an unrelated person\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "A two-member LLC applied with a member's SSN (Talia Mbeki). A multi-member LLC must have its own EIN, so the SSN can't be the business's TIN. document_request should ask for a W-9 (and the LLC's EIN if it has one)."
+}

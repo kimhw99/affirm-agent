@@ -1,0 +1,27 @@
+{
+  "case_id": "case_5105",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-2",
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    "D2",
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "NC-2433071"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate because the business is new",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Formed 2026-11-13, days ago. The registry now has it, the EIN is too new to match and no commercial database has it yet. The CP575 and articles agree with the application."
+}

@@ -1,0 +1,26 @@
+{
+  "case_id": "case_2104",
+  "categories": [
+    "normal"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "name_control_tested": "ROOK",
+        "tin_match_result": "Match"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate over a formatting-only name difference",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The IRS name starts with THE; the name control is taken from the next word, and the vendor tested the wrong four letters. The 147C letter shows the IRS name; same business."
+}

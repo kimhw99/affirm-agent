@@ -1,0 +1,64 @@
+{
+  "case_id": "case_1116",
+  "registry": [
+    {
+      "state": "CO",
+      "state_entity_id": "CO-2322004",
+      "legal_name": "THORNBURY COFFEE ROASTERS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-10-28",
+      "registered_address": "5196 Hawthorne Ln, Boulder, CO 80352",
+      "officers": [
+        {
+          "name": "Sienna Tanaka",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Bianca Kowalczyk",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CO-2322004-1",
+          "event_type": "formation",
+          "effective_date": "2023-10-28",
+          "old_value": null,
+          "new_value": "THORNBURY COFFEE ROASTERS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "CO-AN-2023-10202",
+      "state": "CO",
+      "county": null,
+      "dba": "THORNBURY COFFEE BAR",
+      "registrant": "THORNBURY COFFEE ROASTERS LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "CO-2322004",
+      "filed": "2023-12-16",
+      "expires": "2033-12-16",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60245",
+      "state": "CO",
+      "business_name": "THORNBURY COFFEE BAR",
+      "address": "5196 Hawthorne Ln, Boulder, CO 80352",
+      "first_seen": "2024-02-29",
+      "last_updated": "2026-09-05"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9492",
+    "irs_status": "issued",
+    "irs_name": "THORNBURY COFFEE ROASTERS LLC"
+  }
+}

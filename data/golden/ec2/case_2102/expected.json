@@ -1,0 +1,34 @@
+{
+  "case_id": "case_2102",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "former_name": "KINGSBRIDGE HOME GOODS INC"
+      }
+    },
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "name_control_tested": "KING",
+        "tin_match_result": "Match"
+      }
+    },
+    "D1",
+    "D2"
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The company renamed itself from 'Kingsbridge Home Goods Inc' to 'Ridgeway Home Goods Inc' on 2026-04-09 but never told the IRS, which still has the old name. TIN matching under the old name succeeds."
+}

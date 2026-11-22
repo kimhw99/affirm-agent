@@ -1,0 +1,47 @@
+{
+  "case_id": "case_4515",
+  "registry": [
+    {
+      "state": "DE",
+      "state_entity_id": "DE-2900058",
+      "legal_name": "OTTERBURN LIGHTING LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2020-08-07",
+      "registered_address": "4801 Summit Blvd, Dover, DE 19991",
+      "officers": [
+        {
+          "name": "Farah Yilmaz",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "DE-2900058-1",
+          "event_type": "formation",
+          "effective_date": "2020-08-07",
+          "old_value": null,
+          "new_value": "OTTERBURN LIGHTING LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61303",
+      "state": "FL",
+      "business_name": "OTTERBURN LIGHTING LLC",
+      "address": "5681 Hawthorne Blvd, Tampa, FL 33628",
+      "first_seen": "2020-12-05",
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9611",
+    "irs_status": "issued",
+    "irs_name": "OTTERBURN LIGHTING LLC"
+  }
+}

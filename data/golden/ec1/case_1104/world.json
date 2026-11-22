@@ -1,0 +1,96 @@
+{
+  "case_id": "case_1104",
+  "registry": [
+    {
+      "state": "MI",
+      "state_entity_id": "MI-2729023",
+      "legal_name": "MARIGOLD LIGHTING, INC.",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2024-01-22",
+      "registered_address": "4294 Willow St, Grand Rapids, MI 49578",
+      "officers": [
+        {
+          "name": "Sienna Eriksen",
+          "title": "President"
+        },
+        {
+          "name": "Camila Rasmussen",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MI-2729023-1",
+          "event_type": "formation",
+          "effective_date": "2024-01-22",
+          "old_value": null,
+          "new_value": "MARIGOLD LIGHTING, INC."
+        }
+      ]
+    },
+    {
+      "state": "MI",
+      "state_entity_id": "MI-2729053",
+      "legal_name": "MARIGOLD LAMPS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "dissolved",
+      "formation_date": "2012-05-18",
+      "registered_address": "364 Ridge Way, Detroit, MI 48231",
+      "officers": [
+        {
+          "name": "Grant Ilunga",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MI-2729053-1",
+          "event_type": "formation",
+          "effective_date": "2012-05-18",
+          "old_value": null,
+          "new_value": "MARIGOLD LAMPS LLC"
+        },
+        {
+          "event_id": "MI-2729053-2",
+          "event_type": "dissolution",
+          "effective_date": "2023-11-05",
+          "old_value": "active",
+          "new_value": "dissolved"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "MI-KENT-2024-010069",
+      "state": "MI",
+      "county": "Kent",
+      "dba": "MARIGOLD LAMPS",
+      "registrant": "MARIGOLD LIGHTING, INC.",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "MI-2729023",
+      "filed": "2024-05-29",
+      "expires": "2039-05-29",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60051",
+      "state": "MI",
+      "business_name": "MARIGOLD LAMPS",
+      "address": "4294 Willow St, Grand Rapids, MI 49578",
+      "first_seen": "2024-03-26",
+      "last_updated": "2026-10-21"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7594",
+    "irs_status": "issued",
+    "irs_name": "MARIGOLD LIGHTING INC"
+  }
+}

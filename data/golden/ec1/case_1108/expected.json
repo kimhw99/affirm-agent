@@ -1,0 +1,26 @@
+{
+  "case_id": "case_1108",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "former_name": "UMBERLEIGH PET SUPPLY LLC"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "conclude the entity ID belongs to a different business",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant applied under its former name 'Umberleigh Pet Supply LLC'. The entity ID points to 'GULLHAVEN PET SUPPLY LLC', and the filing history shows a name change on 2026-03-23."
+}

@@ -1,0 +1,93 @@
+{
+  "case_id": "case_2114",
+  "registry": [
+    {
+      "state": "IL",
+      "state_entity_id": "IL-2248003",
+      "legal_name": "DUNLIN HOME GOODS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-09-21",
+      "registered_address": "3740 Union St, Chicago, IL 60607",
+      "officers": [
+        {
+          "name": "Grant Achebe",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Ximena Fairclough",
+          "title": "Member"
+        },
+        {
+          "name": "QUAYSIDE HOLDINGS INC",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "IL-2248003-1",
+          "event_type": "formation",
+          "effective_date": "2019-09-21",
+          "old_value": null,
+          "new_value": "DUNLIN HOME GOODS LLC"
+        }
+      ]
+    },
+    {
+      "state": "IL",
+      "state_entity_id": "IL-2248018",
+      "legal_name": "QUAYSIDE HOLDINGS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2014-03-30",
+      "registered_address": "3740 Union St, Chicago, IL 60607",
+      "officers": [
+        {
+          "name": "Grant Achebe",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "IL-2248018-1",
+          "event_type": "formation",
+          "effective_date": "2014-03-30",
+          "old_value": null,
+          "new_value": "QUAYSIDE HOLDINGS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "IL-COOK-2020-010524",
+      "state": "IL",
+      "county": "Cook",
+      "dba": "DUNLIN HOME",
+      "registrant": "DUNLIN HOME GOODS LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "IL-2248003",
+      "filed": "2020-02-15",
+      "expires": "2035-02-15",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60880",
+      "state": "IL",
+      "business_name": "DUNLIN HOME",
+      "address": "3740 Union St, Chicago, IL 60607",
+      "first_seen": "2019-12-20",
+      "last_updated": "2026-09-04"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9644",
+    "irs_status": "issued",
+    "irs_name": "QUAYSIDE HOLDINGS INC"
+  }
+}

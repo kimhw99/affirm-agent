@@ -1,0 +1,84 @@
+{
+  "case_id": "case_2111",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396092",
+      "legal_name": "IVYWOOD RUGS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2020-01-07",
+      "registered_address": "7568 Mill Pkwy, Eugene, OR 97468",
+      "officers": [
+        {
+          "name": "Helena Jovanovic",
+          "title": "President"
+        },
+        {
+          "name": "Farah Quintero",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396092-1",
+          "event_type": "formation",
+          "effective_date": "2020-01-07",
+          "old_value": null,
+          "new_value": "IVYWOOD RUGS INC"
+        }
+      ]
+    },
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581045",
+      "legal_name": "WHEELWRIGHT TEA COMPANY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2011-05-23",
+      "registered_address": "2219 Harbor Dr, Pittsburgh, PA 15247",
+      "officers": [
+        {
+          "name": "Emeka Jablonski",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581045-1",
+          "event_type": "formation",
+          "effective_date": "2011-05-23",
+          "old_value": null,
+          "new_value": "WHEELWRIGHT TEA COMPANY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60791",
+      "state": "OR",
+      "business_name": "IVYWOOD RUGS INC",
+      "address": "7568 Mill Pkwy, Eugene, OR 97468",
+      "first_seen": "2020-04-11",
+      "last_updated": "2026-09-11"
+    },
+    {
+      "profile_id": "CDB-60794",
+      "state": "PA",
+      "business_name": "WHEELWRIGHT TEA COMPANY LLC",
+      "address": "2219 Harbor Dr, Pittsburgh, PA 15247",
+      "first_seen": "2018-10-16",
+      "last_updated": "2026-10-23"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5388",
+    "irs_status": "issued",
+    "irs_name": "WHEELWRIGHT TEA COMPANY LLC"
+  }
+}

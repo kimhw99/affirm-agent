@@ -1,0 +1,69 @@
+{
+  "case_id": "case_5103",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174172",
+      "legal_name": "ZEPHYRINE FOOTWEAR L.L.C.",
+      "former_names": [
+        "ELMHAVEN FOOTWEAR LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2018-02-20",
+      "registered_address": "5430 Willow Way, Brooklyn, NY 11284",
+      "officers": [
+        {
+          "name": "Mateo Petrovic",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174172-1",
+          "event_type": "formation",
+          "effective_date": "2018-02-20",
+          "old_value": null,
+          "new_value": "ELMHAVEN FOOTWEAR LLC"
+        },
+        {
+          "event_id": "NY-2174172-2",
+          "event_type": "name_change",
+          "effective_date": "2025-10-20",
+          "old_value": "ELMHAVEN FOOTWEAR LLC",
+          "new_value": "ZEPHYRINE FOOTWEAR L.L.C."
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "NY-KINGS-2025-010850",
+      "state": "NY",
+      "county": "Kings",
+      "dba": "ZEPHYRINE SHOES",
+      "registrant": "ELMHAVEN FOOTWEAR LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "NY-2174172",
+      "filed": "2025-04-03",
+      "expires": "2030-04-03",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61504",
+      "state": "NY",
+      "business_name": "ZEPHYRINE SHOES",
+      "address": "5430 Willow Way, Brooklyn, NY 11284",
+      "first_seen": "2018-05-30",
+      "last_updated": "2026-09-18"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7252",
+    "irs_status": "issued",
+    "irs_name": "ELMHAVEN FOOTWEAR LLC"
+  }
+}

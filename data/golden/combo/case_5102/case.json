@@ -1,0 +1,80 @@
+{
+  "case_id": "case_5102",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Honeycomb Kitchenware Inc.",
+    "dba": "Honeycomb Kitchen",
+    "address": "1961 Beacon Way, Tucson, AZ 85716",
+    "tin_type": "EIN",
+    "tin_last4": "3114",
+    "state": "AZ",
+    "state_entity_id": "AZ-2470104",
+    "entity_type": "CORPORATION",
+    "formation_date": "2021-07-21",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Willa Rasmussen",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "HONEYCOMB KITCHENWARE INCORPORATED"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "HEARTHSTONE KITCHENWARE INC",
+        "ein_last4": "3114",
+        "name_control": "HEAR",
+        "date": "2021-07-29"
+      },
+      "confidence": 0.9
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "HONEYCOMB KITCHENWARE INC DBA HONEYCOMB KITCHEN",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://honeycombkitchen.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Honeycomb Kitchenware Inc.",
+        "address": "1961 Beacon Way, Tucson, AZ 85716",
+        "dba": "Honeycomb Kitchen"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

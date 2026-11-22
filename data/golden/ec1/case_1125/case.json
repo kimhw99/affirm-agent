@@ -1,0 +1,61 @@
+{
+  "case_id": "case_1125",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Verdant Rugs LLC",
+    "address": "5111 Sycamore Ave, Memphis, TN 38148",
+    "tin_type": "EIN",
+    "tin_last4": "3794",
+    "state": "TN",
+    "state_entity_id": "TN-2692004",
+    "entity_type": "LLC",
+    "formation_date": "2015-11-10",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vikram Fairclough",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "VERDANT RUGS GROUP LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "VERDANT RUGS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://verdant.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "legal_name": "Verdant Rugs LLC",
+        "address": "5111 Sycamore Ave, Memphis, TN 38148"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

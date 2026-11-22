@@ -1,0 +1,75 @@
+{
+  "case_id": "case_5124",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH",
+    "NO_COMMERCIAL_RECORD",
+    "PRODUCT_CATEGORY_REVIEW"
+  ],
+  "application": {
+    "legal_name": "Waymark Toys LLC",
+    "address": "5750 Prospect Blvd, Asheville, NC 28890",
+    "tin_type": "EIN",
+    "tin_last4": "3505",
+    "state": "NC",
+    "state_entity_id": "NC-2433103",
+    "entity_type": "LLC",
+    "formation_date": "2019-10-09",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Jonah Lindqvist",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "WAYMARK TOYS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "extracted": {
+        "name": "EVERLY TOYS LLC",
+        "ein_last4": "3505",
+        "name_control": "EVER",
+        "date": "2026-10-22"
+      },
+      "confidence": 0.94
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "WAYMARK TOYS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://waymark.example/about",
+      "captured_at": "2026-11-11",
+      "extracted": {
+        "legal_name": "Waymark Toys LLC",
+        "address": "5750 Prospect Blvd, Asheville, NC 28890"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

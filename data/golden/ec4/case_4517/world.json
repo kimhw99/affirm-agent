@@ -1,0 +1,42 @@
+{
+  "case_id": "case_4517",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692125",
+      "legal_name": "FAIRHAVEN BOOKS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2026-09-21",
+      "registered_address": "7447 Market Ave, Nashville, TN 37252",
+      "officers": [
+        {
+          "name": "Vera Yamamoto",
+          "title": "President"
+        },
+        {
+          "name": "Quentin Pellegrini",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692125-1",
+          "event_type": "formation",
+          "effective_date": "2026-09-21",
+          "old_value": null,
+          "new_value": "FAIRHAVEN BOOKS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2027",
+    "irs_status": "issued",
+    "irs_name": "FAIRHAVEN BOOKS INC"
+  }
+}

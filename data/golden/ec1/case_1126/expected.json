@@ -1,0 +1,24 @@
+{
+  "case_id": "case_1126",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MN-2618114"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "treat the look-alike entity as the merchant's because the names are similar",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant gave entity ID MN-2618114, which belongs to 'OXBOW LIGHTING GROUP LLC' (inactive), with different officers and a different address. The applied 'Oxbow Lighting LLC' has no registry record of its own."
+}

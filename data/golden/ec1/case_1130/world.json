@@ -1,0 +1,60 @@
+{
+  "case_id": "case_1130",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-2211076",
+      "legal_name": "FOGBANK AUTO PARTS LIMITED LIABILITY COMPANY",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-06-25",
+      "registered_address": "6930 Market Pkwy, Orlando, FL 32848",
+      "officers": [
+        {
+          "name": "Nadia Achebe",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-2211076-1",
+          "event_type": "formation",
+          "effective_date": "2023-06-25",
+          "old_value": null,
+          "new_value": "FOGBANK AUTO PARTS LIMITED LIABILITY COMPANY"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "FL-ORANGE-2023-010439",
+      "state": "FL",
+      "county": "Orange",
+      "dba": "FOGBANK AUTO",
+      "registrant": "FOGBANK AUTO PARTS LIMITED LIABILITY COMPANY",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "FL-2211076",
+      "filed": "2023-09-23",
+      "expires": "2033-09-23",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60479",
+      "state": "FL",
+      "business_name": "FOGBANK AUTO",
+      "address": "6930 Market Pkwy, Orlando, FL 32848",
+      "first_seen": "2023-10-28",
+      "last_updated": "2026-09-24"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1311",
+    "irs_status": "issued",
+    "irs_name": "FOGBANK AUTO PARTS LLC"
+  }
+}

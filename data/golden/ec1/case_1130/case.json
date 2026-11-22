@@ -1,0 +1,80 @@
+{
+  "case_id": "case_1130",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Fogbank Auto Parts LLC",
+    "dba": "Fogbank Auto",
+    "address": "6930 Market Pkwy, Orlando, FL 32848",
+    "tin_type": "EIN",
+    "tin_last4": "1311",
+    "state": "FL",
+    "state_entity_id": "FL-2211076",
+    "entity_type": "LLC",
+    "formation_date": "2023-06-25",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Nadia Achebe",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "FOGBANK AUTO PARTS LIMITED LIABILITY COMPANY"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Fogbank Auto",
+        "registrant": "Fogbank Auto Parts Limited Liability Company",
+        "jurisdiction": "Orange County, FL",
+        "filed": "2023-09-23",
+        "expires": "2033-09-23"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "FOGBANK AUTO PARTS LLC DBA FOGBANK AUTO",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://fogbankauto.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Fogbank Auto Parts LLC",
+        "address": "6930 Market Pkwy, Orlando, FL 32848",
+        "dba": "Fogbank Auto"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

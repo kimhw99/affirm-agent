@@ -1,0 +1,89 @@
+{
+  "case_id": "case_1117",
+  "status": "pending_review",
+  "flag_reasons": [
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Kilnworth Garden Supply LLC",
+    "dba": "Kilnworth Gardens",
+    "address": "368 Mill Blvd, Tampa, FL 33640",
+    "tin_type": "EIN",
+    "tin_last4": "8642",
+    "state": "FL",
+    "state_entity_id": "FL-2211055",
+    "entity_type": "LLC",
+    "formation_date": "2018-06-30",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Luis Pellegrini",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Nolan Moreau",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "KILNWORTH GARDEN SUPPLY LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Kilnworth Gardens",
+        "registrant": "Kilnworth Garden Supply LLC",
+        "jurisdiction": "Hillsborough County, FL",
+        "filed": "2021-01-01",
+        "expires": "2026-01-01"
+      },
+      "confidence": 0.9
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "KILNWORTH GARDEN SUPPLY LLC DBA KILNWORTH GARDENS",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://kilnworthgardens.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Kilnworth Garden Supply LLC",
+        "address": "368 Mill Blvd, Tampa, FL 33640",
+        "dba": "Kilnworth Gardens"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "case_id": "case_4521",
+  "registry": [
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581117",
+      "legal_name": "DRIFTSTONE WOODWORKS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-06-19",
+      "registered_address": "2281 Summit Way, Pittsburgh, PA 15227",
+      "officers": [
+        {
+          "name": "Talia Ilunga",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Jada Iwasaki",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581117-1",
+          "event_type": "formation",
+          "effective_date": "2024-06-19",
+          "old_value": null,
+          "new_value": "DRIFTSTONE WOODWORKS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61365",
+      "state": "PA",
+      "business_name": "DRIFTSTONE WOODWORKS LLC",
+      "address": "2281 Summit Way, Pittsburgh, PA 15227",
+      "first_seen": "2024-09-03",
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "4977",
+    "irs_status": "issued",
+    "irs_name": "DRIFTSTONE WOODWORKS LLC"
+  }
+}

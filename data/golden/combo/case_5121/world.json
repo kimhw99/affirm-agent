@@ -1,0 +1,72 @@
+{
+  "case_id": "case_5121",
+  "registry": [
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581167",
+      "legal_name": "STARLING JEWELRY L.L.C.",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-10-20",
+      "registered_address": "2324 Orchard Blvd, Pittsburgh, PA 15222",
+      "officers": [
+        {
+          "name": "Avery Brannigan",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581167-1",
+          "event_type": "formation",
+          "effective_date": "2026-10-20",
+          "old_value": null,
+          "new_value": "STARLING JEWELRY L.L.C."
+        }
+      ]
+    },
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581200",
+      "legal_name": "STARLING JEWELERS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2016-05-24",
+      "registered_address": "9198 Lake Blvd, Pittsburgh, PA 15299",
+      "officers": [
+        {
+          "name": "Jonah Fairclough",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581200-1",
+          "event_type": "formation",
+          "effective_date": "2016-05-24",
+          "old_value": null,
+          "new_value": "STARLING JEWELERS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61777",
+      "state": "PA",
+      "business_name": "STARLING JEWELERS",
+      "address": "9198 Lake Blvd, Pittsburgh, PA 15299",
+      "first_seen": "2020-11-24",
+      "last_updated": "2026-10-23"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5037",
+    "irs_status": "issued",
+    "irs_name": "STARLING JEWELRY LLC"
+  }
+}

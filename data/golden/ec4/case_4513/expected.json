@@ -1,0 +1,27 @@
+{
+  "case_id": "case_4513",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "DE-2900028"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "conclude the company does not exist",
+    "recommend_clear without a registration in the operating state",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The company was formed in Delaware but applied as a FL business, where it has no foreign qualification on file. The Delaware entity is real and active. document_request should ask for FL foreign qualification (certificate of authority)."
+}

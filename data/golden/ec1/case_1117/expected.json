@@ -1,0 +1,25 @@
+{
+  "case_id": "case_1117",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "county_dba",
+      "where": {
+        "dba_status": "expired"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "treat the expired filing as proof the DBA is current",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The DBA 'Kilnworth Gardens' was registered to 'KILNWORTH GARDEN SUPPLY LLC' but expired on 2026-01-01. The uploaded certificate is the same expired one; nothing shows a renewal. document_request should ask for a renewed DBA certificate."
+}

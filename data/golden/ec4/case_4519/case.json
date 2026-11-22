@@ -1,0 +1,83 @@
+{
+  "case_id": "case_4519",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Glimmer Woodworks LLC",
+    "address": "7723 Ridge Way, Pittsburgh, PA 15229",
+    "tin_type": "EIN",
+    "tin_last4": "8973",
+    "state": "PA",
+    "state_entity_id": "PA-25811098",
+    "entity_type": "LLC",
+    "formation_date": "2022-10-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Willa Ortega",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Tobias Nwosu",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Glimmer Woodworks LLC",
+        "state": "PA",
+        "state_entity_id": "PA-2581098",
+        "formation_date": "2022-10-02"
+      },
+      "confidence": 0.91
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GLIMMER WOODWORKS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://glimmer.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Glimmer Woodworks LLC",
+        "address": "7723 Ridge Way, Pittsburgh, PA 15229"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

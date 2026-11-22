@@ -1,0 +1,73 @@
+{
+  "case_id": "case_2107",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Moonrise Music LLC",
+    "address": "4406 Canal Pkwy, Raleigh, NC 27627",
+    "tin_type": "EIN",
+    "tin_last4": "3992",
+    "state": "NC",
+    "state_entity_id": "NC-2433042",
+    "entity_type": "LLC",
+    "formation_date": "2019-03-01",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Blake Ilunga",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "MOONRISE MUSIC LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Blake Ilunga",
+        "tin_type": "EIN",
+        "tin_last4": "3992",
+        "business_name": "Moonrise Music LLC"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "MOONRISE MUSIC LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://moonrise.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Moonrise Music LLC",
+        "address": "4406 Canal Pkwy, Raleigh, NC 27627"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

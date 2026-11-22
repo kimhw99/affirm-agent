@@ -1,0 +1,51 @@
+{
+  "case_id": "case_1107",
+  "registry": [
+    {
+      "state": "AZ",
+      "state_entity_id": "AZ-2470021",
+      "legal_name": "YARROWFIELD MATTRESS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2017-11-30",
+      "registered_address": "3825 Orchard Ave, Phoenix, AZ 85003",
+      "officers": [
+        {
+          "name": "Vera Halvorsen",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Mara Quintero",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "AZ-2470021-1",
+          "event_type": "formation",
+          "effective_date": "2017-11-30",
+          "old_value": null,
+          "new_value": "YARROWFIELD MATTRESS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60092",
+      "state": "AZ",
+      "business_name": "YARRO-WFIELD MATTRESS LLC",
+      "address": "3825 Orchard Ave, Phoenix, AZ 85003",
+      "first_seen": "2018-04-23",
+      "last_updated": "2026-09-08"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8857",
+    "irs_status": "issued",
+    "irs_name": "YARROWFIELD MATTRESS LLC"
+  }
+}

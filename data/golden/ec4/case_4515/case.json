@@ -1,0 +1,73 @@
+{
+  "case_id": "case_4515",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Otterburn Lighting LLC",
+    "address": "5681 Hawthorne Blvd, Tampa, FL 33628",
+    "tin_type": "EIN",
+    "tin_last4": "9611",
+    "state": "FL",
+    "state_entity_id": null,
+    "entity_type": "LLC",
+    "formation_date": "2020-08-07",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Farah Yilmaz",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Otterburn Lighting LLC",
+        "state": "DE",
+        "state_entity_id": "DE-2900058",
+        "formation_date": "2020-08-07"
+      },
+      "confidence": 0.94
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "OTTERBURN LIGHTING LLC",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://otterburn.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Otterburn Lighting LLC",
+        "address": "5681 Hawthorne Blvd, Tampa, FL 33628"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "case_id": "case_4523",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Kettleby Bakery Inc",
+    "address": "5285 Harbor Blvd, Brooklyn, NY 11254",
+    "tin_type": "EIN",
+    "tin_last4": "0775",
+    "state": "NY",
+    "state_entity_id": "NY-2174160",
+    "entity_type": "CORPORATION",
+    "formation_date": "2026-03-10",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Jonah Eriksen",
+        "role": "President"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Mateo Quintero",
+        "role": "Secretary"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Kettleby Bakery Inc",
+        "state": "NY",
+        "state_entity_id": "NY-2174160",
+        "formation_date": "2026-03-10"
+      },
+      "confidence": 0.63
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "KETTLEBY BAKERY INC",
+    "status": "unverified"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://kettleby.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Kettleby Bakery Inc",
+        "address": "5285 Harbor Blvd, Brooklyn, NY 11254"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pending"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

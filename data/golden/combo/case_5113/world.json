@@ -1,0 +1,60 @@
+{
+  "case_id": "case_5113",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174199",
+      "legal_name": "CRESTHAVEN COFFEE ROASTERS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-05-18",
+      "registered_address": "151 Chapel Way, Buffalo, NY 14277",
+      "officers": [
+        {
+          "name": "Vera Nakamura",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174199-1",
+          "event_type": "formation",
+          "effective_date": "2024-05-18",
+          "old_value": null,
+          "new_value": "CRESTHAVEN COFFEE ROASTERS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "NY-ERIE-2024-010922",
+      "state": "NY",
+      "county": "Erie",
+      "dba": "CRESTHAVEN COFFEE BAR",
+      "registrant": "CRESTHAVEN COFFEE ROASTERS LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "NY-2174199",
+      "filed": "2024-07-24",
+      "expires": "2039-07-24",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61570",
+      "state": "NY",
+      "business_name": "CRESTHAVEN COFFEE BAR",
+      "address": "151 Chapel Way, Buffalo, NY 14277",
+      "first_seen": "2024-10-18",
+      "last_updated": "2026-10-28"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7044",
+    "irs_status": "issued",
+    "irs_name": "CRESTHAVEN COFFEE ROASTERS LLC"
+  }
+}

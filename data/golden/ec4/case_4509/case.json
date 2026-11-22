@@ -1,0 +1,79 @@
+{
+  "case_id": "case_4509",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Fiona Gutierrez",
+    "dba": "Oakhurst Pottery",
+    "address": "6565 Maple Blvd, Nashville, TN 37249",
+    "tin_type": "SSN",
+    "tin_last4": "3283",
+    "state": "TN",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2018-10-06",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Fiona Gutierrez",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Oakhurst Pottery",
+        "registrant": "Fiona Gutierrez",
+        "jurisdiction": "Davidson County, TN",
+        "filed": "2018-10-16",
+        "expires": "2028-10-16"
+      },
+      "confidence": 0.91
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "FIONA GUTIERREZ DBA OAKHURST POTTERY",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://oakhurstpottery.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "address": "6565 Maple Blvd, Nashville, TN 37249",
+        "dba": "Oakhurst Pottery"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

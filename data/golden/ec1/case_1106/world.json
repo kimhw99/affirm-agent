@@ -1,0 +1,47 @@
+{
+  "case_id": "case_1106",
+  "registry": [
+    {
+      "state": "MA",
+      "state_entity_id": "MA-2507022",
+      "legal_name": "THE UPWELL AUDIO INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2020-01-19",
+      "registered_address": "4865 Ridge Pkwy, Worcester, MA 01645",
+      "officers": [
+        {
+          "name": "Oksana Valdivia",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MA-2507022-1",
+          "event_type": "formation",
+          "effective_date": "2020-01-19",
+          "old_value": null,
+          "new_value": "THE UPWELL AUDIO INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60085",
+      "state": "MA",
+      "business_name": "UPWELL AUDIO INC",
+      "address": "4865 Ridge Pkwy, Worcester, MA 01645",
+      "first_seen": "2020-04-26",
+      "last_updated": "2026-09-09"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5075",
+    "irs_status": "issued",
+    "irs_name": "THE UPWELL AUDIO INC"
+  }
+}

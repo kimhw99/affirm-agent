@@ -1,0 +1,47 @@
+{
+  "case_id": "case_2123",
+  "registry": [
+    {
+      "state": "AZ",
+      "state_entity_id": "AZ-2470067",
+      "legal_name": "WESTBROOK TOYS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2020-01-22",
+      "registered_address": "2390 Linden Blvd, Tucson, AZ 85750",
+      "officers": [
+        {
+          "name": "Rafael Xu",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "AZ-2470067-1",
+          "event_type": "formation",
+          "effective_date": "2020-01-22",
+          "old_value": null,
+          "new_value": "WESTBROOK TOYS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60978",
+      "state": "AZ",
+      "business_name": "WESTBROOK TOYS INC",
+      "address": "2390 Linden Blvd, Tucson, AZ 85750",
+      "first_seen": "2020-04-12",
+      "last_updated": "2026-09-04"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7522",
+    "irs_status": "not_found",
+    "irs_name": null
+  }
+}

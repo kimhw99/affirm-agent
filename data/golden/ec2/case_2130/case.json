@@ -1,0 +1,71 @@
+{
+  "case_id": "case_2130",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Redfern Coffee Roasters LLC",
+    "address": "1898 Maple Pkwy, Buffalo, NY 14207",
+    "tin_type": "SSN",
+    "tin_last4": "2111",
+    "state": "NY",
+    "state_entity_id": "NY-2174079",
+    "entity_type": "LLC",
+    "formation_date": "2023-09-15",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Talia Mbeki",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Cole Tanaka",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "REDFERN COFFEE ROASTERS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "REDFERN COFFEE ROASTERS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://redfern.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Redfern Coffee Roasters LLC",
+        "address": "1898 Maple Pkwy, Buffalo, NY 14207"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

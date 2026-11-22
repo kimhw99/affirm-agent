@@ -1,0 +1,76 @@
+{
+  "case_id": "case_4518",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Clovermead Kitchenware LLC",
+    "dba": "Clovermead Kitchen",
+    "address": "7927 Prospect Blvd, Cleveland, OH 44178",
+    "tin_type": "EIN",
+    "tin_last4": "5526",
+    "state": "OH",
+    "state_entity_id": "OH-2544076",
+    "entity_type": "LLC",
+    "formation_date": "2026-09-26",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Gideon Delacroix",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Kiran Lindqvist",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "CLOVERMEAD KITCHENWARE LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "CLOVERMEAD KITCHENWARE LLC DBA CLOVERMEAD KITCHEN",
+    "status": "verified",
+    "verified_at": "2026-11-07"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://clovermeadkitchen.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Clovermead Kitchenware LLC",
+        "address": "7927 Prospect Blvd, Cleveland, OH 44178",
+        "dba": "Clovermead Kitchen"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "case_id": "case_1124",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "WA-2285030"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "treat the look-alike entity as the merchant's because the names are similar",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant gave entity ID WA-2285030, which belongs to 'BIRCHMONT OPTICAL GROUP LLC' (dissolved), with different officers and a different address. The applied 'Birchmont Optical LLC' has no registry record of its own."
+}

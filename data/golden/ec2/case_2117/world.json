@@ -1,0 +1,42 @@
+{
+  "case_id": "case_2117",
+  "registry": [
+    {
+      "state": "MI",
+      "state_entity_id": "MI-2729097",
+      "legal_name": "SAFFRON JEWELRY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-11-04",
+      "registered_address": "836 Maple Rd, Grand Rapids, MI 49549",
+      "officers": [
+        {
+          "name": "Jada Cordova",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Imani Nwosu",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MI-2729097-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-04",
+          "old_value": null,
+          "new_value": "SAFFRON JEWELRY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6269",
+    "irs_status": "not_issued",
+    "irs_name": null
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "case_id": "case_1103",
+  "categories": [
+    "normal"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "OH-2544040"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "treat the suffix difference as a different company",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Applied as 'Dovetail Outdoor Gear Corp'; the state shows 'DOVETAIL OUTDOOR GEAR CORPORATION'. Only the entity suffix is written differently. Same entity ID, officers and address."
+}

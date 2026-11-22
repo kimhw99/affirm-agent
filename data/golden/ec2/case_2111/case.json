@@ -1,0 +1,83 @@
+{
+  "case_id": "case_2111",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Ivywood Rugs Inc",
+    "address": "7568 Mill Pkwy, Eugene, OR 97468",
+    "tin_type": "EIN",
+    "tin_last4": "5388",
+    "state": "OR",
+    "state_entity_id": "OR-2396092",
+    "entity_type": "CORPORATION",
+    "formation_date": "2020-01-07",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Helena Jovanovic",
+        "role": "President"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Farah Quintero",
+        "role": "Secretary"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "IVYWOOD RUGS INC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "IVYWOOD RUGS INC",
+        "ein_last4": "5388",
+        "name_control": "IVYW",
+        "date": "2020-01-19"
+      },
+      "confidence": 0.71
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "IVYWOOD RUGS INC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://ivywood.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Ivywood Rugs Inc",
+        "address": "7568 Mill Pkwy, Eugene, OR 97468"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

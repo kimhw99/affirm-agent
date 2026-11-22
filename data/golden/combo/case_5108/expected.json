@@ -1,0 +1,29 @@
+{
+  "case_id": "case_5108",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-2",
+    "EC-4"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "county_dba",
+      "where": {
+        "registrant_type": "individual"
+      }
+    },
+    "K1",
+    "D1"
+  ],
+  "forbidden_actions": [
+    "escalate with \"SSN belongs to an unrelated person\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Sole proprietor Nolan Szabo trading as 'Silverbirch Bridal Boutique' (county DBA under their name). The IRS has the SSN under 'NOLAN ILUNGA': same first name, different surname. W-9 uses the prior surname too, consistent with a name change the IRS hasn't seen; still needs proof linking the names."
+}

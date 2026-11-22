@@ -1,0 +1,64 @@
+{
+  "case_id": "case_1117",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-2211055",
+      "legal_name": "KILNWORTH GARDEN SUPPLY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2018-06-30",
+      "registered_address": "368 Mill Blvd, Tampa, FL 33640",
+      "officers": [
+        {
+          "name": "Luis Pellegrini",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Nolan Moreau",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-2211055-1",
+          "event_type": "formation",
+          "effective_date": "2018-06-30",
+          "old_value": null,
+          "new_value": "KILNWORTH GARDEN SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "FL-HILLSBOROUGH-2021-010211",
+      "state": "FL",
+      "county": "Hillsborough",
+      "dba": "KILNWORTH GARDENS",
+      "registrant": "KILNWORTH GARDEN SUPPLY LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "FL-2211055",
+      "filed": "2021-01-01",
+      "expires": "2026-01-01",
+      "status": "expired"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60251",
+      "state": "FL",
+      "business_name": "KILNWORTH GARDENS",
+      "address": "368 Mill Blvd, Tampa, FL 33640",
+      "first_seen": "2018-11-12",
+      "last_updated": "2026-10-07"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8642",
+    "irs_status": "issued",
+    "irs_name": "KILNWORTH GARDEN SUPPLY LLC"
+  }
+}

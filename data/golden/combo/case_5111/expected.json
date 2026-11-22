@@ -1,0 +1,31 @@
+{
+  "case_id": "case_5111",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-2"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MN-2618168"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "recommend_clear because the name flag is resolved",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The name issue is a harmless suffix variant ('Orrery Audio Co.' vs 'ORRERY AUDIO COMPANY'), but the EIN is on file for 'FERNHOLLOW LOGISTICS LLC', an unrelated company in MN. The name flag should be resolved; the TIN flag drives the escalation."
+}

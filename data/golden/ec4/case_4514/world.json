@@ -1,0 +1,51 @@
+{
+  "case_id": "case_4514",
+  "registry": [
+    {
+      "state": "DE",
+      "state_entity_id": "DE-2900033",
+      "legal_name": "LATTICE RUGS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2020-02-22",
+      "registered_address": "4876 Summit Rd, Dover, DE 19992",
+      "officers": [
+        {
+          "name": "Tobias Esposito",
+          "title": "President"
+        },
+        {
+          "name": "Grant Valdivia",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "DE-2900033-1",
+          "event_type": "formation",
+          "effective_date": "2020-02-22",
+          "old_value": null,
+          "new_value": "LATTICE RUGS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61240",
+      "state": "PA",
+      "business_name": "LATTICE RUGS INC",
+      "address": "4562 Linden Pkwy, Philadelphia, PA 19162",
+      "first_seen": "2020-06-21",
+      "last_updated": "2026-10-01"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1587",
+    "irs_status": "issued",
+    "irs_name": "LATTICE RUGS INC"
+  }
+}

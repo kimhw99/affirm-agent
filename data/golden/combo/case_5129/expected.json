@@ -1,0 +1,24 @@
+{
+  "case_id": "case_5129",
+  "categories": [
+    "business_scenario",
+    "hand_to_human"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-2",
+    "EC-4"
+  ],
+  "expected_decision": "insufficient_evidence",
+  "must_cite": [
+    "D1",
+    "D2",
+    "K1"
+  ],
+  "forbidden_actions": [
+    "require a state registration from a sole proprietor",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Delia Haddad just started 'Vantage Cycles' as a sole proprietor with a brand-new EIN. The county DBA isn't in the registry yet; only the merchant's certificate shows it. Every merchant document agrees, but nothing official confirms the DBA or EIN yet."
+}

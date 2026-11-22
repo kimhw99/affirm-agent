@@ -1,0 +1,27 @@
+{
+  "case_id": "case_2108",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "sos_registry",
+      "where": {
+        "officer_name": "Ximena Vasquez"
+      }
+    },
+    "K1"
+  ],
+  "forbidden_actions": [
+    "escalate with \"EIN belongs to an unrelated company\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Single-member LLC treated as a disregarded entity: the EIN is on file under the owner, Ximena Vasquez. The W-9 lists the owner as the tax name and the LLC as the business name; the owner is the LLC's only member and passed KYC."
+}

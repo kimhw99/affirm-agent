@@ -1,0 +1,51 @@
+{
+  "case_id": "case_4513",
+  "registry": [
+    {
+      "state": "DE",
+      "state_entity_id": "DE-2900028",
+      "legal_name": "RIVERBEND TOYS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2018-07-25",
+      "registered_address": "7488 Juniper Ave, Wilmington, DE 19884",
+      "officers": [
+        {
+          "name": "Blake Lachance",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Kiran Halvorsen",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "DE-2900028-1",
+          "event_type": "formation",
+          "effective_date": "2018-07-25",
+          "old_value": null,
+          "new_value": "RIVERBEND TOYS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61183",
+      "state": "FL",
+      "business_name": "RIVERBEND TOYS LLC",
+      "address": "8833 Orchard Blvd, Orlando, FL 32802",
+      "first_seen": "2018-11-22",
+      "last_updated": "2026-09-21"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6594",
+    "irs_status": "issued",
+    "irs_name": "RIVERBEND TOYS LLC"
+  }
+}

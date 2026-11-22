@@ -1,0 +1,73 @@
+{
+  "case_id": "case_4506",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Blackthorn Bakery Inc",
+    "address": "4662 Juniper Blvd, Savannah, GA 31484",
+    "tin_type": "EIN",
+    "tin_last4": "0739",
+    "state": "GA",
+    "state_entity_id": "GA-2359020",
+    "entity_type": "CORPORATION",
+    "formation_date": "2026-11-14",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Quentin Ilunga",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Blackthorn Bakery Inc",
+        "state": "GA",
+        "state_entity_id": "GA-2359020",
+        "formation_date": "2026-11-14"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "BLACKTHORN BAKERY INC",
+    "status": "pending"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://blackthorn.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Blackthorn Bakery Inc",
+        "address": "4662 Juniper Blvd, Savannah, GA 31484"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}
