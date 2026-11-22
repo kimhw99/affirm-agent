@@ -237,6 +237,7 @@ class ToolContext:
         self.merchant_sources: set[str] = set()
         self.errors: list[str] = []
         self.tool_calls_used = 0          # kept by the worker loop
+        self.tool_path: list[Any] = []    # kyb_contracts.tool_path.ToolCall per requested call; never sent to the Lead
         self.pending_hints: list[str] = []  # name checks of the running call; output_from() takes them
         self._source_by_key: dict[str, str] = {}
         self._outputs: dict[str, ToolOutput] = {}

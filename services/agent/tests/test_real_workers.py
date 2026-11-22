@@ -31,7 +31,7 @@ from app.clients.case_client import FakeCaseClient  # noqa: E402
 from app.graph.llm import NullLeadLLM  # noqa: E402
 from app.graph.worker_adapter import LangGraphWorker, build_workers  # noqa: E402
 from app.graph.workflow import Deps, build_graph  # noqa: E402
-from app.workers import WorkerSummary, run_evidence_worker, run_records_worker  # noqa: E402
+from app.workers import WorkerSummary, record_tool_paths, run_evidence_worker, run_records_worker  # noqa: E402
 from kyb_contracts.memo import CheckedMemo  # noqa: E402
 from app.review import ReviewOutput  # noqa: E402
 from kyb_contracts.worker_io import WorkerInput  # noqa: E402
@@ -315,6 +315,25 @@ def test_follow_ups_reach_only_the_affected_worker_with_their_own_r_ids():
     assert follow_ups and all(t.question.startswith("[EC2.") for t in follow_ups)
     assert all(t.follow_up_of == "case_4202-records-1" for t in follow_ups)
     assert len(evidence.models) == 1
+
+
+def test_the_tool_paths_reach_the_recorder_and_never_the_lead():
+    # case_4202: both workers in parallel, then Records follow-ups.
+    with record_tool_paths() as paths:
+        *_, state, out, _, records, evidence = _review("case_4202")
+    results = _worker_results(state)
+    assert sorted(p.task_id for p in paths) == sorted(r["task_id"] for r in results)
+    assert any("-F" in p.task_id for p in paths)                       # follow-ups are recorded too
+    for p in paths:
+        result = next(r for r in results if r["task_id"] == p.task_id)
+        assert p.tool_calls_used == result["tool_calls_used"]
+        assert {s for c in p.tool_calls for s in c.source_ids} <= {s["source_id"] for s in result["sources"]}
+    # Nothing the Lead keeps or writes names a tool.
+    tools = {c.tool for p in paths for c in p.tool_calls}
+    assert tools >= {"check_tin_match", "get_document"}
+    lead_side = json.dumps(state["worker_results"]) + out.model_dump_json()
+    assert not [t for t in tools if t in lead_side]
+    assert '"tool_calls"' not in lead_side
 
 
 def test_service_wiring_uses_the_real_workers():

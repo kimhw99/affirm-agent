@@ -14,5 +14,26 @@
     "put raw document or website text in shared_facts"
   ],
   "max_follow_up_rounds": 2,
+  "tool_calls": {
+    "records": {
+      "must_call": [
+        {"tool": "get_registry_entity", "source": "sos_registry", "where": {"state_entity_id": "IL-0458821"}},
+        {"tool": "get_filing_history", "source": "sos_filing_history", "where": {"former_name": "HARBOR LIGHT CYCLES LLC"}},
+        {"tool": "search_dba", "source": "state_dba", "where": {"registrant": "HARBOR LIGHT CYCLES LLC"}},
+        {"tool": "check_tin_match", "source": "irs_tin_match", "where": {"tin_match_result": "Match", "name_control_tested": "HARB"}}
+      ],
+      "max_calls": 8,
+      "max_repeats": 0
+    },
+    "evidence": {
+      "must_call": [
+        {"tool": "get_document", "source": "D1"},
+        {"tool": "get_bank_verification", "source": "B1"},
+        {"tool": "get_site_identity", "source": "W1"}
+      ],
+      "max_calls": 6,
+      "max_repeats": 0
+    }
+  },
   "notes": "The LLC was renamed from HARBOR LIGHT CYCLES LLC on 2025-03-12, as the Illinois filing history shows. The IRS still has the former name: the EIN letter (D1) was issued to it in 2023, and the TIN matches only when tested with it (name control HARB). The state DBA filing for NORTHLINE CYCLES was made under the former name too. Both conflicts have that one harmless cause, and the bank account (B1) and the website (W1) show the current name and the DBA, so both flags clear. PRODUCT_CATEGORY_REVIEW is out of the agent's scope."
 }

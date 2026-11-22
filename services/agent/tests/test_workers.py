@@ -15,7 +15,7 @@ from kyb_contracts.worker_io import WorkerResult
 from app.clients.case_client import CaseServiceError
 from app.tools import EVIDENCE_TOOLS, RECORDS_TOOLS
 from app.tools._common import UNTRUSTED_CLOSE, UNTRUSTED_OPEN
-from app.workers import WorkerSummary, run_evidence_worker, run_records_worker
+from app.workers import WorkerSummary, record_tool_paths, run_evidence_worker, run_records_worker
 from app.workers.base import RECOMMENDATION_REMOVED, strip_recommendation
 
 _ids = count(1)
@@ -129,6 +129,74 @@ def test_records_happy_path_case_1042():
     assert llm.structured_kwargs == {"method": "json_schema", "strict": True}
 
 
+FIRST_BATCH = calls(("get_registry_entity", {}), ("search_dba", {"name": "Northline Cycles"}),
+                    ("check_tin_match", {"name": "Northline Bicycle Works LLC"}), ("get_kyc_result", {}))
+
+
+def reminders(llm: ScriptedLLM) -> list[str]:
+    final = llm.agent_calls[-1]
+    return [m.content for m in final if isinstance(m, HumanMessage) and m.content.startswith("Before you answer")]
+
+
+def test_records_stopping_early_gets_one_reminder_of_the_owed_steps():
+    # gpt-4o-mini's habit: one batch of lookups, then an answer, despite a Mismatch next to a former name.
+    llm = ScriptedLLM(steps=[
+        FIRST_BATCH,
+        AIMessage(content="I have enough to answer."),
+        calls(("get_filing_history", {}), ("check_tin_match", {"name": "HARBOR LIGHT CYCLES LLC"})),
+    ])
+    result = run_records_worker(task("case_1042", "records"), fake_client(), llm=llm, now=NOW)
+
+    assert result.status == "completed" and result.tool_calls_used == 6
+    [reminder] = reminders(llm)
+    assert "get_filing_history" in reminder and "check_tin_match with 'HARBOR LIGHT CYCLES LLC'" in reminder
+    assert [f.value for f in finding(result, "tin_match_result")] == ["Mismatch", "Match"]
+
+
+def test_records_a_step_is_reminded_only_once():
+    llm = ScriptedLLM(steps=[FIRST_BATCH])  # then stops every time it is asked
+    result = run_records_worker(task("case_1042", "records"), fake_client(), llm=llm, now=NOW)
+
+    assert result.status == "completed" and result.tool_calls_used == 4
+    assert len(reminders(llm)) == 1 and len(llm.agent_calls) == 3
+
+
+def test_records_a_step_that_becomes_due_later_gets_its_own_reminder():
+    # The live run: the Mismatch only comes back after the first reminder, which makes the old name due.
+    llm = ScriptedLLM(steps=[
+        calls(("get_registry_entity", {}), ("search_dba", {"name": "Northline Cycles"})),
+        AIMessage(content="I have enough to answer."),
+        calls(("check_tin_match", {"name": "Northline Bicycle Works LLC"}), ("get_filing_history", {})),
+        AIMessage(content="I have enough to answer."),
+        calls(("check_tin_match", {"name": "HARBOR LIGHT CYCLES LLC"})),
+    ])
+    result = run_records_worker(task("case_1042", "records"), fake_client(), llm=llm, now=NOW)
+
+    first, second = reminders(llm)
+    assert "get_filing_history" in first and "check_tin_match with 'HARBOR" not in first
+    assert second.count("\n- ") == 1 and "check_tin_match with 'HARBOR LIGHT CYCLES LLC'" in second
+    assert [f.value for f in finding(result, "tin_match_result")] == ["Mismatch", "Match"]
+    assert result.tool_calls_used == 5
+
+
+def test_not_found_drops_fields_the_findings_have():
+    llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))],
+                      result=summary(not_found=["former_names", "former_name: no filing found", "commercial_db_profile",
+                                                "legal_name in county records"]))
+    result = run_records_worker(task("case_1042", "records", follow_up_of="t1"), fake_client(), llm=llm, now=NOW)
+
+    # R1 has former_names; former_name (from the filing history) was never looked up.
+    assert result.not_found == ["former_name: no filing found", "commercial_db_profile",
+                                "legal_name in county records"]
+
+
+def test_follow_up_tasks_get_no_reminder():
+    llm = ScriptedLLM(steps=[FIRST_BATCH])
+    run_records_worker(task("case_1042", "records", follow_up_of="t1"), fake_client(), llm=llm, now=NOW)
+
+    assert reminders(llm) == [] and len(llm.agent_calls) == 2
+
+
 def test_evidence_happy_path_case_1042():
     llm = ScriptedLLM(steps=[
         calls(("get_document", {"doc_id": "D1"})),
@@ -209,6 +277,48 @@ def test_parallel_calls_past_the_budget_are_not_run():
     assert result.tool_calls_used == 2
     assert [s.source_id for s in result.sources] == ["R1", "R2"]
     assert result.status == "completed"        # budget used, but nothing left open
+
+
+def test_the_tool_path_is_recorded_in_order():
+    llm = ScriptedLLM(steps=[
+        calls(("get_registry_entity", {}), ("get_document", {"doc_id": "D1"})),             # not a records tool
+        calls(("check_tin_match", {"name": "Northline Bicycle Works LLC"}),
+              ("get_kyc_result", {"owner_ref": "P1"})),                                       # invalid argument
+        calls(("check_tin_match", {"name": "Northline Cycles"}),                              # same name control
+              ("get_kyc_result", {})),                                                        # past the budget
+    ])
+    with record_tool_paths() as paths:
+        result = run_records_worker(task("case_1042", "records", max_tool_calls=5, follow_up_of="t1"), fake_client(),
+                                    llm=llm, now=NOW)
+
+    [path] = paths
+    assert (path.task_id, path.case_id, path.worker) == ("t1", "case_1042", "records")
+    assert [(c.turn, c.tool, c.status, c.source_ids) for c in path.tool_calls] == [
+        (1, "get_registry_entity", "ok", ["R1"]),
+        (1, "get_document", "rejected", []),
+        (2, "check_tin_match", "ok", ["R2"]),
+        (2, "get_kyc_result", "rejected", []),
+        (3, "check_tin_match", "repeat", ["R2"]),
+        (3, "get_kyc_result", "over_budget", []),
+    ]
+    assert path.tool_calls[2].args == {"name": "Northline Bicycle Works LLC"}
+    assert result.tool_calls_used == 5 == path.tool_calls_used
+
+
+def test_the_lead_never_gets_the_tool_path():
+    # What the Lead receives has findings and sources, never which tools ran.
+    assert not {"tool_calls", "tool_path", "tools"} & set(WorkerResult.model_fields)
+    llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))])
+    result = run_records_worker(task("case_1042", "records", follow_up_of="t0"), fake_client(), llm=llm, now=NOW)
+    assert "get_registry_entity" not in result.model_dump_json()
+
+
+def test_without_a_recorder_the_tool_path_goes_nowhere():
+    with record_tool_paths() as paths:
+        pass
+    llm = ScriptedLLM(steps=[calls(("get_registry_entity", {}))])
+    run_records_worker(task("case_1042", "records", follow_up_of="t0"), fake_client(), llm=llm, now=NOW)
+    assert paths == []
 
 
 def test_invalid_arguments_are_reported_to_the_model():

@@ -9,6 +9,7 @@ import pytest
 from helpers import CASE_IDS, NOW, TIN_LIKE, fake_client, finding_matches, load_json, task, tool_context
 
 from kyb_contracts.case_input import Document
+from kyb_contracts.golden import TOOL_ID_PREFIX, TOOL_SOURCES, WORKER_TOOLS
 from kyb_contracts.world import RegistryEntity, TinRecord
 
 from app.clients.case_client import CaseServiceError
@@ -27,6 +28,23 @@ def run_expected(case_id: str, worker: str, client=None, **changes):
     for call in load_json(case_id, "expected_findings.json")[worker]:
         outputs.append((call, TOOLS_FOR[worker][call["tool"]].run(ctx, call["args"])))
     return ctx, outputs
+
+
+def test_the_golden_contract_lists_each_workers_tools():
+    # expected.json's tool_calls name tools by these lists (contracts/kyb_contracts/golden.py).
+    assert {w: set(tools) for w, tools in TOOLS_FOR.items()} == {w: set(t) for w, t in WORKER_TOOLS.items()}
+    assert set(TOOL_SOURCES) | set(TOOL_ID_PREFIX) == set(RECORDS_TOOLS) | set(EVIDENCE_TOOLS)
+
+
+@pytest.mark.parametrize("case_id, worker", CASES_AND_WORKERS)
+def test_each_tool_returns_the_sources_the_golden_contract_says(case_id, worker):
+    for call, out in run_expected(case_id, worker)[1]:
+        for source in out.sources:
+            tool = call["tool"]
+            if tool in TOOL_ID_PREFIX:
+                assert source.source_id.startswith(TOOL_ID_PREFIX[tool]), (case_id, tool, source.source_id)
+            else:
+                assert source.source_type in TOOL_SOURCES[tool], (case_id, tool, source.source_type)
 
 
 @pytest.mark.parametrize("case_id, worker", CASES_AND_WORKERS)
@@ -141,6 +159,18 @@ def test_repeat_call_reuses_sources_and_findings():
     assert second.cached
     assert [f.finding_id for f in second.findings] == [f.finding_id for f in first.findings]
     assert list(ctx.sources) == ["R1"]
+
+
+def test_tin_match_with_the_same_name_control_reuses_the_result():
+    # NORTHLINE BICYCLE WORKS, L.L.C. and Northline Cycles both have the name control NORT.
+    ctx = tool_context("case_1042", "records")
+    first = RECORDS_TOOLS["check_tin_match"].run(ctx, {"name": "Northline Bicycle Works LLC"})
+    again = RECORDS_TOOLS["check_tin_match"].run(ctx, {"name": "Northline Cycles"})
+    assert again.cached and "same IRS name control (NORT)" in again.note
+    assert [f.finding_id for f in again.findings] == [f.finding_id for f in first.findings]
+    other = RECORDS_TOOLS["check_tin_match"].run(ctx, {"name": "HARBOR LIGHT CYCLES LLC"})
+    assert not other.cached
+    assert list(ctx.sources) == ["R1", "R2"]
 
 
 def test_search_then_lookup_of_the_same_entity_shares_one_source():

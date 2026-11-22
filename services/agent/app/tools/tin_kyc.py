@@ -59,6 +59,15 @@ def check_tin_match(ctx: ToolContext, args: CheckTinMatchArgs) -> ToolOutput:
     is_individual = record.tin_type == "SSN"
     result, tested = tin_match_result(record.irs_status, record.irs_name, name, is_individual)
 
+    # The IRS compares only the name control, so a name with the same control as one already
+    # tested gets the same answer: hand back that result instead of a new R source.
+    control_key = f"tin-control|{tested}"
+    if (hit := ctx.cached(control_key, "check_tin_match")):
+        hit.note = (f"{name!r} has the same IRS name control ({tested}) as a name already tested in this "
+                    "task, so the result is the same; these are the earlier findings. To learn more, test "
+                    "a name with a different name control.")
+        return hit
+
     rendered = Record(f"IRS TIN match for case {ctx.case_id}")
     l_type = rendered.add("tin_type", record.tin_type)
     l_last4 = rendered.add("tin_last4", record.tin_last4)
@@ -86,7 +95,8 @@ def check_tin_match(ctx: ToolContext, args: CheckTinMatchArgs) -> ToolOutput:
         add(source, "tin_type", record.tin_type, l_type, method=STRUCTURED, confidence=HIGH, subject=subject),
         add(source, "tin_last4", record.tin_last4, l_last4, method=STRUCTURED, confidence=HIGH, subject=subject),
     ]
-    return ctx.remember(call_key, output_from(ctx, "check_tin_match", [source], findings))
+    output = ctx.remember(call_key, output_from(ctx, "check_tin_match", [source], findings))
+    return ctx.remember(control_key, output)
 
 
 class GetKycResultArgs(ToolArgs):

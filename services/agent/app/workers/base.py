@@ -1,6 +1,7 @@
 """The worker loop shared by the Records and Evidence workers (LangGraph).
 
     agent (chat model + bound tools) --tool calls?--> tools (permission + key + budget guard) --> agent
+          '-- no calls, but a new step is owed -----> remind (each step once; checklist.py) -----> agent
           '-- no calls / budget used up ------------> summarize (structured WorkerSummary)
           '-- LLM error ----------------------------> end
     then assemble_result() turns the findings and the summary into one WorkerResult.
@@ -23,12 +24,15 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from kyb_contracts.tool_path import ToolCall, ToolPath
 from kyb_contracts.worker_io import HypothesisSignal, WorkerInput, WorkerResult
 
 from app.clients.case_client import CaseDataClient
 from app.tools import TOOLS_FOR
 from app.tools._common import ToolContext, ToolSpec, redact
 
+from .checklist import missing_steps, reminder
+from .tool_path import publish
 from .prompts import SUMMARY_INSTRUCTIONS, render_findings, render_task, system_prompt
 
 log = logging.getLogger(__name__)
@@ -63,9 +67,15 @@ class WorkerState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     tool_calls_used: int
     budget_hit: bool
+    reminded: list[str]           # checklist steps already sent to the model (each at most once)
     llm_error: Optional[str]
     summary: Optional[WorkerSummary]
     summary_error: Optional[str]
+
+
+def _redact_args(args: dict[str, Any]) -> dict[str, Any]:
+    """The model's arguments as recorded in the tool path: strings redacted, like everything shared."""
+    return {k: redact(v) if isinstance(v, str) else v for k, v in args.items()}
 
 
 def _error_text(error: BaseException) -> str:
@@ -94,26 +104,52 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
         if state.get("budget_hit"):
             return "summarize"
         last = state["messages"][-1]
-        return "tools" if isinstance(last, AIMessage) and last.tool_calls else "summarize"
+        if isinstance(last, AIMessage) and last.tool_calls:
+            return "tools"
+        if state.get("tool_calls_used", 0) < budget and _new_steps(state):
+            return "remind"
+        return "summarize"
+
+    def _new_steps(state: WorkerState) -> list[str]:
+        sent = set(state.get("reminded") or [])
+        return [s for s in missing_steps(ctx) if s not in sent]
+
+    def remind(state: WorkerState) -> dict:
+        """The model stopped while the results still call for a lookup it hasn't been told about:
+        say which. A step is never sent twice, so the model can still decline."""
+        steps = _new_steps(state)
+        return {"messages": [HumanMessage(content=reminder(steps))],
+                "reminded": [*(state.get("reminded") or []), *steps]}
 
     def run_tools(state: WorkerState) -> dict:
         used = state.get("tool_calls_used", 0)
         budget_hit = state.get("budget_hit", False)
+        turn = sum(1 for m in state["messages"] if isinstance(m, AIMessage) and m.tool_calls)
         replies = []
         for call in state["messages"][-1].tool_calls:
+            args = call.get("args") or {}
+            sources: list[str] = []
             if used >= budget:
                 budget_hit = True
+                status = "over_budget"
                 content = json.dumps({"tool": call["name"], "rejected": "not run: the tool-call budget is used up"})
             else:
                 used += 1  # every requested call counts, including rejected ones
                 spec = tools.get(call["name"])
                 if spec is None:
+                    status = "rejected"
                     content = json.dumps({"tool": call["name"],
                                           "rejected": f"{call['name']} is not available to the {worker} worker; "
                                                       f"available: {sorted(tools)}"})
                 else:
-                    content = spec.run(ctx, call.get("args") or {}).llm_view()
+                    output = spec.run(ctx, args)
+                    sources = [s.source_id for s in output.sources]
+                    status = ("rejected" if output.rejected else "error" if output.error
+                              else "repeat" if output.cached else "ok")
+                    content = output.llm_view()
                 content += f"\n[budget: {budget - used} tool call(s) left]"
+            ctx.tool_path.append(ToolCall(turn=turn, tool=call["name"], args=_redact_args(args),
+                                          source_ids=sources, status=status))
             replies.append(ToolMessage(content=content, tool_call_id=call["id"], name=call["name"]))
         ctx.tool_calls_used = used
         return {"messages": replies, "tool_calls_used": used, "budget_hit": budget_hit or used >= budget}
@@ -141,8 +177,10 @@ def build_worker_graph(worker: str, tools: dict[str, ToolSpec], llm: Any, ctx: T
     graph.add_node("agent", agent)
     graph.add_node("tools", run_tools)
     graph.add_node("summarize", summarize)
+    graph.add_node("remind", remind)
     graph.add_edge(START, "agent")
-    graph.add_conditional_edges("agent", after_agent, ["tools", "summarize", END])
+    graph.add_conditional_edges("agent", after_agent, ["tools", "remind", "summarize", END])
+    graph.add_edge("remind", "agent")
     graph.add_conditional_edges("tools", after_tools, ["agent", "summarize"])
     graph.add_edge("summarize", END)
     return graph.compile()
@@ -156,6 +194,21 @@ _RECOMMENDATION = re.compile(r"\b(approv\w*|den(?:y|ies|ied|ial)|declin\w*|rejec
 _SENTENCES = re.compile(r"(?<=[.!?])\s+")
 RECOMMENDATION_REMOVED = ("A recommendation to approve or deny was removed from the answer; "
                           "workers report findings only.")
+
+
+_FIELD_TOKEN = re.compile(r"([A-Za-z_]+)\s*(?:$|[:(\-])")
+
+
+def found_fields(ctx: ToolContext) -> set[str]:
+    """Finding fields with a non-empty value: the summary may not report these as not found."""
+    return {f.field.casefold() for f in ctx.findings if f.value not in (None, "", [], {})}
+
+
+def _leading_field(entry: str) -> str:
+    """The field a not_found entry is about, when the entry is a field name: "former_name" or
+    "former_name: no filing" -> former_name; free text ("dba certificate in county records") -> ""."""
+    m = _FIELD_TOKEN.match(entry.strip())
+    return m.group(1).casefold() if m else ""
 
 
 def strip_recommendation(answer: Optional[str]) -> tuple[Optional[str], bool]:
@@ -185,7 +238,8 @@ def assemble_result(task: WorkerInput, ctx: ToolContext, state: Optional[WorkerS
                 signals.append(HypothesisSignal(hypothesis_id=sig.hypothesis_id, direction=sig.direction,
                                                 finding_ids=cited))
         answer, removed = strip_recommendation(summary.answer)
-        not_found = [redact(s) for s in summary.not_found]
+        found = found_fields(ctx)
+        not_found = [redact(s) for s in summary.not_found if _leading_field(s) not in found]
         unresolved = [redact(s) for s in summary.unresolved]
         if removed:
             unresolved.append(RECOMMENDATION_REMOVED)
@@ -236,7 +290,9 @@ def run_worker(task: WorkerInput, client: CaseDataClient, llm: Any = None, confi
         config = dict(config or {})
         run_config = {
             **config,
-            "recursion_limit": 2 * task.max_tool_calls + 6,
+            # agent+tools per tool turn, plus agent+remind per reminder: a reminder needs a new
+            # step, which only a tool turn (or the start) can bring, so at most budget + 1 of them
+            "recursion_limit": 4 * task.max_tool_calls + 10,
             "run_name": f"{worker}_worker",
             "tags": [*config.get("tags", []), f"worker:{worker}"],
             "metadata": {**config.get("metadata", {}), "case_id": task.context.case_id,
@@ -247,7 +303,22 @@ def run_worker(task: WorkerInput, client: CaseDataClient, llm: Any = None, confi
             "tool_calls_used": 0, "budget_hit": False,
         }
         state = graph.invoke(initial, config=run_config)
-        return assemble_result(task, ctx, state)
+        result = assemble_result(task, ctx, state)
     except Exception as error:  # graph, recursion limit, model setup
         log.exception("%s worker failed on %s", worker, task.task_id)
-        return assemble_result(task, ctx, state, error=f"worker failed: {_error_text(error)}")
+        result = assemble_result(task, ctx, state, error=f"worker failed: {_error_text(error)}")
+    publish_tool_path(task, ctx, result)
+    return result
+
+
+def publish_tool_path(task: WorkerInput, ctx: ToolContext, result: WorkerResult) -> None:
+    """Hand the task's tool path to the evaluation's recorder, if one is set up (tool_path.py).
+    It never goes into the WorkerResult: the Lead doesn't see which tools ran."""
+    try:
+        listed = {s.source_id for s in result.sources}
+        calls = [c if set(c.source_ids) <= listed else   # a result that failed validation lists no sources
+                 c.model_copy(update={"source_ids": [s for s in c.source_ids if s in listed]})
+                 for c in ctx.tool_path]
+        publish(ToolPath(task_id=task.task_id, case_id=task.context.case_id, worker=task.worker, tool_calls=calls))
+    except Exception:  # noqa: BLE001 - the evaluation's record must never break a review
+        log.exception("could not publish the tool path of %s", task.task_id)
