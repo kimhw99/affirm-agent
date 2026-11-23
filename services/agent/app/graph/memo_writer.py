@@ -262,8 +262,8 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
     elif verdict == "clear" and all(f.status == "resolved" for f in flag_outcomes):
         recommendation = "recommend_clear"
         # A new business whose registry entry hasn't appeared yet: clear now, re-check later.
-        # (A sole proprietor is never in the registry, so there is nothing to re-check.)
-        provisional = case.application.entity_type != "SOLE_PROPRIETORSHIP" and any(
+        # (A sole proprietor or general partnership is never in the registry: nothing to re-check.)
+        provisional = case.application.entity_type not in ("SOLE_PROPRIETORSHIP", "PARTNERSHIP") and any(
             c.expected_absence and c.status == "EXPLAINED" for c in checks)
     else:
         still_open = [c for c in checks if c.required and c.status not in PASSING_STATUSES]

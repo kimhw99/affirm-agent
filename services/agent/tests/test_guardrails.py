@@ -72,6 +72,25 @@ def test_document_already_in_the_case_is_reported(case_1042):
     assert [f.rule for f in checked.lead_failures] == ["DOCUMENT_ALREADY_IN_CASE"]
 
 
+def test_a_renewal_the_playbook_allows_is_not_reported(case_1042):
+    """An expired DBA certificate is asked for again (followup.renewal_allowed); anything else isn't."""
+    from kyb_contracts.case_input import Document
+    from kyb_contracts.memo import DocumentRequest
+    from app.review import DocumentCheck
+    memo, report, case, facts, plan = _setup(case_1042)
+    case = case.model_copy(update={"documents": case.documents + [Document.model_validate(
+        {"id": "D9", "type": "dba_certificate", "confidence": 0.9, "extracted": {"dba": "Northline Cycles"}})]})
+    checks = [c.model_copy(update={"status": "CONFLICT", "explanation": None, "explanation_evidence": [],
+                                   "hard_fail_reason": None})
+              if c.check_id == "EC1.dba_owner" else c for c in report.checks]
+    asking = memo.model_copy(update={"document_request": [DocumentRequest(type="dba_certificate", reason="x")]})
+    renewal = report.model_copy(update={"checks": checks, "document_checks": [
+        DocumentCheck(type="dba_certificate", check_id="EC1.dba_owner")]})
+    assert "DOCUMENT_ALREADY_IN_CASE" not in {f.rule for f in run_checks(asking, renewal, case, facts, plan).lead_failures}
+    plain = report.model_copy(update={"checks": checks, "document_checks": []})
+    assert "DOCUMENT_ALREADY_IN_CASE" in {f.rule for f in run_checks(asking, plain, case, facts, plan).lead_failures}
+
+
 class LeakyLLM(NullLeadLLM):
     def memo_prose(self, payload, failures):
         return MemoProse(notes_for_analyst="Customer EIN is 12-3456789")

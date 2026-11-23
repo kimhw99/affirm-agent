@@ -644,6 +644,13 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
             return Assessment("GAP", records_value, _ev_value(formation), used, "low",
                               diff="the registry filing is still pending; the entity is not active yet",
                               explainable=False)
+        home = next((s for s in (_entity_state(ctx.facts, f) for f in used if f.worker == "records") if s), None)
+        if home and home != ctx.app.state.upper():
+            # Formed elsewhere (often Delaware): doing business in the applied state needs a foreign
+            # registration there, which no registry record shows.
+            return Assessment("GAP", f"{records_value} (registered in {home})", _ev_value(formation), used, "low",
+                              diff=f"the entity is registered in {home}, but no registration in {ctx.app.state}, "
+                                   "where it applied, was found", explainable=False)
         return Assessment("AGREE", records_value, _ev_value(formation), used, weakest_conf(used, "high"))
     rec_facts = [found_f] if found_f and not truthy(found_f.value) else []
     records_value = "not found"
@@ -657,6 +664,14 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
                                               "the absence was expected in the plan",
                                   explanation_evidence=ids(support), explanation_facts=support,
                                   explainable=False)
+        if ctx.app.entity_type == "PARTNERSHIP":
+            support = _partnership_support(ctx)
+            if support:
+                return Assessment("EXPLAINED", records_value, _ev_value(support), rec_facts + support, "medium",
+                                  explanation="A general partnership doesn't register with the state; a live DBA "
+                                              "filing names every partner, and every partner passed KYC",
+                                  explanation_evidence=ids(rec_facts + support),
+                                  explanation_facts=rec_facts + support, explainable=False)
         recent = [f for f in formation if as_date(f.value) and (ctx.today - as_date(f.value)).days <= REGISTRY_LAG_DAYS]
         if recent:
             support = rec_facts + recent
@@ -669,9 +684,37 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
     if not formation:
         return Assessment("GAP", records_value, None, rec_facts, "low",
                           diff="not in the registry and no formation documents", explainable=False)
+    # Only a registry record settles this (the entity may be registered in another state), so
+    # the explainer isn't asked.
     return Assessment("CONFLICT", records_value, _ev_value(formation), rec_facts + formation, "low",
                       diff="formation documents exist but the registry has no entity and the "
-                           "formation is not recent")
+                           "formation is not recent", explainable=False)
+
+
+def _entity_state(facts: FactIndex, f: Fact) -> Optional[str]:
+    """The state of a registry record, from its R source's locator ('DE SOS DE-2900028')."""
+    src = facts.sources.get(f.source_id)
+    m = re.match(r"^([A-Z]{2}) SOS\b", getattr(src, "locator", "") or "")
+    return m.group(1) if m else None
+
+
+def _split_names(value: Any) -> list[str]:
+    return [n.strip() for n in re.split(r";|&|\band\b|,", text(value) or "") if n.strip()]
+
+
+def _partnership_support(ctx: Ctx) -> list[Fact]:
+    """A live DBA filing whose registrant names every partner, and a passing KYC for each one."""
+    partners = owner_names(ctx.case)
+    if not partners:
+        return []
+    filings = [f for f in _live_dba_filings(ctx.facts)
+               if all(any(same_name(p, n) for n in _split_names(f.value)) for p in partners)]
+    kyc = ctx.facts.records("kyc_result")
+    passed = {f.subject for f in kyc if (text(f.value) or "").lower() == "pass"}
+    failed = any((text(f.value) or "").lower() != "pass" for f in kyc)
+    if not filings or failed or len(passed) < len(partners):
+        return []
+    return filings[-1:] + kyc
 
 
 def cmp_ein_age(ctx: Ctx) -> Assessment:
@@ -964,8 +1007,40 @@ def reconcile(case, plan: Plan, facts: FactIndex, today: date,
             if a.status == "HARD_FAIL" and outcomes[cid].status != "HARD_FAIL":
                 outcomes[cid] = to_outcome(plan.check(cid), a)
                 assessments[cid] = a
+    for cid, a in _settle_letter_checks(case, facts, outcomes).items():
+        outcomes[cid] = to_outcome(plan.check(cid), a)
+        assessments[cid] = a
     # Keep plan order.
     return {c.check_id: outcomes[c.check_id] for c in plan.checks if c.check_id in outcomes}, assessments
+
+
+LETTER_CHECKS = ("EC2.name_control", "EC2.ein_letter_matches")
+
+
+def _settle_letter_checks(case, facts: FactIndex, outcomes: dict[str, CheckOutcome]) -> dict[str, Assessment]:
+    """The EIN-letter checks have nothing to compare when the case has no IRS letter. If the IRS
+    has matched the EIN to a name and EC2.tin_match is settled (AGREE, or EXPLAINED: a former
+    name, the owner of a disregarded LLC), that match settles them too, instead of leaving two
+    GAPs only a 147C closes (golden 2103, 2107, 2108). EINs only: an SSN's checks stay as they are."""
+    if case.application.tin_type != "EIN" or any(d.type in EIN_LETTERS for d in case.documents):
+        return {}
+    tin = outcomes.get("EC2.tin_match")
+    if tin is None or tin.status not in ("AGREE", "EXPLAINED"):
+        return {}
+    match = next((r for r in reversed(tin_results(facts, case)) if r.result == MATCH), None)
+    if match is None:
+        return {}
+    out: dict[str, Assessment] = {}
+    for cid in LETTER_CHECKS:
+        o = outcomes.get(cid)
+        if o is None or o.status != "GAP":
+            continue
+        out[cid] = Assessment(
+            "EXPLAINED", o.records_value, None, [match.fact], "medium", explainable=False,
+            explanation=f"No IRS letter is on file to compare; the IRS matches the EIN to "
+                        f"'{match.name_tested}', and {tin.check_id} is {tin.status}",
+            explanation_evidence=ids([match.fact]), explanation_facts=[match.fact])
+    return out
 
 
 def _from_outcome(o: CheckOutcome) -> Assessment:

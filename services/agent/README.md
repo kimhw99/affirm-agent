@@ -108,7 +108,12 @@ stamped articles, a current business license). Each follow-up targets one check 
 that worker runs, and only that check is re-reconciled. The loop stops on: nothing open,
 a HARD_FAIL, `MAX_INTERNAL_ROUNDS` (3), a round with no new findings, or no internal step
 left. What's still open becomes one merchant round (`request_documents`), and the
-playbook never asks for a document type the case already has. If a worker failed, the
+playbook never asks for a document type the case already has, except a renewal: a DBA
+check that is a CONFLICT (the filing expired or was withdrawn) asks for a current DBA
+certificate again (`MerchantAsk.renew_ask`, `renewal_allowed`). The pending-filing step also
+tells the Records worker where else to look: the formation state and entity number on the
+articles when they differ from the application's (only a two-letter state and a well-formed
+entity number are passed on), and for a general partnership, its DBA and partners' KYC. If a worker failed, the
 memo says `insufficient_evidence` instead of asking the merchant.
 
 **What the workers say about their own results.** Verdicts come only from findings, but
@@ -135,7 +140,13 @@ merchant's text), to choose its next lookup. They write no `name_comparison`,
 The case service and `world.json` have no pending-filing record, domain age or
 tampering signal, so no check depends on them. A filed but unapproved formation is the
 registry's `entity_status: pending`: the entity isn't active yet, so `EC4.registry_presence`
-stays a GAP, even for a new business, and the merchant is asked for good standing. `EC4.operating` needs a verified bank
+stays a GAP, even for a new business, and the merchant is asked for good standing. An
+entity registered only in another state than the one it applied in (formed in Delaware) is
+a GAP too, settled by a good standing or authority certificate from the applied state. A
+general partnership needn't register: its absence is EXPLAINED when a live DBA filing names
+every partner and every partner passed KYC. With no IRS letter in the case, an EIN whose
+`EC2.tin_match` is settled by an IRS Match also settles `EC2.name_control` and
+`EC2.ein_letter_matches`, which would otherwise wait for a 147C. `EC4.operating` needs a verified bank
 account plus an active license, a website naming the business, or a DBA certificate.
 `document_tampered` stays in `HardFailReason` for the API's sake, but nothing sets it.
 

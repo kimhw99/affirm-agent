@@ -14,7 +14,8 @@
 3. The Lead's own rules (review.LeadRule), reported beside it:
    - HARD_FAIL_NOT_ESCALATED: a blocking fact exists but the memo doesn't escalate
    - REQUIRED_CHECK_MISSING: every required template check is in the report
-   - DOCUMENT_ALREADY_IN_CASE: never ask for a document type the case already has
+   - DOCUMENT_ALREADY_IN_CASE: never ask for a document type the case already has, except a
+     renewal the playbook allows (followup.renewal_allowed: an expired DBA certificate)
    - WEBSITE_OVERRULES_RECORDS: an explanation can't rest on the merchant's website alone
 
 Any failure sends the memo back once (workflow.after_checks).
@@ -203,9 +204,14 @@ def run_checks(memo: Optional[Memo], report: LeadReport, case: Optional[CaseInpu
                 lead.append(LeadCheckFailure(rule="REQUIRED_CHECK_MISSING", detail=f"{cid} is not in the report"))
 
     if case is not None and memo is not None:
+        from app.graph.followup import renewal_allowed   # followup imports reconcile, like this module
+
         have = {d.type for d in case.documents}
+        status = {c.check_id: c.status for c in report.checks}
+        renewals = {d.type for d in report.document_checks
+                    if renewal_allowed(d.check_id, status.get(d.check_id, ""), d.type)}
         for req in memo.document_request:
-            if req.type in have:
+            if req.type in have and req.type not in renewals:
                 lead.append(LeadCheckFailure(rule="DOCUMENT_ALREADY_IN_CASE",
                                              detail=f"The case already has a {req.type}"))
 

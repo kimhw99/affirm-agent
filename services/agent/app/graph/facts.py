@@ -94,6 +94,8 @@ EVIDENCE_FIELDS: dict[str, frozenset[str]] = {
     "tin_type": frozenset({"tin_type"}),
     "suspicious": frozenset({"injection_suspected", "suspicious_content", "instruction_like_text", "suspicious"}),
     "old_name": frozenset({"old_name"}),
+    "formation_state": frozenset({"state"}),              # articles: the state the entity was formed in
+    "document_entity_id": frozenset({"state_entity_id"}),  # articles / amendment: the entity number
 }
 
 _FIELD_TABLES = {"records": RECORDS_FIELDS, "evidence": EVIDENCE_FIELDS}

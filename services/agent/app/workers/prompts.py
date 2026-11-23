@@ -78,6 +78,9 @@ Playbooks:
     search_commercial_db (no record is normal when new).
   - Sole proprietor: finding no registry entity is expected. Use search_dba (the registrant should be
     the owner), check_tin_match with the owner's name, and get_kyc_result.
+  - General partnership (entity_type PARTNERSHIP): finding no registry entity is normal. Use
+    search_dba for the trade name (the registrant should name the partners) and get_kyc_result for
+    every partner.
 
 On a follow-up task, the question asks for one specific lookup. Do exactly that first, use the prior
 findings and don't repeat their lookups; add another call only if the result leaves the question

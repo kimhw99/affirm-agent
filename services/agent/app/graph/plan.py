@@ -102,8 +102,9 @@ def _has_dba(case: CaseInput) -> bool:
 
 
 def _newly_formed(case: CaseInput, today: date) -> bool:
-    """The plan expects no registry entry: a sole proprietor, or a recent formation."""
-    if _is_sole_prop(case):
+    """The plan expects no registry entry: a sole proprietor, a general partnership (it needn't
+    register; reconcile still wants a DBA naming the partners and their KYC), or a recent formation."""
+    if _is_sole_prop(case) or case.application.entity_type == "PARTNERSHIP":
         return True
     formed = case.application.formation_date
     if formed is not None:
@@ -199,7 +200,8 @@ TEMPLATES: tuple[CheckTemplate, ...] = (
     # ----- EC-4: new businesses and sole proprietors -----
     CheckTemplate(
         "EC4.registry_presence", "EC-4",
-        "The business is registered, or its absence is expected (new filing or sole proprietor)",
+        "The business is registered, or its absence is expected (new filing, sole proprietor or "
+        "general partnership)",
         (FlagReason.ENTITY_NOT_FOUND, FlagReason.NO_COMMERCIAL_RECORD, FlagReason.TIN_NOT_ISSUED),
         "Registry lookup (a 'pending' status is a filed formation not yet approved) and filing history",
         "Articles or certificate of formation with a recent filing stamp",
