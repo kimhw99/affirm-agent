@@ -81,9 +81,21 @@ every template check is still there and still required. `EC4.registry_presence` 
 **Reconcile.** Code compares first (exact EIN last 4, normalized names via
 `app/shared/name_norm.py`, dates). Only a CONFLICT that's flagged explainable goes to the
 explainer, and `apply_explanation` accepts an explanation only when it cites real
-findings and doesn't rest on the website alone; otherwise it stays a CONFLICT. HARD_FAILs
+findings and doesn't rest on the website alone; otherwise it stays a CONFLICT. An EC-1
+name or DBA-owner difference also needs a citation that links the names: a former name,
+articles of amendment, or a DBA the entity filed itself (`name_link_facts`). HARD_FAILs
 (TIN never issued, entity dissolved or revoked, KYC failed, EIN letter ≠ submitted EIN,
-EIN belongs to another entity) are never sent to the LLM. Decision
+EIN belongs to another entity, DBA registered under another entity number, submitted
+entity number belongs to another company) are never sent to the LLM.
+
+The EC-1 checks settle who owns the names from official data, without the LLM:
+`EC1.applied_name` compares the legal name typed on the application with the registered
+name at the submitted entity number (AGREE when equal after normalization or punctuation;
+EXPLAINED by a former name or a DBA the entity filed; HARD_FAIL
+`entity_id_belongs_to_other_entity` when none of the entity's officers is an applicant
+owner; otherwise a CONFLICT only a document settles). `EC1.dba_owner` is a GAP when the
+DBA is filed by an owner personally, and a HARD_FAIL `dba_registered_to_other_entity`
+when its live filing names another entity number. Decision
 rules, in order: any HARD_FAIL → escalate; an open required check → follow-up; else →
 clear. Confidence is the weakest required check (enforced by the `LeadReport` contract).
 Trust: when bank or documents and the registry agree, the website is ignored; when the
@@ -122,8 +134,8 @@ merchant's text), to choose its next lookup. They write no `name_comparison`,
 **Only checks the data can close.** Every fact a check reads is one some tool reports.
 The case service and `world.json` have no pending-filing record, domain age or
 tampering signal, so no check depends on them. A filed but unapproved formation is the
-registry's `entity_status: pending`: `EC4.registry_presence` is EXPLAINED when the plan
-expected a new business, and a GAP otherwise. `EC4.operating` needs a verified bank
+registry's `entity_status: pending`: the entity isn't active yet, so `EC4.registry_presence`
+stays a GAP, even for a new business, and the merchant is asked for good standing. `EC4.operating` needs a verified bank
 account plus an active license, a website naming the business, or a DBA certificate.
 `document_tampered` stays in `HardFailReason` for the API's sake, but nothing sets it.
 

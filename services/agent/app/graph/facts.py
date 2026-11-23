@@ -72,11 +72,12 @@ RECORDS_FIELDS: dict[str, frozenset[str]] = {
     "dba_owner_entity_id": frozenset({"registrant_state_entity_id"}),
     "dba_status": frozenset({"dba_status"}),          # world.DbaFiling.status: active | expired | withdrawn
     "dba_expired": frozenset({"dba_expired"}),        # derived by search_dba: expired, or past its expiry date
+    "officer": frozenset({"officer_name"}),           # one per officer of a registry entity
 }
 
 # Facts that describe one registry entity. A search can return several entities; only
 # the applicant's feed these facts, and other entities' legal names become separate_entity.
-ENTITY_FACTS = frozenset({"legal_name", "entity_status", "entity_id", "formation_date", "former_name"})
+ENTITY_FACTS = frozenset({"legal_name", "entity_status", "entity_id", "formation_date", "former_name", "officer"})
 _REGISTRY_ENTITY_TYPES = frozenset({"sos_registry"})
 
 EVIDENCE_FIELDS: dict[str, frozenset[str]] = {

@@ -99,6 +99,16 @@ def latest(facts: list[Fact]) -> Optional[Fact]:
     return facts[-1] if facts else None
 
 
+def _compact(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def names_match(a: Optional[str], b: Optional[str]) -> bool:
+    """Equal after normalization, or after dropping every space and punctuation mark
+    ('Yarro-wfield Mattress LLC' is 'YARROWFIELD MATTRESS LLC' mistyped)."""
+    return same_name(a, b) or bool(a and b and _compact(a) == _compact(b))
+
+
 def strong_and_weak(facts: Iterable[Fact]) -> tuple[list[Fact], list[Fact]]:
     """Split evidence into documents/bank (strong) and the merchant's website (weak)."""
     strong, weak = [], []
@@ -231,6 +241,43 @@ def _registry_name(ctx: Ctx) -> tuple[Optional[str], list[Fact]]:
     return (text(f.value), [f]) if f else (None, [])
 
 
+def _applicant_entity_id(facts: FactIndex, case) -> str:
+    """The applicant's entity number: the submitted one, else the one the registry returned."""
+    submitted = (case.application.state_entity_id or "").strip().upper()
+    if submitted:
+        return submitted
+    found = latest(facts.records("entity_id"))
+    return (text(found.value) or "").strip().upper() if found else ""
+
+
+def _live_dba_filings(facts: FactIndex) -> list[Fact]:
+    """dba_owner facts of DBA filings that are not expired or withdrawn."""
+    dead = {f.source_id for f in facts.records("dba_expired") if truthy(f.value)}
+    dead |= {f.source_id for f in facts.records("dba_status") if (text(f.value) or "").lower() in DBA_DEAD}
+    return [f for f in facts.records("dba_owner") if f.source_id not in dead]
+
+
+def entity_dba_filings(facts: FactIndex, case) -> list[Fact]:
+    """Live DBA filings the applicant's entity filed itself: by its entity number, or under
+    its registered or applied legal name. Returns their dba_owner facts."""
+    entity_id = _applicant_entity_id(facts, case)
+    reg = latest(facts.records("legal_name"))
+    own_names = [n for n in ((text(reg.value) if reg else None), case.application.legal_name) if n]
+    by_id = {f.source_id for f in facts.records("dba_owner_entity_id")
+             if entity_id and (text(f.value) or "").strip().upper() == entity_id}
+    return [f for f in _live_dba_filings(facts)
+            if f.source_id in by_id or any(same_name(text(f.value), n) for n in own_names)]
+
+
+def name_link_facts(facts: FactIndex, case) -> list[Fact]:
+    """The only documented reasons two different names can belong to one business: a name
+    change on the official record (former_name), articles of amendment (old_name), or an
+    assumed name (DBA) the entity filed itself."""
+    dba_sources = {f.source_id for f in entity_dba_filings(facts, case)}
+    return (facts.records("former_name") + facts.evidence("old_name")
+            + [f for f in facts.facts if f.source_id in dba_sources])
+
+
 def _ev_names(ctx: Ctx) -> list[Fact]:
     """Legal names the merchant's evidence shows (not the EIN letter: that's EC-2's)."""
     docs = ctx.facts.evidence("name", kinds=NAME_DOCS | {"website"})
@@ -286,6 +333,48 @@ def cmp_name_normalized(ctx: Ctx) -> Assessment:
     if not reg_name:
         return Assessment("GAP", None, None, [], "low", diff="no registry name found")
     return _name_check(ctx, reg_name, name_facts, _ev_names(ctx), reg_name)
+
+
+def cmp_applied_name(ctx: Ctx) -> Assessment:
+    """The legal name typed on the application is the registered name at the submitted entity
+    number. Only official records settle a difference, so the explainer is never asked:
+    a former name, or a DBA the entity filed, explains it; an entity none of whose officers
+    is an applicant owner is someone else's company."""
+    app = ctx.app
+    applied = app.legal_name
+    entity_id = (app.state_entity_id or "").strip().upper()
+    id_facts = [f for f in ctx.facts.records("entity_id") if (text(f.value) or "").strip().upper() == entity_id]
+    reg_name, name_facts = _registry_name(ctx)
+    if not id_facts or not reg_name:
+        return Assessment("GAP", None, applied, [], "low",
+                          diff=f"no registry entity found at entity number {app.state_entity_id}", explainable=False)
+    used = name_facts + id_facts[-1:]
+    if names_match(applied, reg_name):
+        return Assessment("AGREE", reg_name, applied, used, weakest_conf(used, "high"), explainable=False)
+    for name, f in former_names(ctx.facts):
+        if names_match(applied, name):
+            return Assessment("EXPLAINED", reg_name, applied, used + [f], "high", explainable=False,
+                              explanation=f"'{applied}' is a former legal name of {reg_name} (official filing record)",
+                              explanation_evidence=ids([f]), explanation_facts=[f])
+    for owner_f in entity_dba_filings(ctx.facts, ctx.case):
+        dba_f = [f for f in ctx.facts.records("dba_name") if f.source_id == owner_f.source_id]
+        if any(names_match(applied, text(f.value)) for f in dba_f):
+            cited = dba_f[-1:] + [owner_f]
+            return Assessment("EXPLAINED", reg_name, applied, used + cited, "high", explainable=False,
+                              explanation=f"'{applied}' is an assumed name (DBA) that {reg_name} filed",
+                              explanation_evidence=ids(cited), explanation_facts=cited)
+    officers = ctx.facts.records("officer")
+    owners = owner_names(ctx.case)
+    if officers and owners and not any(same_name(text(o.value), w) for o in officers for w in owners):
+        return Assessment(
+            "HARD_FAIL", reg_name, applied, used + officers, "high",
+            hard_fail_reason="entity_id_belongs_to_other_entity",
+            diff=f"entity {app.state_entity_id} is '{reg_name}', and none of its officers is an applicant owner",
+            explainable=False)
+    return Assessment(
+        "CONFLICT", reg_name, applied, used + officers, "low",
+        diff=f"the applied legal name '{applied}' is not the registered name '{reg_name}' at entity "
+             f"{app.state_entity_id}, and no name change or DBA filing links them", explainable=False)
 
 
 def cmp_bank_account_holder(ctx: Ctx) -> Assessment:
@@ -357,6 +446,25 @@ def cmp_dba_owner(ctx: Ctx, owner_ref_names: Optional[list[str]] = None) -> Asse
     by_number = [f for f in ctx.facts.records("dba_owner_entity_id")
                  if entity_id and owner_ref_names is None and f.source_id not in dead
                  and (text(f.value) or "").strip().upper() == entity_id]
+    filed_by_entity = any(same_name(owner, n) for n in expected_owners) or bool(by_number)
+    if not filed_by_entity and owner_ref_names is None:
+        # Who filed it is official data, so these outcomes never go to the explainer.
+        person = next((o for o in owner_names(ctx.case) if same_name(owner, o)), None)
+        if person:
+            return Assessment(
+                "GAP", records_value, _ev_value(ev), [filing] + ev, "low",
+                diff=f"the DBA '{dba}' is filed by the owner {person} personally, not by the legal entity; "
+                     "a DBA filed in the entity's name is needed", explainable=False)
+        applicant_id = _applicant_entity_id(ctx.facts, ctx.case)
+        filer_ids = [f for f in ctx.facts.records("dba_owner_entity_id") if f.source_id == filing.source_id
+                     and (text(f.value) or "").strip().upper() not in ("", applicant_id)]
+        former = any(same_name(owner, n) for n, _ in former_names(ctx.facts))
+        if filer_ids and applicant_id and not former:
+            return Assessment(
+                "HARD_FAIL", records_value, _ev_value(ev), [filing, filer_ids[-1]] + ev, "high",
+                hard_fail_reason="dba_registered_to_other_entity",
+                diff=f"the DBA '{dba}' is registered to {owner} ({text(filer_ids[-1].value)}), "
+                     f"another entity than the applicant's ({applicant_id})", explainable=False)
     if not ev:
         return Assessment("GAP", records_value, None, [filing], "low",
                           diff="no merchant evidence ties the DBA to an entity")
@@ -531,14 +639,11 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
         used = name_facts + ([status_f] if status_f else []) + formation
         records_value = f"{reg_name or 'found'}, {status or 'status unknown'}"
         if status == PENDING:
-            # The pending filing is the registry's own record: the formation is filed, not yet approved.
-            if ctx.check.expected_absence:
-                return Assessment("EXPLAINED", records_value, _ev_value(formation), used, "medium",
-                                  explanation="The formation is filed and pending at the registry; "
-                                              "a new business was expected in the plan",
-                                  explanation_evidence=ids(used), explanation_facts=used, explainable=False)
+            # The formation is filed but not approved: the entity isn't active yet, however new it
+            # is, so the check stays open until a good standing certificate shows it approved.
             return Assessment("GAP", records_value, _ev_value(formation), used, "low",
-                              diff="the registry filing is still pending", explainable=False)
+                              diff="the registry filing is still pending; the entity is not active yet",
+                              explainable=False)
         return Assessment("AGREE", records_value, _ev_value(formation), used, weakest_conf(used, "high"))
     rec_facts = [found_f] if found_f and not truthy(found_f.value) else []
     records_value = "not found"
@@ -653,6 +758,7 @@ COMPARATORS: dict[str, Comparator] = {
     "EC1.entity_active": cmp_entity_active,
     "EC1.dba_owner": cmp_dba_owner,
     "EC1.name_normalized": cmp_name_normalized,
+    "EC1.applied_name": cmp_applied_name,
     "EC1.bank_account_holder": cmp_bank_account_holder,
     "EC2.tin_match": cmp_tin_match,
     "EC2.name_control": cmp_name_control,
@@ -751,12 +857,20 @@ def _resolve_citations(cited: list[str], facts: FactIndex) -> tuple[list[str], l
 
 def apply_explanation(check: PlannedCheck, a: Assessment, facts: FactIndex,
                       exp: Optional[Explanation]) -> Assessment:
-    """Accept an explanation only with valid citations, and not on the website alone."""
+    """Accept an explanation only with valid citations, and not on the website alone.
+
+    An EC-1 name or DBA-owner difference is explained only by a record that links the names
+    (``name_link_facts``): a former name, articles of amendment, or a DBA the entity filed.
+    Citing the two differing records themselves explains nothing."""
     if exp is None or not exp.explanation.strip():
         return a
     cited_ids, cited_facts = _resolve_citations(exp.cited, facts)
     if not cited_ids or all(i.startswith("W") for i in cited_ids):
         return a
+    if check.check_id.startswith("EC1."):
+        links = {f.key for f in name_link_facts(facts, facts.case)}
+        if not any(f.key in links for f in cited_facts):
+            return a
     a.status = "EXPLAINED"
     a.explanation = exp.explanation.strip()
     a.explanation_evidence = cited_ids

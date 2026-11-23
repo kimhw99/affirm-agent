@@ -102,6 +102,8 @@ HardFailReason = Literal[
     "kyc_failed",
     "ein_letter_mismatch",
     "ein_belongs_to_other_entity",
+    "dba_registered_to_other_entity",     # the DBA's live filing names another entity number
+    "entity_id_belongs_to_other_entity",  # the submitted entity number is another company's
     "document_tampered",        # reserved: no worker reports tampering yet, so nothing sets it today
     "other",
 ]

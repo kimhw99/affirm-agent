@@ -79,7 +79,7 @@ class ScriptedWorker:
 # ---------- What each BEAC-7 tool writes ----------
 
 def registry_entity(entity_id: str, legal_name: str, status: str = "active", formed: str = "2021-08-16",
-                    former: tuple[str, ...] = (), state: str = "IL") -> Rec:
+                    former: tuple[str, ...] = (), state: str = "IL", officers: tuple[str, ...] = ()) -> Rec:
     """get_registry_entity / search_registry: one entity."""
     f = [("legal_name", legal_name, f"legal_name: {legal_name}"),
          ("state_entity_id", entity_id, f"state_entity_id: {entity_id}"),
@@ -87,6 +87,7 @@ def registry_entity(entity_id: str, legal_name: str, status: str = "active", for
          ("formation_date", formed, f"formation_date: {formed}")]
     if former:
         f.append(("former_names", list(former), "former_names: " + "; ".join(former)))
+    f += [("officer_name", name, f"officer: {name} (Managing Member)") for name in officers]
     return Rec("sos_registry", f, locator=f"{state} SOS {entity_id}")
 
 

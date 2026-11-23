@@ -82,6 +82,13 @@ _FILING_HISTORY = InternalStep(
     "or a separate company?",
     ("former_name", "former_names", "filing_event", "name_change", "separate_entity"),
 )
+_APPLIED_NAME = InternalStep(
+    "applied_name", "records",
+    "Read entity {entity_id}'s registry record and filing history, and search DBA filings for "
+    "'{legal_name}': is '{legal_name}' a former name or an assumed name of that entity, and who are its officers?",
+    ("legal_name", "state_entity_id", "officer_name", "former_names", "former_name", "filing_event", "dba",
+     "registrant", "registrant_state_entity_id"),
+)
 _COUNTY_DBA = InternalStep(
     "county_dba", "records",
     "Search county-level DBA records in {state} for '{dba}' and report the registered owner.",
@@ -131,8 +138,12 @@ PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
                                 MerchantAsk(("dba_certificate", "articles_of_amendment"),
                                             "The DBA certificate or articles of amendment that tie the bank account "
                                             "holder's name to the legal entity")),
+    "EC1.applied_name": ((_APPLIED_NAME,),
+                         MerchantAsk(("dba_certificate", "articles_of_amendment"),
+                                     "A DBA certificate or articles of amendment that tie the applied name to "
+                                     "the registered entity")),
     "EC1.dba_owner": ((_COUNTY_DBA, _FILING_HISTORY),
-                      MerchantAsk(("dba_certificate",), "The DBA filing showing the owner")),
+                      MerchantAsk(("dba_certificate",), "A current DBA certificate filed by the legal entity")),
     "EC2.tin_match": ((_TIN_RETRY, _FILING_HISTORY),
                       MerchantAsk(("irs_147c",), "IRS 147C (EIN verification letter)")),
     "EC2.name_control": ((_TIN_RETRY,),
@@ -141,7 +152,9 @@ PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
                                MerchantAsk(("irs_147c", "irs_cp575"), "IRS 147C or CP 575 for the submitted EIN")),
     "EC2.tin_type_fits": ((), MerchantAsk(("w9",), "A signed W-9 showing the TIN type")),
     "EC4.registry_presence": ((_PENDING,),
-                              MerchantAsk(("articles",), "Stamped articles or certificate of formation")),
+                              MerchantAsk(("articles", "good_standing"),
+                                          "Stamped articles of formation, or a certificate of good standing "
+                                          "once the filing is approved")),
     "EC4.ein_age": ((_TIN_RETRY,), MerchantAsk(("irs_147c", "irs_cp575"), "IRS 147C (EIN verification letter)")),
     "EC4.sole_prop_owner": ((_KYC,), MerchantAsk(("w9",), "A W-9 in the owner's name with the owner's TIN")),
     "EC4.sole_prop_dba": ((_COUNTY_DBA,), MerchantAsk(("dba_certificate",), "The DBA filing showing the owner")),

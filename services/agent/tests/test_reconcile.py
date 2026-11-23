@@ -32,6 +32,7 @@ def test_case_1042_first_round(case_1042):
     status = {k: o.status for k, o in outcomes.items()}
     assert status == {
         "EC1.entity_active": "AGREE",          # L.L.C. vs LLC is formatting only
+        "EC1.applied_name": "AGREE",           # the applied name is the registered one
         "EC1.dba_owner": "CONFLICT",           # filed by HARBOR LIGHT CYCLES LLC
         "EC1.bank_account_holder": "AGREE",
         "EC2.tin_match": "CONFLICT",           # mismatch; the letter names another company
@@ -71,12 +72,25 @@ def test_website_alone_cannot_explain_a_difference(case_1042):
     assert out.status == "CONFLICT"
 
 
-def test_explanation_must_cite_real_findings(case_1042):
+def test_an_ec1_name_difference_is_explained_only_by_a_record_that_links_the_names(case_1042):
+    # Citing the differing DBA filing itself explains nothing (cases 1119-1123 cleared that way).
     _, assessments, plan, facts, _ = _run(case_1042, records_1042, evidence_1042)
     a = assessments["EC1.dba_owner"]
     key = next(f.key for f in facts.records("dba_owner"))
-    out = apply_explanation(plan.check("EC1.dba_owner"), a, facts, Explanation("Former name", [key]))
-    assert out.status == "EXPLAINED" and out.explanation_evidence == [facts.by_key(key).source_id]
+    out = apply_explanation(plan.check("EC1.dba_owner"), a, facts, Explanation("Same owner", [key]))
+    assert out.status == "CONFLICT"
+
+    # The registry's former names link them.
+    def records(task):
+        recs = records_1042(task)
+        recs[0] = registry_entity("IL-0458821", "NORTHLINE BICYCLE WORKS, L.L.C.", formed="2023-05-30",
+                                  former=("HARBOR LIGHT CYCLES LLC",))
+        return recs
+    _, assessments, plan, facts, _ = _run(case_1042, records, evidence_1042)
+    former = next(f.key for f in facts.records("former_name"))
+    out = apply_explanation(plan.check("EC1.dba_owner"), assessments["EC1.dba_owner"], facts,
+                            Explanation("Former name", [former]))
+    assert out.status == "EXPLAINED" and out.explanation_evidence == [facts.by_key(former).source_id]
 
 
 def test_website_cannot_overrule_the_registry(case_1042):
@@ -135,12 +149,14 @@ def _records_with_status(status, formed="2026-11-09"):
                                          formed=formed, state="CO")]
 
 
-def test_pending_registry_filing_of_a_new_business_is_explained():
-    """world.EntityStatus 'pending' is the pending filing: no separate (unfeedable) pending_filing fact."""
-    outcomes, *_ = _run(_case_4401(), _records_with_status("pending"), lambda task: [])
+def test_pending_registry_filing_stays_open_even_for_a_new_business():
+    """world.EntityStatus 'pending' is a filed formation not yet approved: the entity isn't active,
+    so the check stays open until good standing shows it (golden cases 4504-4506)."""
+    outcomes, assessments, *_ = _run(_case_4401(), _records_with_status("pending"), lambda task: [])
     o = outcomes["EC4.registry_presence"]
-    assert o.expected_absence and o.status == "EXPLAINED" and "pending" in o.explanation
-    assert o.explanation_evidence == ["R1"]
+    assert o.expected_absence and o.status == "GAP"
+    assert "pending" in assessments["EC4.registry_presence"].diff
+    assert decide(outcomes) == "follow_up"
 
 
 def test_pending_registry_filing_of_an_old_business_stays_open():
@@ -300,3 +316,94 @@ def test_a_live_filing_beside_an_expired_one_still_ties_the_dba(case_1042):
         return recs
     outcomes, *_ = _run(case_1042, records, evidence_1042)
     assert outcomes["EC1.dba_owner"].status == "AGREE"
+
+
+# ---------- Who filed the DBA, and whose entity number was submitted (golden 1113, 1119-1126) ----------
+
+def _with(recs_fn, index, rec):
+    def records(task):
+        recs = recs_fn(task)
+        if task.follow_up_of is None:
+            recs[index] = rec
+        return recs
+    return records
+
+
+def _asking():
+    asked = []
+    return asked, (lambda check, a, facts: asked.append(check.check_id) or Explanation("trust me", ["R1", "R2"]))
+
+
+def test_a_dba_filed_by_the_owner_personally_is_a_gap_not_sent_to_the_explainer(case_1042):
+    from fakes import dba_filing
+    records = _with(records_1042, 1, dba_filing("IL-AN-2024-0115", "NORTHLINE CYCLES", "DANA PARK"))
+    asked, always = _asking()
+    outcomes, assessments, *_ = _run(case_1042, records, evidence_1042, explainer=always)
+    assert outcomes["EC1.dba_owner"].status == "GAP"
+    assert "personally" in assessments["EC1.dba_owner"].diff
+    assert "EC1.dba_owner" not in asked
+
+
+def test_a_dba_registered_under_another_entity_number_is_a_hard_fail(case_1042):
+    from fakes import dba_filing
+    records = _with(records_1042, 1, dba_filing("IL-AN-2024-0115", "NORTHLINE CYCLES", "WILLOWMERE HOLDINGS LLC",
+                                                "IL-0999999"))
+    asked, always = _asking()
+    outcomes, *_ = _run(case_1042, records, evidence_1042, explainer=always)
+    o = outcomes["EC1.dba_owner"]
+    assert (o.status, o.hard_fail_reason) == ("HARD_FAIL", "dba_registered_to_other_entity")
+    assert decide(outcomes) == "hard_fail"
+
+
+def test_a_dba_filer_without_an_entity_number_stays_an_explainable_conflict(case_1042):
+    """Round 0 of case_1042: HARBOR LIGHT CYCLES LLC may be a former name; the filing history settles it."""
+    outcomes, *_ = _run(case_1042, records_1042, evidence_1042)
+    assert outcomes["EC1.dba_owner"].status == "CONFLICT"
+    assert not any(o.status == "HARD_FAIL" for o in outcomes.values())
+
+
+def test_an_entity_number_of_another_company_is_a_hard_fail(case_1042):
+    case_1042["application"]["legal_name"] = "Northline Bicycle Works LLC"
+    records = _with(records_1042, 0, registry_entity("IL-0458821", "NORTHLINE BICYCLE WORKS GROUP LLC",
+                                                     officers=("Leona Kowalczyk",)))
+    asked, always = _asking()
+    outcomes, *_ = _run(case_1042, records, evidence_1042, explainer=always)
+    o = outcomes["EC1.applied_name"]
+    assert (o.status, o.hard_fail_reason) == ("HARD_FAIL", "entity_id_belongs_to_other_entity")
+    assert "EC1.applied_name" not in asked
+
+
+def test_a_trade_name_typed_as_the_legal_name_is_a_conflict_only_a_document_settles(case_1042):
+    """case_1113: same officers, but nothing official links 'Northline Cycles Shop' to the entity."""
+    case_1042["application"]["legal_name"] = "Northline Cycles Shop"
+    records = _with(records_1042, 0, registry_entity("IL-0458821", "NORTHLINE BICYCLE WORKS, L.L.C.",
+                                                     officers=("Dana Park",)))
+    asked, always = _asking()
+    outcomes, *_ = _run(case_1042, records, evidence_1042, explainer=always)
+    assert outcomes["EC1.applied_name"].status == "CONFLICT"
+    assert "EC1.applied_name" not in asked
+    assert decide(outcomes) == "follow_up"
+
+
+def test_the_applied_name_is_explained_by_a_former_name_or_a_dba_the_entity_filed(case_1042):
+    from fakes import dba_filing
+    case_1042["application"]["legal_name"] = "Harbor Light Cycles LLC"
+    records = _with(records_1042, 0, registry_entity("IL-0458821", "NORTHLINE BICYCLE WORKS, L.L.C.",
+                                                     former=("HARBOR LIGHT CYCLES LLC",), officers=("Dana Park",)))
+    outcomes, *_ = _run(case_1042, records, evidence_1042)
+    o = outcomes["EC1.applied_name"]
+    assert o.status == "EXPLAINED" and "former legal name" in o.explanation
+
+    case_1042["application"]["legal_name"] = "Northline Cycles"
+    records = _with(records_1042, 1, dba_filing("IL-AN-2024-0115", "NORTHLINE CYCLES", "NORTHLINE BICYCLE WORKS LLC",
+                                                "IL-0458821"))
+    outcomes, *_ = _run(case_1042, records, evidence_1042)
+    o = outcomes["EC1.applied_name"]
+    assert o.status == "EXPLAINED" and "assumed name" in o.explanation
+
+
+def test_a_mistyped_applied_name_still_agrees(case_1042):
+    """case_1107: 'Yarro-wfield Mattress LLC' is 'YARROWFIELD MATTRESS LLC' with a stray hyphen."""
+    case_1042["application"]["legal_name"] = "North-line Bicycle Works LLC"
+    outcomes, *_ = _run(case_1042, records_1042, evidence_1042)
+    assert outcomes["EC1.applied_name"].status == "AGREE"

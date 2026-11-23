@@ -124,6 +124,19 @@ TEMPLATES: tuple[CheckTemplate, ...] = (
         applies=lambda case: not _is_sole_prop(case),
     ),
     CheckTemplate(
+        "EC1.applied_name", "EC-1",
+        "The applied legal name is the registered name at the submitted entity number", EC1,
+        "Registry entity at the submitted entity number: legal name, officers, former names; "
+        "DBA filings of that entity",
+        "— (the application itself)",
+        "The names match after normalization, or a former name or a DBA the entity filed links them; "
+        "an entity with none of the applicant's owners as officers is another company",
+        ("legal_name", "state_entity_id", "officer", "former_name", "dba_name", "dba_owner",
+         "dba_owner_entity_id"),
+        (),
+        applies=lambda case: not _is_sole_prop(case) and bool(case.application.state_entity_id),
+    ),
+    CheckTemplate(
         "EC1.dba_owner", "EC-1", "The DBA belongs to the legal entity",
         (FlagReason.DBA_UNVERIFIED, FlagReason.NAME_UNVERIFIED),
         "DBA / assumed-name filing that lists the legal entity as owner",
