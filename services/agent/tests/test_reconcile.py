@@ -521,3 +521,40 @@ def test_an_expired_dba_certificate_on_file_is_asked_for_again(case_1042):
     assert [r.document_type for r in asks] == ["dba_certificate"] and "renewed" in asks[0].reason
     assert not renewal_allowed("EC1.dba_owner", "GAP", "dba_certificate")
     assert not renewal_allowed("EC1.applied_name", "CONFLICT", "dba_certificate")
+
+
+# ---------- PR 3: an entity number the registry doesn't have (golden 4523, 5125-5127 vs 4519-4521) ----------
+
+def _id_not_found(entity_id: str, state: str = "CO"):
+    from fakes import Rec
+    return Rec("sos_registry", [("registry_entity", "not_found", "result: not found",
+                                 f"No {state} registry entity with ID {entity_id}")],
+               locator=f"{state} SOS {entity_id}")
+
+
+def test_an_entity_number_nobody_has_with_no_entity_by_name_is_a_hard_fail():
+    raw = _ec4(state_entity_id="CO-99999", formation_date="2024-01-15")
+    records = lambda task: [_id_not_found("CO-99999"), registry_none("Juniper & Pine Candle Co. LLC", state="CO")]
+    outcomes, *_ = _run(raw, records, lambda task: [])
+    o = outcomes["EC4.registry_presence"]
+    assert (o.status, o.hard_fail_reason) == ("HARD_FAIL", "entity_id_not_found")
+    assert decide(outcomes) == "hard_fail"
+
+
+def test_a_mistyped_entity_number_is_not_a_hard_fail_when_the_name_search_finds_the_entity():
+    raw = _ec4(state_entity_id="CO-202614889", formation_date="2024-01-15")
+    records = lambda task: [_id_not_found("CO-202614889"),
+                            registry_entity("CO-20261488", "JUNIPER & PINE CANDLE CO. LLC", state="CO")]
+    outcomes, *_ = _run(raw, records, lambda task: [])
+    assert outcomes["EC4.registry_presence"].status == "AGREE"
+
+
+def test_no_hard_fail_before_a_name_search_or_for_a_new_business():
+    old = _ec4(state_entity_id="CO-99999", formation_date="2024-01-15")
+    outcomes, *_ = _run(old, lambda task: [_id_not_found("CO-99999")], lambda task: [])
+    assert outcomes["EC4.registry_presence"].status != "HARD_FAIL"       # the name search comes next
+
+    new = _ec4(state_entity_id="CO-99999")                                 # formed 2026-11-09: registry lag
+    records = lambda task: [_id_not_found("CO-99999"), registry_none("Juniper & Pine Candle Co. LLC", state="CO")]
+    outcomes, *_ = _run(new, records, lambda task: [])
+    assert outcomes["EC4.registry_presence"].status != "HARD_FAIL"

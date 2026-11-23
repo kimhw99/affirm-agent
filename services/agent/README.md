@@ -86,7 +86,9 @@ name or DBA-owner difference also needs a citation that links the names: a forme
 articles of amendment, or a DBA the entity filed itself (`name_link_facts`). HARD_FAILs
 (TIN never issued, entity dissolved or revoked, KYC failed, EIN letter ≠ submitted EIN,
 EIN belongs to another entity, DBA registered under another entity number, submitted
-entity number belongs to another company) are never sent to the LLM.
+entity number belongs to another company, submitted entity number not in the registry and
+no entity by name either for a business too old for a registry lag) are never sent to the LLM.
+A mistyped entity number isn't a hard fail: the name search then finds the entity.
 
 The EC-1 checks settle who owns the names from official data, without the LLM:
 `EC1.applied_name` compares the legal name typed on the application with the registered

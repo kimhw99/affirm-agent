@@ -681,6 +681,16 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
                                           "the absence was expected in the plan",
                               explanation_evidence=ids(support), explanation_facts=support,
                               explainable=False)
+    missing_id = _submitted_id_not_found(ctx)
+    searches = _name_searches(ctx.facts)
+    if missing_id and searches and not ctx.check.expected_absence:
+        # The registry has no entity at the number the merchant gave, a search by name finds none
+        # either, and the business is too old for a registry lag (golden 4523, 5125-5127). A typo
+        # in the number is different: the name search then finds the entity (4519-4521).
+        return Assessment("HARD_FAIL", records_value, _ev_value(formation), [missing_id] + searches[-1:], "high",
+                          hard_fail_reason="entity_id_not_found",
+                          diff=f"no registry entity at {ctx.app.state_entity_id} or under the applied name, "
+                               "and the formation is not recent", explainable=False)
     if not formation:
         return Assessment("GAP", records_value, None, rec_facts, "low",
                           diff="not in the registry and no formation documents", explainable=False)
@@ -689,6 +699,28 @@ def cmp_registry_presence(ctx: Ctx) -> Assessment:
     return Assessment("CONFLICT", records_value, _ev_value(formation), rec_facts + formation, "low",
                       diff="formation documents exist but the registry has no entity and the "
                            "formation is not recent", explainable=False)
+
+
+_NOT_FOUND = {"not_found", "none", "not found", "false"}
+
+
+def _submitted_id_not_found(ctx: Ctx) -> Optional[Fact]:
+    """The registry's 'not found' for a lookup by the submitted entity number, if one ran."""
+    submitted = (ctx.app.state_entity_id or "").strip().upper()
+    if not submitted:
+        return None
+    for f in ctx.facts.records("registry_found"):
+        locator = getattr(ctx.facts.sources.get(f.source_id), "locator", "") or ""
+        if (text(f.value) or "").strip().lower() in _NOT_FOUND and locator.upper().endswith(submitted):
+            return f
+    return None
+
+
+def _name_searches(facts: FactIndex) -> list[Fact]:
+    """Registry searches by name that found nothing, or found only other companies."""
+    empty = [f for f in facts.facts if f.worker == "records" and f.source_kind == "sos_registry_search"]
+    others = [f for f in facts.facts if f.source_id in facts.other_entities and f.field == "legal_name"]
+    return empty + others
 
 
 def _entity_state(facts: FactIndex, f: Fact) -> Optional[str]:
