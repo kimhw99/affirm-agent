@@ -1,0 +1,25 @@
+{
+  "case_id": "case_4507",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "IL-COOK-2022-010613",
+      "state": "IL",
+      "county": "Cook",
+      "dba": "SORREL SOUND",
+      "registrant": "URIEL DVORAK",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2022-04-17",
+      "expires": "2032-04-17",
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "3986",
+    "irs_status": "issued",
+    "irs_name": "URIEL DVORAK"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "case_id": "case_4520",
+  "registry": [
+    {
+      "state": "MN",
+      "state_entity_id": "MN-2618141",
+      "legal_name": "WRENFIELD PET SUPPLY INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2018-05-11",
+      "registered_address": "9774 Hawthorne St, Minneapolis, MN 55446",
+      "officers": [
+        {
+          "name": "Fiona Mbeki",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MN-2618141-1",
+          "event_type": "formation",
+          "effective_date": "2018-05-11",
+          "old_value": null,
+          "new_value": "WRENFIELD PET SUPPLY INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61353",
+      "state": "MN",
+      "business_name": "WRENFIELD PET SUPPLY INC",
+      "address": "9774 Hawthorne St, Minneapolis, MN 55446",
+      "first_seen": "2018-07-19",
+      "last_updated": "2026-09-08"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "4733",
+    "irs_status": "issued",
+    "irs_name": "WRENFIELD PET SUPPLY INC"
+  }
+}

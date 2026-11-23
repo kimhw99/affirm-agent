@@ -1,0 +1,47 @@
+{
+  "case_id": "case_2105",
+  "registry": [
+    {
+      "state": "TX",
+      "state_entity_id": "TX-2100069",
+      "legal_name": "WHITLOW & UNDERWOOD BAKERY INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2024-03-29",
+      "registered_address": "1415 Sycamore Way, Austin, TX 78710",
+      "officers": [
+        {
+          "name": "Emeka Ilunga",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TX-2100069-1",
+          "event_type": "formation",
+          "effective_date": "2024-03-29",
+          "old_value": null,
+          "new_value": "WHITLOW & UNDERWOOD BAKERY INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60602",
+      "state": "TX",
+      "business_name": "WHITLOW & UNDERWOOD BAKERY INC",
+      "address": "1415 Sycamore Way, Austin, TX 78710",
+      "first_seen": "2024-06-25",
+      "last_updated": "2026-10-13"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9290",
+    "irs_status": "issued",
+    "irs_name": "WHITLOW AND UNDERWOOD BAKERY INC"
+  }
+}

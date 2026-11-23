@@ -19,12 +19,12 @@ def _plan(raw, extras=None):
 def test_case_1042_template(case_1042):
     plan, _, _ = _plan(case_1042)
     assert [c.check_id for c in plan.checks] == [
-        "EC1.entity_active", "EC1.dba_owner", "EC1.bank_account_holder",
+        "EC1.entity_active", "EC1.applied_name", "EC1.dba_owner", "EC1.bank_account_holder",
         "EC2.tin_match", "EC2.name_control", "EC2.ein_letter_matches", "EC2.tin_type_fits",
     ]
     assert all(c.required and c.origin == "template" for c in plan.checks)
     assert plan.checks_for_flag(FlagReason.DBA_UNVERIFIED) == [
-        "EC1.entity_active", "EC1.dba_owner", "EC1.bank_account_holder"]
+        "EC1.entity_active", "EC1.applied_name", "EC1.dba_owner", "EC1.bank_account_holder"]
 
 
 def test_llm_can_add_but_not_remove(case_1042):

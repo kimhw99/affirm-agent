@@ -1,0 +1,30 @@
+{
+  "case_id": "case_4528",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "filing_event": {
+          "event_id": "TX-2100098-2",
+          "event_type": "dissolution",
+          "effective_date": "2026-04-05",
+          "old_value": "active",
+          "new_value": "dissolved"
+        }
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The entity was administratively dissolved and never reinstated. The commercial databases dropped the profile when the entity was dissolved. document_request should ask for reinstatement / good standing."
+}

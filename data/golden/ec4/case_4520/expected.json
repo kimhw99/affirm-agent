@@ -1,0 +1,26 @@
+{
+  "case_id": "case_4520",
+  "categories": [
+    "exception",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MN-2618141"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "conclude the company is unregistered",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The application gives entity ID MN-26188141, which doesn't exist; the real record is MN-2618141 with the same name, address and officers. One digit was typed twice."
+}

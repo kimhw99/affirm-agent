@@ -1,0 +1,51 @@
+{
+  "case_id": "case_2119",
+  "registry": [
+    {
+      "state": "WA",
+      "state_entity_id": "WA-2285091",
+      "legal_name": "LANTERNFLY SKINCARE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-06-07",
+      "registered_address": "7282 Beacon St, Spokane, WA 99275",
+      "officers": [
+        {
+          "name": "Keiko Lindqvist",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Oksana Fontaine",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "WA-2285091-1",
+          "event_type": "formation",
+          "effective_date": "2021-06-07",
+          "old_value": null,
+          "new_value": "LANTERNFLY SKINCARE LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60895",
+      "state": "WA",
+      "business_name": "LANTERNFLY SKINCARE LLC",
+      "address": "7282 Beacon St, Spokane, WA 99275",
+      "first_seen": "2021-11-06",
+      "last_updated": "2026-09-13"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2069",
+    "irs_status": "not_found",
+    "irs_name": null
+  }
+}

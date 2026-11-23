@@ -1,0 +1,60 @@
+{
+  "case_id": "case_1114",
+  "registry": [
+    {
+      "state": "MN",
+      "state_entity_id": "MN-2618034",
+      "legal_name": "PINNACLE LIGHTING LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2025-01-11",
+      "registered_address": "1605 Prospect Pkwy, Duluth, MN 55890",
+      "officers": [
+        {
+          "name": "Helena Nwosu",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MN-2618034-1",
+          "event_type": "formation",
+          "effective_date": "2025-01-11",
+          "old_value": null,
+          "new_value": "PINNACLE LIGHTING LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "MN-AN-2025-10182",
+      "state": "MN",
+      "county": null,
+      "dba": "PINNACLE LAMPS",
+      "registrant": "PINNACLE LIGHTING LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "MN-2618034",
+      "filed": "2025-07-14",
+      "expires": "2035-07-14",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60229",
+      "state": "MN",
+      "business_name": "PINNACLE LAMPS",
+      "address": "1605 Prospect Pkwy, Duluth, MN 55890",
+      "first_seen": "2025-07-08",
+      "last_updated": "2026-10-19"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7987",
+    "irs_status": "issued",
+    "irs_name": "PINNACLE LIGHTING LLC"
+  }
+}

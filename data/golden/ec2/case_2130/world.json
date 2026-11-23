@@ -1,0 +1,51 @@
+{
+  "case_id": "case_2130",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174079",
+      "legal_name": "REDFERN COFFEE ROASTERS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-09-15",
+      "registered_address": "1898 Maple Pkwy, Buffalo, NY 14207",
+      "officers": [
+        {
+          "name": "Talia Mbeki",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Cole Tanaka",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174079-1",
+          "event_type": "formation",
+          "effective_date": "2023-09-15",
+          "old_value": null,
+          "new_value": "REDFERN COFFEE ROASTERS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61105",
+      "state": "NY",
+      "business_name": "REDFERN COFFEE ROASTERS LLC",
+      "address": "1898 Maple Pkwy, Buffalo, NY 14207",
+      "first_seen": "2023-11-20",
+      "last_updated": "2026-10-09"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "2111",
+    "irs_status": "issued",
+    "irs_name": "TALIA MBEKI"
+  }
+}

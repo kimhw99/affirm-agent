@@ -1,0 +1,75 @@
+{
+  "case_id": "case_1111",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Gingerroot Sleep",
+    "address": "5165 Ridge Blvd, San Diego, CA 92158",
+    "tin_type": "EIN",
+    "tin_last4": "7421",
+    "state": "CA",
+    "state_entity_id": "CA-2137003",
+    "entity_type": "LLC",
+    "formation_date": "2021-05-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Andre Pellegrini",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "GINGERROOT MATTRESS LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Gingerroot Sleep",
+        "registrant": "Gingerroot Mattress LLC",
+        "jurisdiction": "San Diego County, CA",
+        "filed": "2021-05-25",
+        "expires": "2036-05-25"
+      },
+      "confidence": 0.94
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GINGERROOT MATTRESS LLC DBA GINGERROOT SLEEP",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://gingerrootsleep.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Gingerroot Mattress LLC",
+        "address": "5165 Ridge Blvd, San Diego, CA 92158",
+        "dba": "Gingerroot Sleep"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

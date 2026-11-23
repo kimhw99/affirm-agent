@@ -1,0 +1,83 @@
+{
+  "case_id": "case_2106",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Netherby Camera Supply LLC",
+    "address": "8762 Willow Ln, Austin, TX 78701",
+    "tin_type": "EIN",
+    "tin_last4": "2271",
+    "state": "TX",
+    "state_entity_id": "TX-2100085",
+    "entity_type": "LLC",
+    "formation_date": "2023-08-27",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Dario Kowalczyk",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Kiran Iwasaki",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "NETHERBY CAMERA SUPPLY LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "extracted": {
+        "name": "NETHERBY CAMERA SUPPLY LIMITED LIABILITY COMPANY",
+        "ein_last4": "2271",
+        "name_control": "NETH",
+        "date": "2026-11-02"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "NETHERBY CAMERA SUPPLY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://netherby.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Netherby Camera Supply LLC",
+        "address": "8762 Willow Ln, Austin, TX 78701"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

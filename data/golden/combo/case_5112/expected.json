@@ -1,0 +1,31 @@
+{
+  "case_id": "case_5112",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-2"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "TN-2692144"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "recommend_clear because the name flag is resolved",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The name issue is a harmless suffix variant ('Sunhollow Rugs LLC' vs 'SUNHOLLOW RUGS LIMITED LIABILITY COMPANY'), but the EIN is on file for 'MARROWBY LOGISTICS LLC', an unrelated company in TN. The name flag should be resolved; the TIN flag drives the escalation."
+}

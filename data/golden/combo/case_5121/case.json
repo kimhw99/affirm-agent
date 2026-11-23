@@ -1,0 +1,62 @@
+{
+  "case_id": "case_5121",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Starling Jewelry, LLC",
+    "address": "2324 Orchard Blvd, Pittsburgh, PA 15222",
+    "tin_type": "EIN",
+    "tin_last4": "5037",
+    "state": "PA",
+    "state_entity_id": "PA-2581167",
+    "entity_type": "LLC",
+    "formation_date": "2026-10-20",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Avery Brannigan",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "STARLING JEWELRY L.L.C."
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "STARLING JEWELRY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://starling.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Starling Jewelry, LLC",
+        "address": "2324 Orchard Blvd, Pittsburgh, PA 15222"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

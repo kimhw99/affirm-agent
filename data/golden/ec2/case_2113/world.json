@@ -1,0 +1,89 @@
+{
+  "case_id": "case_2113",
+  "registry": [
+    {
+      "state": "MA",
+      "state_entity_id": "MA-2507031",
+      "legal_name": "INGLESIDE APPAREL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-07-21",
+      "registered_address": "4482 Hawthorne Dr, Boston, MA 02155",
+      "officers": [
+        {
+          "name": "Mara Delacroix",
+          "title": "Managing Member"
+        },
+        {
+          "name": "UNDERHILL HOLDINGS INC",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MA-2507031-1",
+          "event_type": "formation",
+          "effective_date": "2024-07-21",
+          "old_value": null,
+          "new_value": "INGLESIDE APPAREL LLC"
+        }
+      ]
+    },
+    {
+      "state": "MA",
+      "state_entity_id": "MA-2507034",
+      "legal_name": "UNDERHILL HOLDINGS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2020-05-20",
+      "registered_address": "4482 Hawthorne Dr, Boston, MA 02155",
+      "officers": [
+        {
+          "name": "Mara Delacroix",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MA-2507034-1",
+          "event_type": "formation",
+          "effective_date": "2020-05-20",
+          "old_value": null,
+          "new_value": "UNDERHILL HOLDINGS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "MA-SUFFOLK-2025-010508",
+      "state": "MA",
+      "county": "Suffolk",
+      "dba": "INGLESIDE CLOTHING",
+      "registrant": "INGLESIDE APPAREL LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "MA-2507031",
+      "filed": "2025-01-25",
+      "expires": "2040-01-25",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60863",
+      "state": "MA",
+      "business_name": "INGLESIDE CLOTHING",
+      "address": "4482 Hawthorne Dr, Boston, MA 02155",
+      "first_seen": "2024-11-11",
+      "last_updated": "2026-10-08"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6948",
+    "irs_status": "issued",
+    "irs_name": "UNDERHILL HOLDINGS INC"
+  }
+}

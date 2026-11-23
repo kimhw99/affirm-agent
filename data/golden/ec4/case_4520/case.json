@@ -1,0 +1,73 @@
+{
+  "case_id": "case_4520",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Wrenfield Pet Supply Inc",
+    "address": "9774 Hawthorne St, Minneapolis, MN 55446",
+    "tin_type": "EIN",
+    "tin_last4": "4733",
+    "state": "MN",
+    "state_entity_id": "MN-26188141",
+    "entity_type": "CORPORATION",
+    "formation_date": "2018-05-11",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Fiona Mbeki",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Wrenfield Pet Supply Inc",
+        "state": "MN",
+        "state_entity_id": "MN-2618141",
+        "formation_date": "2018-05-11"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "WRENFIELD PET SUPPLY INC",
+    "status": "verified",
+    "verified_at": "2026-11-16"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://wrenfield.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Wrenfield Pet Supply Inc",
+        "address": "9774 Hawthorne St, Minneapolis, MN 55446"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

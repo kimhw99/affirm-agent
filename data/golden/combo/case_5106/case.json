@@ -1,0 +1,96 @@
+{
+  "case_id": "case_5106",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "TIN_NOT_ISSUED",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Jubilee Tea Company LLC",
+    "address": "1846 Chapel Pkwy, Peoria, IL 61687",
+    "tin_type": "EIN",
+    "tin_last4": "1523",
+    "state": "IL",
+    "state_entity_id": "IL-2248049",
+    "entity_type": "LLC",
+    "formation_date": "2026-11-18",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Keiko Haddad",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Keiko Underwood",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Not Issued"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "JUBILEE TEA COMPANY LLC",
+        "ein_last4": "1523",
+        "name_control": "JUBI",
+        "date": "2026-11-19"
+      },
+      "confidence": 0.91
+    },
+    {
+      "id": "D2",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Jubilee Tea Company LLC",
+        "state": "IL",
+        "state_entity_id": "IL-2248049",
+        "formation_date": "2026-11-18"
+      },
+      "confidence": 0.94
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "JUBILEE TEA COMPANY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://jubilee.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Jubilee Tea Company LLC",
+        "address": "1846 Chapel Pkwy, Peoria, IL 61687"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

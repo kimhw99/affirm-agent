@@ -1,0 +1,80 @@
+{
+  "case_id": "case_5109",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Willa Rahimi",
+    "dba": "Inkwell Woodshop",
+    "address": "7568 Chapel Way, Cleveland, OH 44138",
+    "tin_type": "SSN",
+    "tin_last4": "0019",
+    "state": "OH",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2019-02-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Willa Rahimi",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Willa Zielinski",
+        "tin_type": "SSN",
+        "tin_last4": "0019",
+        "business_name": "Inkwell Woodshop"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "WILLA RAHIMI DBA INKWELL WOODSHOP",
+    "status": "verified",
+    "verified_at": "2026-11-15"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://inkwellwoodshop.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "address": "7568 Chapel Way, Cleveland, OH 44138",
+        "dba": "Inkwell Woodshop"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

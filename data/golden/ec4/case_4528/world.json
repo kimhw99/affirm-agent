@@ -1,0 +1,49 @@
+{
+  "case_id": "case_4528",
+  "registry": [
+    {
+      "state": "TX",
+      "state_entity_id": "TX-2100098",
+      "legal_name": "FIRTHWOOD TILE AND STONE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "dissolved",
+      "formation_date": "2018-11-09",
+      "registered_address": "4838 Ridge Blvd, Austin, TX 78752",
+      "officers": [
+        {
+          "name": "Bianca Sokolov",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Wesley Yilmaz",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TX-2100098-1",
+          "event_type": "formation",
+          "effective_date": "2018-11-09",
+          "old_value": null,
+          "new_value": "FIRTHWOOD TILE AND STONE LLC"
+        },
+        {
+          "event_id": "TX-2100098-2",
+          "event_type": "dissolution",
+          "effective_date": "2026-04-05",
+          "old_value": "active",
+          "new_value": "dissolved"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3047",
+    "irs_status": "issued",
+    "irs_name": "FIRTHWOOD TILE AND STONE LLC"
+  }
+}

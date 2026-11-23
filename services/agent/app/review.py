@@ -102,6 +102,9 @@ HardFailReason = Literal[
     "kyc_failed",
     "ein_letter_mismatch",
     "ein_belongs_to_other_entity",
+    "dba_registered_to_other_entity",     # the DBA's live filing names another entity number
+    "entity_id_belongs_to_other_entity",  # the submitted entity number is another company's
+    "entity_id_not_found",                # no entity at the submitted number or by name, not a new business
     "document_tampered",        # reserved: no worker reports tampering yet, so nothing sets it today
     "other",
 ]
@@ -115,6 +118,7 @@ LeadRule = Literal[
     "REQUIRED_CHECK_MISSING",       # a required template check is missing from the report
     "DOCUMENT_ALREADY_IN_CASE",     # never ask the merchant for a document type the case has
     "WEBSITE_OVERRULES_RECORDS",    # an explanation can't rest on the merchant's website alone
+    "UNSUPPORTED_EXISTENCE_CLAIM",  # the memo says the business is unregistered or doesn't exist
 ]
 
 _CONFIDENCE_RANK: dict[str, int] = {

@@ -1,0 +1,42 @@
+{
+  "case_id": "case_4504",
+  "registry": [
+    {
+      "state": "CA",
+      "state_entity_id": "CA-2137098",
+      "legal_name": "PALISADE RUGS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "pending",
+      "formation_date": "2026-11-18",
+      "registered_address": "4611 Granite St, San Diego, CA 92192",
+      "officers": [
+        {
+          "name": "Grant Yamamoto",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Ivan Nakamura",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CA-2137098-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-18",
+          "old_value": null,
+          "new_value": "PALISADE RUGS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2620",
+    "irs_status": "issued",
+    "irs_name": "PALISADE RUGS LLC"
+  }
+}

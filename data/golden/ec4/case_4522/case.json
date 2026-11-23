@@ -1,0 +1,73 @@
+{
+  "case_id": "case_4522",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Fieldstone Jewelry LLC",
+    "address": "8559 Orchard Ave, Raleigh, NC 27638",
+    "tin_type": "EIN",
+    "tin_last4": "6996",
+    "state": "NC",
+    "state_entity_id": "NC-2433047",
+    "entity_type": "LLC",
+    "formation_date": "2026-02-24",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Gideon Zamora",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Fieldstone Jewelry LLC",
+        "state": "NC",
+        "state_entity_id": "NC-2433047",
+        "formation_date": "2026-02-24"
+      },
+      "confidence": 0.63
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "FIELDSTONE JEWELRY LLC",
+    "status": "failed"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://fieldstone.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Fieldstone Jewelry LLC",
+        "address": "8559 Orchard Ave, Raleigh, NC 27638"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "fail"
+    }
+  ]
+}

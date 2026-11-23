@@ -1,0 +1,60 @@
+{
+  "case_id": "case_1111",
+  "registry": [
+    {
+      "state": "CA",
+      "state_entity_id": "CA-2137003",
+      "legal_name": "GINGERROOT MATTRESS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-05-02",
+      "registered_address": "5165 Ridge Blvd, San Diego, CA 92158",
+      "officers": [
+        {
+          "name": "Andre Pellegrini",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CA-2137003-1",
+          "event_type": "formation",
+          "effective_date": "2021-05-02",
+          "old_value": null,
+          "new_value": "GINGERROOT MATTRESS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "CA-SANDIEGO-2021-010150",
+      "state": "CA",
+      "county": "San Diego",
+      "dba": "GINGERROOT SLEEP",
+      "registrant": "GINGERROOT MATTRESS LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "CA-2137003",
+      "filed": "2021-05-25",
+      "expires": "2036-05-25",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60171",
+      "state": "CA",
+      "business_name": "GINGERROOT SLEEP",
+      "address": "5165 Ridge Blvd, San Diego, CA 92158",
+      "first_seen": "2021-06-25",
+      "last_updated": "2026-10-12"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7421",
+    "irs_status": "issued",
+    "irs_name": "GINGERROOT MATTRESS LLC"
+  }
+}

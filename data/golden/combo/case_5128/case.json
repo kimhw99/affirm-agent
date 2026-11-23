@@ -1,0 +1,92 @@
+{
+  "case_id": "case_5128",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED",
+    "TIN_NOT_ISSUED",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Fiona Haddad",
+    "dba": "Halcyon Bridal Boutique",
+    "address": "2786 Sycamore Pkwy, Trenton, NJ 08653",
+    "tin_type": "EIN",
+    "tin_last4": "5321",
+    "state": "NJ",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2026-11-06",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Fiona Haddad",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Not Issued"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "FIONA HADDAD",
+        "ein_last4": "5321",
+        "name_control": "FION",
+        "date": "2026-11-08"
+      },
+      "confidence": 0.91
+    },
+    {
+      "id": "D2",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Halcyon Bridal Boutique",
+        "registrant": "Fiona Haddad",
+        "jurisdiction": "Mercer County, NJ",
+        "filed": "2026-11-07",
+        "expires": "2031-11-07"
+      },
+      "confidence": 0.94
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "FIONA HADDAD DBA HALCYON BRIDAL BOUTIQUE",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://halcyonbridalboutique.example/about",
+      "captured_at": "2026-11-16",
+      "extracted": {
+        "address": "2786 Sycamore Pkwy, Trenton, NJ 08653",
+        "dba": "Halcyon Bridal Boutique"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

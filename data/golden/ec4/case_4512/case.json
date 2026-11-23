@@ -1,0 +1,75 @@
+{
+  "case_id": "case_4512",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Gideon Yilmaz",
+    "address": "401 Mill Pkwy, Cleveland, OH 44149",
+    "tin_type": "SSN",
+    "tin_last4": "7739",
+    "state": "OH",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2019-10-29",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Gideon Yilmaz",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "business_license",
+      "extracted": {
+        "holder": "Gideon Yilmaz",
+        "status": "active",
+        "address": "401 Mill Pkwy, Cleveland, OH 44149",
+        "issued": "2019-10-29",
+        "authority": "City of Cleveland"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GIDEON YILMAZ",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://cobaltine.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Gideon Yilmaz",
+        "address": "401 Mill Pkwy, Cleveland, OH 44149"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

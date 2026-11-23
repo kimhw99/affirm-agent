@@ -1,0 +1,84 @@
+{
+  "case_id": "case_2112",
+  "registry": [
+    {
+      "state": "NJ",
+      "state_entity_id": "NJ-2655059",
+      "legal_name": "PEREGRINE CAMERA SUPPLY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-07-14",
+      "registered_address": "2222 Juniper Way, Newark, NJ 07185",
+      "officers": [
+        {
+          "name": "Bianca Gutierrez",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Vera Vasquez",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NJ-2655059-1",
+          "event_type": "formation",
+          "effective_date": "2024-07-14",
+          "old_value": null,
+          "new_value": "PEREGRINE CAMERA SUPPLY LLC"
+        }
+      ]
+    },
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174043",
+      "legal_name": "EVENFALL PET SUPPLY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-12-10",
+      "registered_address": "6084 Lake St, Buffalo, NY 14294",
+      "officers": [
+        {
+          "name": "Oksana Brannigan",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174043-1",
+          "event_type": "formation",
+          "effective_date": "2019-12-10",
+          "old_value": null,
+          "new_value": "EVENFALL PET SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60815",
+      "state": "NJ",
+      "business_name": "PEREGRINE CAMERA SUPPLY LLC",
+      "address": "2222 Juniper Way, Newark, NJ 07185",
+      "first_seen": "2024-08-31",
+      "last_updated": "2026-10-04"
+    },
+    {
+      "profile_id": "CDB-60837",
+      "state": "NY",
+      "business_name": "EVENFALL PET SUPPLY LLC",
+      "address": "6084 Lake St, Buffalo, NY 14294",
+      "first_seen": "2020-05-18",
+      "last_updated": "2026-09-24"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "0382",
+    "irs_status": "issued",
+    "irs_name": "EVENFALL PET SUPPLY LLC"
+  }
+}

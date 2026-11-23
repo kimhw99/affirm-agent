@@ -1,0 +1,76 @@
+{
+  "case_id": "case_5112",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396120",
+      "legal_name": "SUNHOLLOW RUGS LIMITED LIABILITY COMPANY",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2020-12-01",
+      "registered_address": "1971 Mill Pkwy, Eugene, OR 97470",
+      "officers": [
+        {
+          "name": "Tobias Underwood",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Imani Zielinski",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396120-1",
+          "event_type": "formation",
+          "effective_date": "2020-12-01",
+          "old_value": null,
+          "new_value": "SUNHOLLOW RUGS LIMITED LIABILITY COMPANY"
+        }
+      ]
+    },
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692144",
+      "legal_name": "MARROWBY LOGISTICS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2014-07-28",
+      "registered_address": "9087 Juniper Blvd, Nashville, TN 37240",
+      "officers": [
+        {
+          "name": "Jada Abernathy",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692144-1",
+          "event_type": "formation",
+          "effective_date": "2014-07-28",
+          "old_value": null,
+          "new_value": "MARROWBY LOGISTICS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61551",
+      "state": "OR",
+      "business_name": "SUNHOLLOW RUGS LLC",
+      "address": "1971 Mill Pkwy, Eugene, OR 97470",
+      "first_seen": "2021-03-02",
+      "last_updated": "2026-09-06"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1426",
+    "irs_status": "issued",
+    "irs_name": "MARROWBY LOGISTICS LLC"
+  }
+}

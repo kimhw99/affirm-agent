@@ -24,11 +24,11 @@ from typing import Mapping, Optional, Sequence
 
 from pydantic import BaseModel, Field
 
-from app.graph.facts import FactIndex, truthy
+from app.graph.facts import EVIDENCE_FIELDS, RECORDS_FIELDS, Fact, FactIndex, text, truthy
 from app.graph.followup import MerchantRequest, merchant_record, merchant_requests
 from app.graph.orchestrator import RoutingDecision
 from app.graph.plan import TEMPLATES, Plan
-from app.graph.reconcile import decide
+from app.graph.reconcile import decide, name_link_facts, owner_names, same_name
 from app.graph.worker_notes import WorkerNote
 from kyb_contracts.case_input import TIN_PATTERN, CaseInput, FlagReason
 from kyb_contracts.memo import FlagOutcome, Memo, RuledOutCause
@@ -164,6 +164,41 @@ def _gap_outcomes_for(check_ids: list[str]) -> list[CheckOutcome]:
     return out
 
 
+def _focus_facts(facts: FactIndex, worker: str, name: str) -> list[Fact]:
+    if worker == "records":
+        if name in RECORDS_FIELDS:
+            return facts.records(name)
+        return [f for f in facts.facts if f.worker == "records" and f.field == name
+                and f.source_id not in facts.other_entities]
+    if name in EVIDENCE_FIELDS:
+        return facts.evidence(name)
+    return [f for f in facts.facts if f.worker == "evidence" and f.field == name]
+
+
+def supporting_evidence(case: CaseInput, plan: Plan, facts: FactIndex, check_ids: Sequence[str]) -> list[str]:
+    """What a flag's memo entry cites beyond the facts its checks decided on: every retrieved
+    record its checks look at (their records and evidence focus), the records that link names
+    (former names, amendments, DBAs the entity filed) and the registry officers who are
+    applicant owners for name and TIN checks, the owners' KYC, and any merchant source with
+    instruction-like text. These were retrieved for the flag, so the analyst should see them."""
+    found: list[Fact] = []
+    for cid in check_ids:
+        check = next((c for c in plan.checks if c.check_id == cid), None)
+        if check is None:
+            continue
+        for name in check.records_focus:
+            found += _focus_facts(facts, "records", name)
+        for name in check.evidence_focus:
+            found += _focus_facts(facts, "evidence", name)
+    if any(c.startswith(("EC1.", "EC2.")) for c in check_ids):
+        found += name_link_facts(facts, case)
+        owners = owner_names(case)
+        found += [f for f in facts.records("officer") if any(same_name(text(f.value), o) for o in owners)]
+    found += facts.records("kyc_result")
+    found += [f for f in facts.evidence("suspicious") if truthy(f.value)]
+    return list(dict.fromkeys(f.source_id for f in found))
+
+
 def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecision,
                plan: Optional[Plan], outcomes: dict[str, CheckOutcome],
                follow_ups: list[FollowUpRecord], facts: Optional[FactIndex],
@@ -246,6 +281,8 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
         evidence: list[str] = []
         for c in fchecks:
             evidence += c.evidence + c.explanation_evidence
+        if facts is not None and plan is not None:
+            evidence += supporting_evidence(case, plan, facts, cids)
         evidence = list(dict.fromkeys(evidence))
         if resolved and not evidence:  # memo.FlagOutcome: a resolved flag needs evidence
             resolved = False
@@ -262,8 +299,8 @@ def build_memo(*, case_id: str, case: Optional[CaseInput], routing: RoutingDecis
     elif verdict == "clear" and all(f.status == "resolved" for f in flag_outcomes):
         recommendation = "recommend_clear"
         # A new business whose registry entry hasn't appeared yet: clear now, re-check later.
-        # (A sole proprietor is never in the registry, so there is nothing to re-check.)
-        provisional = case.application.entity_type != "SOLE_PROPRIETORSHIP" and any(
+        # (A sole proprietor or general partnership is never in the registry: nothing to re-check.)
+        provisional = case.application.entity_type not in ("SOLE_PROPRIETORSHIP", "PARTNERSHIP") and any(
             c.expected_absence and c.status == "EXPLAINED" for c in checks)
     else:
         still_open = [c for c in checks if c.required and c.status not in PASSING_STATUSES]

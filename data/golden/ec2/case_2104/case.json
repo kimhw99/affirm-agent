@@ -1,0 +1,83 @@
+{
+  "case_id": "case_2104",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "The Rookwood Apparel LLC",
+    "address": "2844 Orchard Blvd, Raleigh, NC 27633",
+    "tin_type": "EIN",
+    "tin_last4": "3067",
+    "state": "NC",
+    "state_entity_id": "NC-2433006",
+    "entity_type": "LLC",
+    "formation_date": "2018-08-25",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Delia Ortega",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Yara Sokolov",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "THE ROOKWOOD APPAREL LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "extracted": {
+        "name": "THE ROOKWOOD APPAREL LLC",
+        "ein_last4": "3067",
+        "name_control": "ROOK",
+        "date": "2026-10-25"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "THE ROOKWOOD APPAREL LLC",
+    "status": "verified",
+    "verified_at": "2026-11-07"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://rookwood.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "The Rookwood Apparel LLC",
+        "address": "2844 Orchard Blvd, Raleigh, NC 27633"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

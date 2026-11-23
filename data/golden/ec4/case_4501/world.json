@@ -1,0 +1,38 @@
+{
+  "case_id": "case_4501",
+  "registry": [
+    {
+      "state": "GA",
+      "state_entity_id": "GA-2359016",
+      "legal_name": "WICKHAM BOOKS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-11-10",
+      "registered_address": "6499 Linden Way, Savannah, GA 31445",
+      "officers": [
+        {
+          "name": "Sienna Lindqvist",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "GA-2359016-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-10",
+          "old_value": null,
+          "new_value": "WICKHAM BOOKS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2917",
+    "irs_status": "issued",
+    "irs_name": "WICKHAM BOOKS LLC"
+  }
+}

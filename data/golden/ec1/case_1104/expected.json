@@ -1,0 +1,27 @@
+{
+  "case_id": "case_1104",
+  "categories": [
+    "normal",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MI-2729023"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "treat the suffix difference as a different company",
+    "cite the dissolved look-alike as the merchant's entity",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Applied as 'Marigold Lighting Inc'; the state shows 'MARIGOLD LIGHTING, INC.'. Only the entity suffix is written differently. Same entity ID, officers and address. A dissolved look-alike in another city must not be confused with it."
+}

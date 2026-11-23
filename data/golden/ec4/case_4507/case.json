@@ -1,0 +1,79 @@
+{
+  "case_id": "case_4507",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Uriel Dvorak",
+    "dba": "Sorrel Sound",
+    "address": "1131 Mill Ln, Chicago, IL 60641",
+    "tin_type": "SSN",
+    "tin_last4": "3986",
+    "state": "IL",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2022-04-07",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Uriel Dvorak",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Sorrel Sound",
+        "registrant": "Uriel Dvorak",
+        "jurisdiction": "Cook County, IL",
+        "filed": "2022-04-17",
+        "expires": "2032-04-17"
+      },
+      "confidence": 0.91
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "URIEL DVORAK DBA SORREL SOUND",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://sorrelsound.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "address": "1131 Mill Ln, Chicago, IL 60641",
+        "dba": "Sorrel Sound"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

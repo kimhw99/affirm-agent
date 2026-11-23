@@ -1,0 +1,42 @@
+{
+  "case_id": "case_5104",
+  "registry": [
+    {
+      "state": "GA",
+      "state_entity_id": "GA-2359048",
+      "legal_name": "CALLOWAY BAKERY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-11-18",
+      "registered_address": "3842 Market Way, Savannah, GA 31489",
+      "officers": [
+        {
+          "name": "Emeka Jovanovic",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Mara Ortega",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "GA-2359048-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-18",
+          "old_value": null,
+          "new_value": "CALLOWAY BAKERY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8850",
+    "irs_status": "not_issued",
+    "irs_name": null
+  }
+}

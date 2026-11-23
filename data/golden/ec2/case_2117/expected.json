@@ -1,0 +1,24 @@
+{
+  "case_id": "case_2117",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MI-2729097"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Formed 2026-11-04; the EIN is too new for IRS matching. The CP575 letter is dated days ago, and IRS matching lags new EINs by a few weeks."
+}

@@ -1,0 +1,25 @@
+{
+  "case_id": "case_2122",
+  "categories": [
+    "exception",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Not Found"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate as fraud on a not-found TIN alone",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The IRS has no record of the EIN. The business is otherwise well established (active registry record, commercial profile, verified bank), but nothing from the merchant explains the TIN. document_request should ask for a CP575 or 147C."
+}

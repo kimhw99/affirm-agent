@@ -1,0 +1,76 @@
+{
+  "case_id": "case_5111",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174194",
+      "legal_name": "ORRERY AUDIO COMPANY",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2022-11-23",
+      "registered_address": "3567 Summit Dr, Buffalo, NY 14233",
+      "officers": [
+        {
+          "name": "Mara Esposito",
+          "title": "President"
+        },
+        {
+          "name": "Kiran Abernathy",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174194-1",
+          "event_type": "formation",
+          "effective_date": "2022-11-23",
+          "old_value": null,
+          "new_value": "ORRERY AUDIO COMPANY"
+        }
+      ]
+    },
+    {
+      "state": "MN",
+      "state_entity_id": "MN-2618168",
+      "legal_name": "FERNHOLLOW LOGISTICS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2014-09-10",
+      "registered_address": "9581 Chapel St, Minneapolis, MN 55406",
+      "officers": [
+        {
+          "name": "Oksana Fontaine",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MN-2618168-1",
+          "event_type": "formation",
+          "effective_date": "2014-09-10",
+          "old_value": null,
+          "new_value": "FERNHOLLOW LOGISTICS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61540",
+      "state": "NY",
+      "business_name": "ORRERY AUDIO CO",
+      "address": "3567 Summit Dr, Buffalo, NY 14233",
+      "first_seen": "2023-02-01",
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1781",
+    "irs_status": "issued",
+    "irs_name": "FERNHOLLOW LOGISTICS LLC"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "case_id": "case_2101",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692028",
+      "legal_name": "PLUMTREE TEA COMPANY LLC",
+      "former_names": [
+        "GLENBROOK TEA COMPANY LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-03-20",
+      "registered_address": "3657 Maple Ave, Memphis, TN 38102",
+      "officers": [
+        {
+          "name": "Jada Underwood",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Wesley Gutierrez",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692028-1",
+          "event_type": "formation",
+          "effective_date": "2024-03-20",
+          "old_value": null,
+          "new_value": "GLENBROOK TEA COMPANY LLC"
+        },
+        {
+          "event_id": "TN-2692028-2",
+          "event_type": "name_change",
+          "effective_date": "2025-11-20",
+          "old_value": "GLENBROOK TEA COMPANY LLC",
+          "new_value": "PLUMTREE TEA COMPANY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60513",
+      "state": "TN",
+      "business_name": "PLUMTREE TEA COMPANY LLC",
+      "address": "3657 Maple Ave, Memphis, TN 38102",
+      "first_seen": "2024-06-12",
+      "last_updated": "2026-10-25"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8896",
+    "irs_status": "issued",
+    "irs_name": "GLENBROOK TEA COMPANY LLC"
+  }
+}

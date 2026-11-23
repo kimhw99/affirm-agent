@@ -1,0 +1,30 @@
+{
+  "case_id": "case_1106",
+  "categories": [
+    "normal"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "MA-2507022"
+      }
+    },
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Match"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "request documents to explain a punctuation-only difference",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Applied as 'Upwell Audio Inc', state record 'THE UPWELL AUDIO INC': the names differ only by a leading 'THE' in the state record. Entity ID, address, officers and the IRS name all agree."
+}

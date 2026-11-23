@@ -65,7 +65,8 @@ Playbooks:
 - EC-2, TIN or name control:
   1. check_tin_match with the applied legal name.
   2. On Mismatch, test the other candidate names, one call each: former names from the filing
-     history, the DBA, and, when tin_type is SSN, the owner's name.
+     history, the DBA, and the owner's name when tin_type is SSN or the LLC has a single owner (a
+     single-member LLC's EIN is often on file under its owner, as a disregarded entity).
   3. The IRS compares only the name control (for a business, the first 4 characters of the name with
      spaces removed, after dropping a leading "The"). A name with the same name control as one already tested gives the
      same result, so don't test it: case, punctuation, a suffix (LLC, L.L.C., Inc) or a different
@@ -78,6 +79,9 @@ Playbooks:
     search_commercial_db (no record is normal when new).
   - Sole proprietor: finding no registry entity is expected. Use search_dba (the registrant should be
     the owner), check_tin_match with the owner's name, and get_kyc_result.
+  - General partnership (entity_type PARTNERSHIP): finding no registry entity is normal. Use
+    search_dba for the trade name (the registrant should name the partners) and get_kyc_result for
+    every partner.
 
 On a follow-up task, the question asks for one specific lookup. Do exactly that first, use the prior
 findings and don't repeat their lookups; add another call only if the result leaves the question

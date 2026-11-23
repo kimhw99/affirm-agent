@@ -1,0 +1,60 @@
+{
+  "case_id": "case_2103",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692063",
+      "legal_name": "IRONWEED PET SUPPLY LLC",
+      "former_names": [
+        "ORCHARDGATE PET SUPPLY LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2024-01-25",
+      "registered_address": "3969 Chapel Ln, Memphis, TN 38157",
+      "officers": [
+        {
+          "name": "Gideon Abernathy",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Avery Dvorak",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692063-1",
+          "event_type": "formation",
+          "effective_date": "2024-01-25",
+          "old_value": null,
+          "new_value": "ORCHARDGATE PET SUPPLY LLC"
+        },
+        {
+          "event_id": "TN-2692063-2",
+          "event_type": "name_change",
+          "effective_date": "2025-11-23",
+          "old_value": "ORCHARDGATE PET SUPPLY LLC",
+          "new_value": "IRONWEED PET SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60568",
+      "state": "TN",
+      "business_name": "IRONWEED PET SUPPLY LLC",
+      "address": "3969 Chapel Ln, Memphis, TN 38157",
+      "first_seen": "2024-05-26",
+      "last_updated": "2026-09-15"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6575",
+    "irs_status": "issued",
+    "irs_name": "ORCHARDGATE PET SUPPLY LLC"
+  }
+}

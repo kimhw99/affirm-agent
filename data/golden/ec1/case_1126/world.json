@@ -1,0 +1,38 @@
+{
+  "case_id": "case_1126",
+  "registry": [
+    {
+      "state": "MN",
+      "state_entity_id": "MN-2618114",
+      "legal_name": "OXBOW LIGHTING GROUP LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "inactive",
+      "formation_date": "2016-12-02",
+      "registered_address": "6327 Hawthorne Rd, Minneapolis, MN 55449",
+      "officers": [
+        {
+          "name": "Andre Brannigan",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "MN-2618114-1",
+          "event_type": "formation",
+          "effective_date": "2016-12-02",
+          "old_value": null,
+          "new_value": "OXBOW LIGHTING GROUP LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "0681",
+    "irs_status": "issued",
+    "irs_name": "OXBOW LIGHTING LLC"
+  }
+}

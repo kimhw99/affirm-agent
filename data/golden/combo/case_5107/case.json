@@ -1,0 +1,68 @@
+{
+  "case_id": "case_5107",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Omar Dvorak",
+    "dba": "Tanglewood Auto",
+    "address": "3653 Chapel Rd, Portland, OR 97267",
+    "tin_type": "SSN",
+    "tin_last4": "3921",
+    "state": "OR",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2017-07-17",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Omar Dvorak",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "OMAR DVORAK DBA TANGLEWOOD AUTO",
+    "status": "verified",
+    "verified_at": "2026-11-07"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://tanglewoodauto.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "address": "3653 Chapel Rd, Portland, OR 97267",
+        "dba": "Tanglewood Auto"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

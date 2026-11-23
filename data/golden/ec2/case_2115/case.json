@@ -1,0 +1,66 @@
+{
+  "case_id": "case_2115",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Greywell Ceramics Inc",
+    "dba": "Greywell Pottery",
+    "address": "8332 Juniper Rd, Denver, CO 80277",
+    "tin_type": "EIN",
+    "tin_last4": "1877",
+    "state": "CO",
+    "state_entity_id": "CO-2322042",
+    "entity_type": "CORPORATION",
+    "formation_date": "2018-02-24",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Rafael Nwosu",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "GREYWELL CERAMICS INC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GREYWELL CERAMICS INC DBA GREYWELL POTTERY",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://greywellpottery.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Greywell Ceramics Inc",
+        "address": "8332 Juniper Rd, Denver, CO 80277",
+        "dba": "Greywell Pottery"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "case_id": "case_4501",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Wickham Books LLC",
+    "address": "6499 Linden Way, Savannah, GA 31445",
+    "tin_type": "EIN",
+    "tin_last4": "2917",
+    "state": "GA",
+    "state_entity_id": "GA-2359016",
+    "entity_type": "LLC",
+    "formation_date": "2026-11-10",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Sienna Lindqvist",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Wickham Books LLC",
+        "state": "GA",
+        "state_entity_id": "GA-2359016",
+        "formation_date": "2026-11-10"
+      },
+      "confidence": 0.92
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "WICKHAM BOOKS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://wickham.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Wickham Books LLC",
+        "address": "6499 Linden Way, Savannah, GA 31445"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

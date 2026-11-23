@@ -1,0 +1,25 @@
+{
+  "case_id": "case_4523",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "sos_registry_search"
+    },
+    "K1",
+    "B1",
+    "D1"
+  ],
+  "forbidden_actions": [
+    "recommend_clear",
+    "explain the missing record as a new-business lag",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The application claims a CORPORATION formed 2026-03-10 with entity ID NY-2174160, which the registry doesn't have under any name. The articles are low confidence, the bank check didn't pass and owner KYC is pending. The business has been around too long to be a registry lag."
+}

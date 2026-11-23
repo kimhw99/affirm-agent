@@ -1,0 +1,55 @@
+{
+  "case_id": "case_4518",
+  "registry": [
+    {
+      "state": "OH",
+      "state_entity_id": "OH-2544076",
+      "legal_name": "CLOVERMEAD KITCHENWARE LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-09-26",
+      "registered_address": "7927 Prospect Blvd, Cleveland, OH 44178",
+      "officers": [
+        {
+          "name": "Gideon Delacroix",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Kiran Lindqvist",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OH-2544076-1",
+          "event_type": "formation",
+          "effective_date": "2026-09-26",
+          "old_value": null,
+          "new_value": "CLOVERMEAD KITCHENWARE LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "OH-CUYAHOGA-2026-010701",
+      "state": "OH",
+      "county": "Cuyahoga",
+      "dba": "CLOVERMEAD KITCHEN",
+      "registrant": "CLOVERMEAD KITCHENWARE LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "OH-2544076",
+      "filed": "2026-11-19",
+      "expires": "2041-11-19",
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5526",
+    "irs_status": "issued",
+    "irs_name": "CLOVERMEAD KITCHENWARE LLC"
+  }
+}

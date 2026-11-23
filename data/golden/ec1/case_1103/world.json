@@ -1,0 +1,60 @@
+{
+  "case_id": "case_1103",
+  "registry": [
+    {
+      "state": "OH",
+      "state_entity_id": "OH-2544040",
+      "legal_name": "DOVETAIL OUTDOOR GEAR CORPORATION",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2019-03-17",
+      "registered_address": "1043 Union St, Cleveland, OH 44118",
+      "officers": [
+        {
+          "name": "Yara Cordova",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OH-2544040-1",
+          "event_type": "formation",
+          "effective_date": "2019-03-17",
+          "old_value": null,
+          "new_value": "DOVETAIL OUTDOOR GEAR CORPORATION"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "OH-CUYAHOGA-2019-010059",
+      "state": "OH",
+      "county": "Cuyahoga",
+      "dba": "DOVETAIL OUTFITTERS",
+      "registrant": "DOVETAIL OUTDOOR GEAR CORPORATION",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "OH-2544040",
+      "filed": "2019-09-13",
+      "expires": "2034-09-13",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60025",
+      "state": "OH",
+      "business_name": "DOVETAIL OUTFITTERS",
+      "address": "1043 Union St, Cleveland, OH 44118",
+      "first_seen": "2019-08-07",
+      "last_updated": "2026-09-27"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8433",
+    "irs_status": "issued",
+    "irs_name": "DOVETAIL OUTDOOR GEAR CORP"
+  }
+}

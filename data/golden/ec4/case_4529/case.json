@@ -1,0 +1,72 @@
+{
+  "case_id": "case_4529",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Norrland Bakery LLC",
+    "address": "7780 Juniper Way, Detroit, MI 48288",
+    "tin_type": "EIN",
+    "tin_last4": "7136",
+    "state": "MI",
+    "state_entity_id": "MI-2729167",
+    "entity_type": "LLC",
+    "formation_date": "2017-04-15",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Wesley Sokolov",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "NORRLAND BAKERY LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "good_standing",
+      "extracted": {
+        "legal_name": "NORRLAND BAKERY LLC",
+        "status": "active",
+        "date": "2026-11-12"
+      },
+      "confidence": 0.91
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "NORRLAND BAKERY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://norrland.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Norrland Bakery LLC",
+        "address": "7780 Juniper Way, Detroit, MI 48288"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

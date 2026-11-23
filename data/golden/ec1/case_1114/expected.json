@@ -1,0 +1,22 @@
+{
+  "case_id": "case_1114",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "state_dba"
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "request a DBA certificate when the official filing already settles it",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The vendor could not tie 'Pinnacle Lamps' to 'PINNACLE LIGHTING LLC', but an active state-level assumed-name filing registers it to this entity by entity ID."
+}

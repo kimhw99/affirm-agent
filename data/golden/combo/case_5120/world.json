@@ -1,0 +1,76 @@
+{
+  "case_id": "case_5120",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396142",
+      "legal_name": "KITTERING OPTICAL, LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-10-06",
+      "registered_address": "792 Harbor Dr, Portland, OR 97222",
+      "officers": [
+        {
+          "name": "Priya Okafor",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Samir Nwosu",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396142-1",
+          "event_type": "formation",
+          "effective_date": "2026-10-06",
+          "old_value": null,
+          "new_value": "KITTERING OPTICAL, LLC"
+        }
+      ]
+    },
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396146",
+      "legal_name": "KITTERING EYEWEAR INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2010-09-07",
+      "registered_address": "2528 Foundry Blvd, Portland, OR 97246",
+      "officers": [
+        {
+          "name": "Mateo Wojcik",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396146-1",
+          "event_type": "formation",
+          "effective_date": "2010-09-07",
+          "old_value": null,
+          "new_value": "KITTERING EYEWEAR INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61745",
+      "state": "OR",
+      "business_name": "KITTERING EYEWEAR",
+      "address": "2528 Foundry Blvd, Portland, OR 97246",
+      "first_seen": "2021-03-12",
+      "last_updated": "2026-10-16"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8514",
+    "irs_status": "issued",
+    "irs_name": "KITTERING OPTICAL LLC"
+  }
+}

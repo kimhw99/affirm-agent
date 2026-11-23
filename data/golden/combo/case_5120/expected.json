@@ -1,0 +1,26 @@
+{
+  "case_id": "case_5120",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "OR-2396142"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "cite the look-alike's commercial profile as the merchant's",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "A new LLC (formed 2026-10-06) with a suffix variant. An older, unrelated look-alike ('KITTERING EYEWEAR INC') shows up in both the registry and commercial search; it is not the merchant."
+}

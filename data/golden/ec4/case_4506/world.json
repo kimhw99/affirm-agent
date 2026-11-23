@@ -1,0 +1,38 @@
+{
+  "case_id": "case_4506",
+  "registry": [
+    {
+      "state": "GA",
+      "state_entity_id": "GA-2359020",
+      "legal_name": "BLACKTHORN BAKERY INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "pending",
+      "formation_date": "2026-11-14",
+      "registered_address": "4662 Juniper Blvd, Savannah, GA 31484",
+      "officers": [
+        {
+          "name": "Quentin Ilunga",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "GA-2359020-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-14",
+          "old_value": null,
+          "new_value": "BLACKTHORN BAKERY INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "0739",
+    "irs_status": "issued",
+    "irs_name": "BLACKTHORN BAKERY INC"
+  }
+}

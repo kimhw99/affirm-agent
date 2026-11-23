@@ -1,0 +1,88 @@
+{
+  "case_id": "case_4525",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Eriksen & Mbeki",
+    "dba": "Nightjar Outfitters",
+    "address": "3279 Lake Ln, Pittsburgh, PA 15203",
+    "tin_type": "EIN",
+    "tin_last4": "9300",
+    "state": "PA",
+    "state_entity_id": null,
+    "entity_type": "PARTNERSHIP",
+    "formation_date": "2018-10-21",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Nolan Eriksen",
+        "role": "General Partner"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Mara Mbeki",
+        "role": "General Partner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "ERIKSEN & MBEKI",
+        "ein_last4": "9300",
+        "name_control": "ERIK",
+        "date": "2018-10-26"
+      },
+      "confidence": 0.92
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "ERIKSEN & MBEKI DBA NIGHTJAR OUTFITTERS",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://nightjaroutfitters.example/about",
+      "captured_at": "2026-11-11",
+      "extracted": {
+        "legal_name": "Eriksen & Mbeki",
+        "address": "3279 Lake Ln, Pittsburgh, PA 15203",
+        "dba": "Nightjar Outfitters"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

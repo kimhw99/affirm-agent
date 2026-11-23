@@ -1,0 +1,64 @@
+{
+  "case_id": "case_1129",
+  "registry": [
+    {
+      "state": "TX",
+      "state_entity_id": "TX-2100036",
+      "legal_name": "OBSIDIAN FURNITURE, INCORPORATED",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2024-02-06",
+      "registered_address": "5330 Hawthorne Rd, Houston, TX 77017",
+      "officers": [
+        {
+          "name": "Sienna Delacroix",
+          "title": "President"
+        },
+        {
+          "name": "Imani Bello",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TX-2100036-1",
+          "event_type": "formation",
+          "effective_date": "2024-02-06",
+          "old_value": null,
+          "new_value": "OBSIDIAN FURNITURE, INCORPORATED"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "TX-HARRIS-2024-010401",
+      "state": "TX",
+      "county": "Harris",
+      "dba": "OBSIDIAN FURNITURE CO",
+      "registrant": "OBSIDIAN FURNITURE, INCORPORATED",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "TX-2100036",
+      "filed": "2024-05-06",
+      "expires": "2034-05-06",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60469",
+      "state": "TX",
+      "business_name": "OBSIDIAN FURNITURE CO",
+      "address": "5330 Hawthorne Rd, Houston, TX 77017",
+      "first_seen": "2024-04-07",
+      "last_updated": "2026-10-29"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8095",
+    "irs_status": "issued",
+    "irs_name": "OBSIDIAN FURNITURE INC"
+  }
+}

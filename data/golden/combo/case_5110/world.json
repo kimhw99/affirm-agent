@@ -1,0 +1,72 @@
+{
+  "case_id": "case_5110",
+  "registry": [
+    {
+      "state": "CO",
+      "state_entity_id": "CO-2322098",
+      "legal_name": "VIREO AUDIO L.L.C.",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-11-16",
+      "registered_address": "5365 Harbor Ln, Boulder, CO 80381",
+      "officers": [
+        {
+          "name": "Imani Tanaka",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CO-2322098-1",
+          "event_type": "formation",
+          "effective_date": "2023-11-16",
+          "old_value": null,
+          "new_value": "VIREO AUDIO L.L.C."
+        }
+      ]
+    },
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396101",
+      "legal_name": "ASHGROVE LOGISTICS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-08-12",
+      "registered_address": "4672 Hawthorne Dr, Portland, OR 97263",
+      "officers": [
+        {
+          "name": "Cole Haddad",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396101-1",
+          "event_type": "formation",
+          "effective_date": "2019-08-12",
+          "old_value": null,
+          "new_value": "ASHGROVE LOGISTICS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61522",
+      "state": "CO",
+      "business_name": "VIREO AUDIO LLC",
+      "address": "5365 Harbor Ln, Boulder, CO 80381",
+      "first_seen": "2024-04-03",
+      "last_updated": "2026-09-23"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1541",
+    "irs_status": "issued",
+    "irs_name": "ASHGROVE LOGISTICS LLC"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "case_id": "case_2121",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692103",
+      "legal_name": "MILLRACE APPAREL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2017-12-19",
+      "registered_address": "2641 Union Ave, Nashville, TN 37229",
+      "officers": [
+        {
+          "name": "Vikram Xu",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Tobias Ilunga",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692103-1",
+          "event_type": "formation",
+          "effective_date": "2017-12-19",
+          "old_value": null,
+          "new_value": "MILLRACE APPAREL LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60939",
+      "state": "TN",
+      "business_name": "MILLRACE APPAREL LLC",
+      "address": "2641 Union Ave, Nashville, TN 37229",
+      "first_seen": "2018-02-26",
+      "last_updated": "2026-09-07"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5215",
+    "irs_status": "not_found",
+    "irs_name": null
+  }
+}

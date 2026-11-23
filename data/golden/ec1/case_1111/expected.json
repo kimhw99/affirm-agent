@@ -1,0 +1,29 @@
+{
+  "case_id": "case_1111",
+  "categories": [
+    "business_scenario",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "CA-2137003"
+      }
+    },
+    {
+      "source": "county_dba"
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "treat the trade name and the legal name as two different businesses",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The merchant entered its trade name 'Gingerroot Sleep' as the legal name. The entity ID belongs to 'GINGERROOT MATTRESS LLC', and an active county DBA filing registers 'GINGERROOT SLEEP' to that entity."
+}

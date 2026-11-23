@@ -1,0 +1,47 @@
+{
+  "case_id": "case_1105",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-2211021",
+      "legal_name": "LOAMFIELD AND QUINTERO CERAMICS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2017-08-25",
+      "registered_address": "1907 Beacon Ln, Orlando, FL 32897",
+      "officers": [
+        {
+          "name": "Wesley Jovanovic",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-2211021-1",
+          "event_type": "formation",
+          "effective_date": "2017-08-25",
+          "old_value": null,
+          "new_value": "LOAMFIELD AND QUINTERO CERAMICS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60069",
+      "state": "FL",
+      "business_name": "LOAMFIELD & QUINTERO CERAMICS LLC",
+      "address": "1907 Beacon Ln, Orlando, FL 32897",
+      "first_seen": "2018-02-13",
+      "last_updated": "2026-09-27"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "0103",
+    "irs_status": "issued",
+    "irs_name": "LOAMFIELD AND QUINTERO CERAMICS LLC"
+  }
+}

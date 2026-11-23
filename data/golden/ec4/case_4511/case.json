@@ -1,0 +1,75 @@
+{
+  "case_id": "case_4511",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Jada Gallardo",
+    "address": "7226 Prospect Ln, Spokane, WA 99234",
+    "tin_type": "EIN",
+    "tin_last4": "7807",
+    "state": "WA",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2020-03-12",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Jada Gallardo",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "business_license",
+      "extracted": {
+        "holder": "Jada Gallardo",
+        "status": "active",
+        "address": "7226 Prospect Ln, Spokane, WA 99234",
+        "issued": "2020-03-12",
+        "authority": "City of Spokane"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "JADA GALLARDO",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://chestnut.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "legal_name": "Jada Gallardo",
+        "address": "7226 Prospect Ln, Spokane, WA 99234"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

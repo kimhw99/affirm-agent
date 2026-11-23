@@ -1,0 +1,80 @@
+{
+  "case_id": "case_2116",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_NOT_ISSUED"
+  ],
+  "application": {
+    "legal_name": "Heatherly Furniture LLC",
+    "address": "9564 Ridge Rd, Albany, NY 12238",
+    "tin_type": "EIN",
+    "tin_last4": "3946",
+    "state": "NY",
+    "state_entity_id": "NY-2174055",
+    "entity_type": "LLC",
+    "formation_date": "2026-10-28",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Yusuf Jovanovic",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Priya Rahimi",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "HEATHERLY FURNITURE LLC"
+    },
+    "tin": {
+      "result": "Not Issued"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "HEATHERLY FURNITURE LLC",
+        "ein_last4": "3946",
+        "name_control": "HEAT",
+        "date": "2026-10-29"
+      },
+      "confidence": 0.99
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "HEATHERLY FURNITURE LLC",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://heatherly.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Heatherly Furniture LLC",
+        "address": "9564 Ridge Rd, Albany, NY 12238"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

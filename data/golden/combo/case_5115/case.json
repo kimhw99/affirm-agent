@@ -1,0 +1,85 @@
+{
+  "case_id": "case_5115",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED",
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Mulberry Sleep",
+    "address": "5207 Sycamore Ave, Denver, CO 80218",
+    "tin_type": "EIN",
+    "tin_last4": "9473",
+    "state": "CO",
+    "state_entity_id": "CO-2322119",
+    "entity_type": "LLC",
+    "formation_date": "2022-09-27",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Grant Pellegrini",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Vera Cordova",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "MULBERRY MATTRESS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "extracted": {
+        "name": "MULBERRY MATTRESS LLC",
+        "ein_last4": "9473",
+        "name_control": "MULB",
+        "date": "2026-10-02"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "MULBERRY MATTRESS LLC DBA MULBERRY SLEEP",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://mulberrysleep.example/about",
+      "captured_at": "2026-11-11",
+      "extracted": {
+        "legal_name": "Mulberry Mattress LLC",
+        "address": "5207 Sycamore Ave, Denver, CO 80218",
+        "dba": "Mulberry Sleep"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "case_id": "case_5107",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "OR-MULTNOMAH-2017-010881",
+      "state": "OR",
+      "county": "Multnomah",
+      "dba": "TANGLEWOOD AUTO",
+      "registrant": "OMAR DVORAK",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2017-08-01",
+      "expires": "2027-08-01",
+      "status": "active"
+    }
+  ],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "3921",
+    "irs_status": "issued",
+    "irs_name": "OMAR VASQUEZ"
+  }
+}

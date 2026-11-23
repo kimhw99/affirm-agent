@@ -1,0 +1,86 @@
+{
+  "case_id": "case_5105",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "TIN_NOT_ISSUED",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Juniperwood Skincare Inc",
+    "address": "6305 Juniper Ln, Raleigh, NC 27647",
+    "tin_type": "EIN",
+    "tin_last4": "7070",
+    "state": "NC",
+    "state_entity_id": "NC-2433071",
+    "entity_type": "CORPORATION",
+    "formation_date": "2026-11-13",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Farah Achebe",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Not Issued"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "JUNIPERWOOD SKINCARE INC",
+        "ein_last4": "7070",
+        "name_control": "JUNI",
+        "date": "2026-11-14"
+      },
+      "confidence": 0.96
+    },
+    {
+      "id": "D2",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Juniperwood Skincare Inc",
+        "state": "NC",
+        "state_entity_id": "NC-2433071",
+        "formation_date": "2026-11-13"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "JUNIPERWOOD SKINCARE INC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://juniperwood.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Juniperwood Skincare Inc",
+        "address": "6305 Juniper Ln, Raleigh, NC 27647"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

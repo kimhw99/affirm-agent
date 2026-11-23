@@ -81,9 +81,23 @@ every template check is still there and still required. `EC4.registry_presence` 
 **Reconcile.** Code compares first (exact EIN last 4, normalized names via
 `app/shared/name_norm.py`, dates). Only a CONFLICT that's flagged explainable goes to the
 explainer, and `apply_explanation` accepts an explanation only when it cites real
-findings and doesn't rest on the website alone; otherwise it stays a CONFLICT. HARD_FAILs
+findings and doesn't rest on the website alone; otherwise it stays a CONFLICT. An EC-1
+name or DBA-owner difference also needs a citation that links the names: a former name,
+articles of amendment, or a DBA the entity filed itself (`name_link_facts`). HARD_FAILs
 (TIN never issued, entity dissolved or revoked, KYC failed, EIN letter ≠ submitted EIN,
-EIN belongs to another entity) are never sent to the LLM. Decision
+EIN belongs to another entity, DBA registered under another entity number, submitted
+entity number belongs to another company, submitted entity number not in the registry and
+no entity by name either for a business too old for a registry lag) are never sent to the LLM.
+A mistyped entity number isn't a hard fail: the name search then finds the entity.
+
+The EC-1 checks settle who owns the names from official data, without the LLM:
+`EC1.applied_name` compares the legal name typed on the application with the registered
+name at the submitted entity number (AGREE when equal after normalization or punctuation;
+EXPLAINED by a former name or a DBA the entity filed; HARD_FAIL
+`entity_id_belongs_to_other_entity` when none of the entity's officers is an applicant
+owner; otherwise a CONFLICT only a document settles). `EC1.dba_owner` is a GAP when the
+DBA is filed by an owner personally, and a HARD_FAIL `dba_registered_to_other_entity`
+when its live filing names another entity number. Decision
 rules, in order: any HARD_FAIL → escalate; an open required check → follow-up; else →
 clear. Confidence is the weakest required check (enforced by the `LeadReport` contract).
 Trust: when bank or documents and the registry agree, the website is ignored; when the
@@ -96,7 +110,12 @@ stamped articles, a current business license). Each follow-up targets one check 
 that worker runs, and only that check is re-reconciled. The loop stops on: nothing open,
 a HARD_FAIL, `MAX_INTERNAL_ROUNDS` (3), a round with no new findings, or no internal step
 left. What's still open becomes one merchant round (`request_documents`), and the
-playbook never asks for a document type the case already has. If a worker failed, the
+playbook never asks for a document type the case already has, except a renewal: a DBA
+check that is a CONFLICT (the filing expired or was withdrawn) asks for a current DBA
+certificate again (`MerchantAsk.renew_ask`, `renewal_allowed`). The pending-filing step also
+tells the Records worker where else to look: the formation state and entity number on the
+articles when they differ from the application's (only a two-letter state and a well-formed
+entity number are passed on), and for a general partnership, its DBA and partners' KYC. If a worker failed, the
 memo says `insufficient_evidence` instead of asking the merchant.
 
 **What the workers say about their own results.** Verdicts come only from findings, but
@@ -122,10 +141,25 @@ merchant's text), to choose its next lookup. They write no `name_comparison`,
 **Only checks the data can close.** Every fact a check reads is one some tool reports.
 The case service and `world.json` have no pending-filing record, domain age or
 tampering signal, so no check depends on them. A filed but unapproved formation is the
-registry's `entity_status: pending`: `EC4.registry_presence` is EXPLAINED when the plan
-expected a new business, and a GAP otherwise. `EC4.operating` needs a verified bank
+registry's `entity_status: pending`: the entity isn't active yet, so `EC4.registry_presence`
+stays a GAP, even for a new business, and the merchant is asked for good standing. An
+entity registered only in another state than the one it applied in (formed in Delaware) is
+a GAP too, settled by a good standing or authority certificate from the applied state. A
+general partnership needn't register: its absence is EXPLAINED when a live DBA filing names
+every partner and every partner passed KYC. With no IRS letter in the case, an EIN whose
+`EC2.tin_match` is settled by an IRS Match also settles `EC2.name_control` and
+`EC2.ein_letter_matches`, which would otherwise wait for a 147C. `EC4.operating` needs a verified bank
 account plus an active license, a website naming the business, or a DBA certificate.
 `document_tampered` stays in `HardFailReason` for the API's sake, but nothing sets it.
+
+**What a flag cites.** A flag's evidence is what its checks decided on plus what they
+retrieved to get there (`memo_writer.supporting_evidence`): the records and evidence in
+each check's focus fields, the records that link names (former names, amendments, DBAs
+the entity filed) and the registry officers who are applicant owners for name and TIN
+checks, the owners' KYC, and any merchant source with instruction-like text. The notes and
+root causes say what a lookup found ("no registry record at entity number X"), never that
+the business is unregistered or doesn't exist; step 9 sends such a memo back
+(`UNSUPPORTED_EXISTENCE_CLAIM`), except when the plan expected no registry entry.
 
 **Memo and checks.** Code fills the structured parts; the LLM writes prose, which is
 scrubbed for full TINs. Step 9 builds `evidence_index` from `CaseInput` and saved

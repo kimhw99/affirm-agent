@@ -102,8 +102,9 @@ def _has_dba(case: CaseInput) -> bool:
 
 
 def _newly_formed(case: CaseInput, today: date) -> bool:
-    """The plan expects no registry entry: a sole proprietor, or a recent formation."""
-    if _is_sole_prop(case):
+    """The plan expects no registry entry: a sole proprietor, a general partnership (it needn't
+    register; reconcile still wants a DBA naming the partners and their KYC), or a recent formation."""
+    if _is_sole_prop(case) or case.application.entity_type == "PARTNERSHIP":
         return True
     formed = case.application.formation_date
     if formed is not None:
@@ -122,6 +123,19 @@ TEMPLATES: tuple[CheckTemplate, ...] = (
         ("legal_name", "entity_status", "state_entity_id"),
         ("legal_name", "holder", "status"),
         applies=lambda case: not _is_sole_prop(case),
+    ),
+    CheckTemplate(
+        "EC1.applied_name", "EC-1",
+        "The applied legal name is the registered name at the submitted entity number", EC1,
+        "Registry entity at the submitted entity number: legal name, officers, former names; "
+        "DBA filings of that entity",
+        "— (the application itself)",
+        "The names match after normalization, or a former name or a DBA the entity filed links them; "
+        "an entity with none of the applicant's owners as officers is another company",
+        ("legal_name", "state_entity_id", "officer", "former_name", "dba_name", "dba_owner",
+         "dba_owner_entity_id"),
+        (),
+        applies=lambda case: not _is_sole_prop(case) and bool(case.application.state_entity_id),
     ),
     CheckTemplate(
         "EC1.dba_owner", "EC-1", "The DBA belongs to the legal entity",
@@ -186,7 +200,8 @@ TEMPLATES: tuple[CheckTemplate, ...] = (
     # ----- EC-4: new businesses and sole proprietors -----
     CheckTemplate(
         "EC4.registry_presence", "EC-4",
-        "The business is registered, or its absence is expected (new filing or sole proprietor)",
+        "The business is registered, or its absence is expected (new filing, sole proprietor or "
+        "general partnership)",
         (FlagReason.ENTITY_NOT_FOUND, FlagReason.NO_COMMERCIAL_RECORD, FlagReason.TIN_NOT_ISSUED),
         "Registry lookup (a 'pending' status is a filed formation not yet approved) and filing history",
         "Articles or certificate of formation with a recent filing stamp",

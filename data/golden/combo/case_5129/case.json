@@ -1,0 +1,92 @@
+{
+  "case_id": "case_5129",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED",
+    "TIN_NOT_ISSUED",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Delia Haddad",
+    "dba": "Vantage Cycles",
+    "address": "6465 Beacon Ave, Seattle, WA 98104",
+    "tin_type": "EIN",
+    "tin_last4": "5632",
+    "state": "WA",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2026-11-10",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Delia Haddad",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Not Issued"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "DELIA HADDAD",
+        "ein_last4": "5632",
+        "name_control": "DELI",
+        "date": "2026-11-12"
+      },
+      "confidence": 0.94
+    },
+    {
+      "id": "D2",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Vantage Cycles",
+        "registrant": "Delia Haddad",
+        "jurisdiction": "King County, WA",
+        "filed": "2026-11-11",
+        "expires": "2031-11-11"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "DELIA HADDAD DBA VANTAGE CYCLES",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://vantagecycles.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "address": "6465 Beacon Ave, Seattle, WA 98104",
+        "dba": "Vantage Cycles"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

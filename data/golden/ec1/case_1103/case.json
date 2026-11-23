@@ -1,0 +1,78 @@
+{
+  "case_id": "case_1103",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Dovetail Outdoor Gear Corp",
+    "dba": "Dovetail Outfitters",
+    "address": "1043 Union St, Cleveland, OH 44118",
+    "tin_type": "EIN",
+    "tin_last4": "8433",
+    "state": "OH",
+    "state_entity_id": "OH-2544040",
+    "entity_type": "CORPORATION",
+    "formation_date": "2019-03-17",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Yara Cordova",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "DOVETAIL OUTDOOR GEAR CORPORATION"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Dovetail Outdoor Gear Corporation",
+        "state": "OH",
+        "state_entity_id": "OH-2544040",
+        "formation_date": "2019-03-17"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "DOVETAIL OUTDOOR GEAR CORP DBA DOVETAIL OUTFITTERS",
+    "status": "verified",
+    "verified_at": "2026-11-11"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://dovetailoutfitters.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Dovetail Outdoor Gear Corp",
+        "address": "1043 Union St, Cleveland, OH 44118",
+        "dba": "Dovetail Outfitters"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

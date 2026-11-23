@@ -1,0 +1,72 @@
+{
+  "case_id": "case_1113",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Bellhaven Shoes",
+    "address": "7481 Harbor Ave, Newark, NJ 07122",
+    "tin_type": "EIN",
+    "tin_last4": "3644",
+    "state": "NJ",
+    "state_entity_id": "NJ-2655029",
+    "entity_type": "LLC",
+    "formation_date": "2021-09-03",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Una Halvorsen",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Fiona Yamamoto",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "BELLHAVEN FOOTWEAR LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "BELLHAVEN FOOTWEAR LLC DBA BELLHAVEN SHOES",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://bellhavenshoes.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Bellhaven Footwear LLC",
+        "address": "7481 Harbor Ave, Newark, NJ 07122",
+        "dba": "Bellhaven Shoes"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

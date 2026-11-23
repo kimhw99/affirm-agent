@@ -1,0 +1,29 @@
+{
+  "case_id": "case_5116",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1",
+    "EC-4"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "DE-2900097"
+      }
+    },
+    {
+      "source": "dba_search"
+    }
+  ],
+  "forbidden_actions": [
+    "conclude the company does not exist",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Formed in Delaware, operating in AZ under 'Gorsedale Eyewear' with no foreign qualification and no AZ DBA filing. The Delaware entity and EIN are real. Ask for AZ foreign qualification and a DBA certificate."
+}

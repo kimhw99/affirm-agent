@@ -1,0 +1,51 @@
+{
+  "case_id": "case_1128",
+  "registry": [
+    {
+      "state": "NY",
+      "state_entity_id": "NY-2174039",
+      "legal_name": "AMBERFIELD COFFEE ROASTERS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2019-01-10",
+      "registered_address": "9780 Granite Blvd, Buffalo, NY 14241",
+      "officers": [
+        {
+          "name": "Gideon Lachance",
+          "title": "President"
+        },
+        {
+          "name": "Willa Wojcik",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NY-2174039-1",
+          "event_type": "formation",
+          "effective_date": "2019-01-10",
+          "old_value": null,
+          "new_value": "AMBERFIELD COFFEE ROASTERS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60459",
+      "state": "NY",
+      "business_name": "AMBERFIELD COFFEE BAR",
+      "address": "9780 Granite Blvd, Buffalo, NY 14241",
+      "first_seen": "2019-03-22",
+      "last_updated": "2026-10-01"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "4396",
+    "irs_status": "issued",
+    "irs_name": "AMBERFIELD COFFEE ROASTERS INC"
+  }
+}

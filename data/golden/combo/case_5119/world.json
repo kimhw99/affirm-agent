@@ -1,0 +1,72 @@
+{
+  "case_id": "case_5119",
+  "registry": [
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581145",
+      "legal_name": "KINDLEWOOD GARDEN SUPPLY, L.L.C.",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-10-28",
+      "registered_address": "4245 Linden Pkwy, Philadelphia, PA 19158",
+      "officers": [
+        {
+          "name": "Camila Kaminski",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581145-1",
+          "event_type": "formation",
+          "effective_date": "2026-10-28",
+          "old_value": null,
+          "new_value": "KINDLEWOOD GARDEN SUPPLY, L.L.C."
+        }
+      ]
+    },
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581156",
+      "legal_name": "KINDLEWOOD GARDENS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2011-02-28",
+      "registered_address": "4141 Hawthorne Way, Pittsburgh, PA 15238",
+      "officers": [
+        {
+          "name": "Kiran Vasquez",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581156-1",
+          "event_type": "formation",
+          "effective_date": "2011-02-28",
+          "old_value": null,
+          "new_value": "KINDLEWOOD GARDENS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61735",
+      "state": "PA",
+      "business_name": "KINDLEWOOD GARDENS",
+      "address": "4141 Hawthorne Way, Pittsburgh, PA 15238",
+      "first_seen": "2021-02-27",
+      "last_updated": "2026-09-21"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3655",
+    "irs_status": "issued",
+    "irs_name": "KINDLEWOOD GARDEN SUPPLY LLC"
+  }
+}

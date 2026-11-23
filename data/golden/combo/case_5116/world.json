@@ -1,0 +1,47 @@
+{
+  "case_id": "case_5116",
+  "registry": [
+    {
+      "state": "DE",
+      "state_entity_id": "DE-2900097",
+      "legal_name": "GORSEDALE OPTICAL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2018-11-29",
+      "registered_address": "3310 Orchard Pkwy, Wilmington, DE 19889",
+      "officers": [
+        {
+          "name": "Farah Eriksen",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "DE-2900097-1",
+          "event_type": "formation",
+          "effective_date": "2018-11-29",
+          "old_value": null,
+          "new_value": "GORSEDALE OPTICAL LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61630",
+      "state": "AZ",
+      "business_name": "GORSEDALE EYEWEAR",
+      "address": "9562 Market Way, Tucson, AZ 85792",
+      "first_seen": "2019-06-17",
+      "last_updated": "2026-09-06"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5359",
+    "irs_status": "issued",
+    "irs_name": "GORSEDALE OPTICAL LLC"
+  }
+}

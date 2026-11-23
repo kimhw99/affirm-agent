@@ -1,0 +1,76 @@
+{
+  "case_id": "case_1116",
+  "status": "pending_review",
+  "flag_reasons": [
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Thornbury Coffee Roasters LLC",
+    "dba": "Thornbury Coffee Bar",
+    "address": "5196 Hawthorne Ln, Boulder, CO 80352",
+    "tin_type": "EIN",
+    "tin_last4": "9492",
+    "state": "CO",
+    "state_entity_id": "CO-2322004",
+    "entity_type": "LLC",
+    "formation_date": "2023-10-28",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Sienna Tanaka",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Bianca Kowalczyk",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "THORNBURY COFFEE ROASTERS LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "THORNBURY COFFEE ROASTERS LLC DBA THORNBURY COFFEE BAR",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://thornburycoffeebar.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Thornbury Coffee Roasters LLC",
+        "address": "5196 Hawthorne Ln, Boulder, CO 80352",
+        "dba": "Thornbury Coffee Bar"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "case_id": "case_1122",
+  "status": "pending_review",
+  "flag_reasons": [
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Galeforce Music LLC",
+    "dba": "Galeforce Guitars",
+    "address": "3814 Union Ave, Minneapolis, MN 55450",
+    "tin_type": "EIN",
+    "tin_last4": "6238",
+    "state": "MN",
+    "state_entity_id": "MN-2618060",
+    "entity_type": "LLC",
+    "formation_date": "2019-01-11",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Paloma Rasmussen",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "GALEFORCE MUSIC LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "GALEFORCE MUSIC LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://galeforceguitars.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Galeforce Music LLC",
+        "address": "3814 Union Ave, Minneapolis, MN 55450",
+        "dba": "Galeforce Guitars"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

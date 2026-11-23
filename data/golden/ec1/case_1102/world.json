@@ -1,0 +1,60 @@
+{
+  "case_id": "case_1102",
+  "registry": [
+    {
+      "state": "NJ",
+      "state_entity_id": "NJ-2655017",
+      "legal_name": "GOLDCREST MATTRESS, L.L.C.",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2022-05-11",
+      "registered_address": "5230 Linden Pkwy, Trenton, NJ 08668",
+      "officers": [
+        {
+          "name": "Rafael Quintero",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NJ-2655017-1",
+          "event_type": "formation",
+          "effective_date": "2022-05-11",
+          "old_value": null,
+          "new_value": "GOLDCREST MATTRESS, L.L.C."
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "NJ-MERCER-2022-010039",
+      "state": "NJ",
+      "county": "Mercer",
+      "dba": "GOLDCREST SLEEP",
+      "registrant": "GOLDCREST MATTRESS, L.L.C.",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "NJ-2655017",
+      "filed": "2022-06-03",
+      "expires": "2037-06-03",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60018",
+      "state": "NJ",
+      "business_name": "GOLDCREST SLEEP",
+      "address": "5230 Linden Pkwy, Trenton, NJ 08668",
+      "first_seen": "2022-08-09",
+      "last_updated": "2026-09-11"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6926",
+    "irs_status": "issued",
+    "irs_name": "GOLDCREST MATTRESS LLC"
+  }
+}

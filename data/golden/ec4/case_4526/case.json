@@ -1,0 +1,88 @@
+{
+  "case_id": "case_4526",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Okafor & Valdivia",
+    "dba": "Sablewood Tea House",
+    "address": "4679 Lake St, Seattle, WA 98199",
+    "tin_type": "EIN",
+    "tin_last4": "3390",
+    "state": "WA",
+    "state_entity_id": null,
+    "entity_type": "PARTNERSHIP",
+    "formation_date": "2022-06-27",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Cole Okafor",
+        "role": "General Partner"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Quentin Valdivia",
+        "role": "General Partner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "OKAFOR & VALDIVIA",
+        "ein_last4": "3390",
+        "name_control": "OKAF",
+        "date": "2022-07-02"
+      },
+      "confidence": 0.99
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "OKAFOR & VALDIVIA DBA SABLEWOOD TEA HOUSE",
+    "status": "verified",
+    "verified_at": "2026-11-16"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://sablewoodteahouse.example/about",
+      "captured_at": "2026-11-14",
+      "extracted": {
+        "legal_name": "Okafor & Valdivia",
+        "address": "4679 Lake St, Seattle, WA 98199",
+        "dba": "Sablewood Tea House"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

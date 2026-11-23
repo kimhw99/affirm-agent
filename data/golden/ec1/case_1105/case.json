@@ -1,0 +1,61 @@
+{
+  "case_id": "case_1105",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Loamfield & Quintero Ceramics LLC",
+    "address": "1907 Beacon Ln, Orlando, FL 32897",
+    "tin_type": "EIN",
+    "tin_last4": "0103",
+    "state": "FL",
+    "state_entity_id": "FL-2211021",
+    "entity_type": "LLC",
+    "formation_date": "2017-08-25",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Wesley Jovanovic",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "LOAMFIELD AND QUINTERO CERAMICS LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "LOAMFIELD AND QUINTERO CERAMICS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://loamfield.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Loamfield & Quintero Ceramics LLC",
+        "address": "1907 Beacon Ln, Orlando, FL 32897"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

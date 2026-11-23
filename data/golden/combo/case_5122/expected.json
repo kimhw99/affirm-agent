@@ -1,0 +1,27 @@
+{
+  "case_id": "case_5122",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2",
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "former_name": "KINGFISHER JEWELRY LLC"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "resolve or comment on PRODUCT_CATEGORY_REVIEW",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "IRS still has the pre-rename name 'Kingfisher Jewelry LLC', and the commercial profile hasn't caught up with the new name. PRODUCT_CATEGORY_REVIEW is out of scope and goes to the analyst untouched. PRODUCT_CATEGORY_REVIEW must be listed as out_of_scope in the memo, not resolved."
+}

@@ -1,0 +1,80 @@
+{
+  "case_id": "case_5101",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Larchmont Apparel LLC",
+    "dba": "Larchmont Clothing",
+    "address": "3627 Granite Blvd, Boulder, CO 80368",
+    "tin_type": "EIN",
+    "tin_last4": "4937",
+    "state": "CO",
+    "state_entity_id": "CO-2322073",
+    "entity_type": "LLC",
+    "formation_date": "2023-07-20",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Nadia Castellano",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "LARCHMONT APPAREL LIMITED LIABILITY COMPANY"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "BRIARWOOD APPAREL LLC",
+        "ein_last4": "4937",
+        "name_control": "BRIA",
+        "date": "2023-07-28"
+      },
+      "confidence": 0.94
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "LARCHMONT APPAREL LLC DBA LARCHMONT CLOTHING",
+    "status": "verified",
+    "verified_at": "2026-11-09"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://larchmontclothing.example/about",
+      "captured_at": "2026-11-12",
+      "extracted": {
+        "legal_name": "Larchmont Apparel LLC",
+        "address": "3627 Granite Blvd, Boulder, CO 80368",
+        "dba": "Larchmont Clothing"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

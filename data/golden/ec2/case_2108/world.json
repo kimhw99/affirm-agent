@@ -1,0 +1,60 @@
+{
+  "case_id": "case_2108",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396057",
+      "legal_name": "OPALINE MATTRESS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-01-26",
+      "registered_address": "7053 Foundry Blvd, Portland, OR 97201",
+      "officers": [
+        {
+          "name": "Ximena Vasquez",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396057-1",
+          "event_type": "formation",
+          "effective_date": "2019-01-26",
+          "old_value": null,
+          "new_value": "OPALINE MATTRESS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "OR-MULTNOMAH-2019-010469",
+      "state": "OR",
+      "county": "Multnomah",
+      "dba": "OPALINE SLEEP",
+      "registrant": "OPALINE MATTRESS LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "OR-2396057",
+      "filed": "2019-08-13",
+      "expires": "2034-08-13",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60662",
+      "state": "OR",
+      "business_name": "OPALINE SLEEP",
+      "address": "7053 Foundry Blvd, Portland, OR 97201",
+      "first_seen": "2019-07-04",
+      "last_updated": "2026-09-18"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8726",
+    "irs_status": "issued",
+    "irs_name": "XIMENA VASQUEZ"
+  }
+}

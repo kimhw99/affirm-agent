@@ -1,0 +1,32 @@
+{
+  "case_id": "case_1121",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "county_dba",
+      "where": {
+        "registrant_type": "individual"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "officer_name": "Luis Pellegrini"
+      }
+    },
+    "K1"
+  ],
+  "forbidden_actions": [
+    "say the DBA belongs to an unrelated party",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "'Vesperline Skin' is registered to the owner Luis Pellegrini personally, filed before the company was formed. Luis Pellegrini is the only officer of 'VESPERLINE SKINCARE INC', but the DBA was never moved to the entity. The owner link is strong; a DBA filed in the entity's name (or an explanation) would close it."
+}

@@ -1,0 +1,51 @@
+{
+  "case_id": "case_2120",
+  "registry": [
+    {
+      "state": "CA",
+      "state_entity_id": "CA-2137073",
+      "legal_name": "CAIRNSIDE OPTICAL INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2020-04-07",
+      "registered_address": "8728 Beacon Pkwy, Oakland, CA 94658",
+      "officers": [
+        {
+          "name": "Avery Rasmussen",
+          "title": "President"
+        },
+        {
+          "name": "Farah Pellegrini",
+          "title": "Secretary"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CA-2137073-1",
+          "event_type": "formation",
+          "effective_date": "2020-04-07",
+          "old_value": null,
+          "new_value": "CAIRNSIDE OPTICAL INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60916",
+      "state": "CA",
+      "business_name": "CAIRNSIDE OPTICAL INC",
+      "address": "8728 Beacon Pkwy, Oakland, CA 94658",
+      "first_seen": "2020-08-29",
+      "last_updated": "2026-10-17"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8872",
+    "irs_status": "not_found",
+    "irs_name": null
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "case_id": "case_1129",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Obsidian Furniture Inc",
+    "dba": "Obsidian Furniture Co",
+    "address": "5330 Hawthorne Rd, Houston, TX 77017",
+    "tin_type": "EIN",
+    "tin_last4": "8095",
+    "state": "TX",
+    "state_entity_id": "TX-2100036",
+    "entity_type": "CORPORATION",
+    "formation_date": "2024-02-06",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Sienna Delacroix",
+        "role": "President"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Imani Bello",
+        "role": "Secretary"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "OBSIDIAN FURNITURE, INCORPORATED"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "dba_certificate",
+      "extracted": {
+        "dba": "Obsidian Furniture Co",
+        "registrant": "Obsidian Furniture, Incorporated",
+        "jurisdiction": "Harris County, TX",
+        "filed": "2024-05-06",
+        "expires": "2034-05-06"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "OBSIDIAN FURNITURE INC DBA OBSIDIAN FURNITURE CO",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://obsidianfurnitureco.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Obsidian Furniture Inc",
+        "address": "5330 Hawthorne Rd, Houston, TX 77017",
+        "dba": "Obsidian Furniture Co"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

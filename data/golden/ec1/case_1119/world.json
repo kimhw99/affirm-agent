@@ -1,0 +1,60 @@
+{
+  "case_id": "case_1119",
+  "registry": [
+    {
+      "state": "CA",
+      "state_entity_id": "CA-2137036",
+      "legal_name": "CORALLINE APPAREL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-07-20",
+      "registered_address": "4711 Foundry Way, Fresno, CA 93736",
+      "officers": [
+        {
+          "name": "Wesley Eriksen",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CA-2137036-1",
+          "event_type": "formation",
+          "effective_date": "2021-07-20",
+          "old_value": null,
+          "new_value": "CORALLINE APPAREL LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "CA-FRESNO-2019-010259",
+      "state": "CA",
+      "county": "Fresno",
+      "dba": "CORALLINE CLOTHING",
+      "registrant": "WESLEY ERIKSEN",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2019-05-09",
+      "expires": "2029-05-09",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60280",
+      "state": "CA",
+      "business_name": "CORALLINE CLOTHING",
+      "address": "4711 Foundry Way, Fresno, CA 93736",
+      "first_seen": "2021-11-13",
+      "last_updated": "2026-10-13"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "9397",
+    "irs_status": "issued",
+    "irs_name": "CORALLINE APPAREL LLC"
+  }
+}

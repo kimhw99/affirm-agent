@@ -23,6 +23,7 @@ The LLM may reword an ``ask`` to be more specific; it never decides whether to s
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal, Mapping, Optional, Sequence
@@ -53,6 +54,9 @@ class InternalStep:
 class MerchantAsk:
     documents: tuple[DocumentType, ...]   # the first one not already in the case wins
     ask: str
+    # When the check is a CONFLICT and every document type is already in the case, the copy on
+    # file is the problem (an expired DBA certificate): ask for the first type again, in these words.
+    renew_ask: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -82,6 +86,13 @@ _FILING_HISTORY = InternalStep(
     "or a separate company?",
     ("former_name", "former_names", "filing_event", "name_change", "separate_entity"),
 )
+_APPLIED_NAME = InternalStep(
+    "applied_name", "records",
+    "Read entity {entity_id}'s registry record and filing history, and search DBA filings for "
+    "'{legal_name}': is '{legal_name}' a former name or an assumed name of that entity, and who are its officers?",
+    ("legal_name", "state_entity_id", "officer_name", "former_names", "former_name", "filing_event", "dba",
+     "registrant", "registrant_state_entity_id"),
+)
 _COUNTY_DBA = InternalStep(
     "county_dba", "records",
     "Search county-level DBA records in {state} for '{dba}' and report the registered owner.",
@@ -95,7 +106,7 @@ _TIN_RETRY = InternalStep(
 _PENDING = InternalStep(
     "pending_filing", "records",
     "Search the {state} registry for '{legal_name}' and read its filing history: is a formation filed "
-    "but still pending?",
+    "but still pending?{registry_hint}",
     ("registry_match", "registry_entity", "filing_history", "formation_date", "entity_status",
      "registry_found"),
 )
@@ -131,8 +142,14 @@ PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
                                 MerchantAsk(("dba_certificate", "articles_of_amendment"),
                                             "The DBA certificate or articles of amendment that tie the bank account "
                                             "holder's name to the legal entity")),
+    "EC1.applied_name": ((_APPLIED_NAME,),
+                         MerchantAsk(("dba_certificate", "articles_of_amendment"),
+                                     "A DBA certificate or articles of amendment that tie the applied name to "
+                                     "the registered entity")),
     "EC1.dba_owner": ((_COUNTY_DBA, _FILING_HISTORY),
-                      MerchantAsk(("dba_certificate",), "The DBA filing showing the owner")),
+                      MerchantAsk(("dba_certificate",), "A current DBA certificate filed by the legal entity",
+                                  renew_ask="A current (renewed) DBA certificate filed by the legal entity: "
+                                            "the one on file doesn't show a live filing")),
     "EC2.tin_match": ((_TIN_RETRY, _FILING_HISTORY),
                       MerchantAsk(("irs_147c",), "IRS 147C (EIN verification letter)")),
     "EC2.name_control": ((_TIN_RETRY,),
@@ -141,10 +158,14 @@ PLAYBOOK: dict[str, tuple[tuple[InternalStep, ...], MerchantAsk]] = {
                                MerchantAsk(("irs_147c", "irs_cp575"), "IRS 147C or CP 575 for the submitted EIN")),
     "EC2.tin_type_fits": ((), MerchantAsk(("w9",), "A signed W-9 showing the TIN type")),
     "EC4.registry_presence": ((_PENDING,),
-                              MerchantAsk(("articles",), "Stamped articles or certificate of formation")),
+                              MerchantAsk(("articles", "good_standing"),
+                                          "Stamped articles of formation, or a certificate of good standing "
+                                          "(or of authority to do business) from the state the business "
+                                          "applied in, once its filing is approved")),
     "EC4.ein_age": ((_TIN_RETRY,), MerchantAsk(("irs_147c", "irs_cp575"), "IRS 147C (EIN verification letter)")),
     "EC4.sole_prop_owner": ((_KYC,), MerchantAsk(("w9",), "A W-9 in the owner's name with the owner's TIN")),
-    "EC4.sole_prop_dba": ((_COUNTY_DBA,), MerchantAsk(("dba_certificate",), "The DBA filing showing the owner")),
+    "EC4.sole_prop_dba": ((_COUNTY_DBA,), MerchantAsk(("dba_certificate",), "The DBA filing showing the owner",
+                                                      renew_ask="A renewed DBA certificate showing the owner")),
     "EC4.operating": ((_EVIDENCE_OPERATING,),
                       MerchantAsk(("business_license",), "A current business license")),
 }
@@ -202,13 +223,42 @@ def stop_reason(outcomes: dict[str, CheckOutcome], internal_rounds: int,
 
 # ---------- Building follow-ups ----------
 
+_STATE = re.compile(r"^[A-Z]{2}$")
+_ENTITY_ID = re.compile(r"^[A-Z]{2}-[A-Z0-9-]{1,20}$")
+
+
+def registry_hint(case: CaseInput, facts: FactIndex) -> str:
+    """Where else the Records worker should look for the entity, from what the Lead knows.
+
+    The articles may name another formation state (formed in Delaware, applied in Florida);
+    only a two-letter state and a well-formed entity number are passed on, never free text
+    from a document. A general partnership needn't register, so its DBA and partners count."""
+    app = case.application
+    hint = ""
+    states = [(text(f.value) or "").strip().upper() for f in facts.evidence("formation_state", kinds={"articles"})]
+    other = next((s for s in states if _STATE.match(s) and s != app.state.upper()), None)
+    if other:
+        ids = [(text(f.value) or "").strip().upper() for f in facts.evidence("document_entity_id", kinds={"articles"})]
+        entity = next((i for i in ids if _ENTITY_ID.match(i) and i.startswith(other + "-")), None)
+        hint += (f" The formation documents name another state, {other}: read that entity in the {other} registry"
+                 + (f" (get_registry_entity with state {other} and state_entity_id {entity})" if entity else
+                    f" (search_registry with state {other})")
+                 + f", and check whether it is registered in {app.state} as a foreign entity.")
+    if app.entity_type == "PARTNERSHIP":
+        hint += (" A general partnership needn't register with the state: search DBA filings for its trade name "
+                 "(the registrant should name the partners) and read every partner's KYC result.")
+    return hint
+
+
 def _fill(template: str, case: CaseInput, facts: FactIndex, outcome: CheckOutcome) -> str:
     app = case.application
     letter_names = [text(f.value) for f in facts.evidence("name", kinds=EIN_LETTERS) if text(f.value)]
     other = next((n for n in letter_names if n.upper() != app.legal_name.upper()), None)
     owner = app.owners[0]
     individual = app.entity_type == "SOLE_PROPRIETORSHIP" or app.tin_type == "SSN"
-    retry_name = owner.name if individual else (other or app.legal_name)
+    # A single-member LLC's EIN is often on file under its owner (a disregarded entity).
+    single_member = app.entity_type == "LLC" and len(app.owners) == 1
+    retry_name = owner.name if individual else (other or (owner.name if single_member else app.legal_name))
     values = {
         "state": app.state,
         "dba": app.dba or app.legal_name,
@@ -218,6 +268,7 @@ def _fill(template: str, case: CaseInput, facts: FactIndex, outcome: CheckOutcom
         "retry_name": retry_name,
         "owner": owner.name,
         "owner_ref": owner.ref,
+        "registry_hint": registry_hint(case, facts) if "{registry_hint}" in template else "",
     }
     return template.format(**values)
 
@@ -342,20 +393,33 @@ def to_record(fu: PendingFollowUp, status_after: str, new_evidence: list[str],
 
 # ---------- The merchant round ----------
 
+def renewal_allowed(check_id: str, status: str, document_type: str) -> bool:
+    """May the merchant be asked again for a document type the case already has? Only for a
+    check whose playbook says so (``renew_ask``), when the check is a CONFLICT: the copy on
+    file is what it found wrong."""
+    _, merchant = PLAYBOOK.get(check_id, _GENERIC)
+    return bool(merchant.renew_ask) and status == "CONFLICT" and merchant.documents[:1] == (document_type,)
+
+
 def merchant_requests(case: CaseInput, open_checks: list[CheckOutcome],
                       drop: frozenset[str] = frozenset()) -> list[MerchantRequest]:
-    """One document per open check, never one the case already has."""
+    """One document per open check, never one the case already has, unless the copy on file
+    is what the check found wrong (``MerchantAsk.renew_ask``, e.g. an expired DBA certificate)."""
     have = {d.type for d in case.documents}
     out: list[MerchantRequest] = []
     seen: set[str] = set()
     for o in open_checks:
         _, merchant = PLAYBOOK.get(o.check_id, _GENERIC)
+        ask = merchant.ask
         doc = next((d for d in merchant.documents if d not in have and d not in drop), None)
+        if doc is None and merchant.documents and merchant.documents[0] not in drop \
+                and renewal_allowed(o.check_id, o.status, merchant.documents[0]):
+            doc, ask = merchant.documents[0], merchant.renew_ask
         if doc is None or doc in seen:
             continue
         seen.add(doc)
         out.append(MerchantRequest(document_type=doc, check_id=o.check_id,
-                                   reason=f"{merchant.ask} would settle {o.check_id} ({o.status})"))
+                                   reason=f"{ask} would settle {o.check_id} ({o.status})"))
     return out
 
 

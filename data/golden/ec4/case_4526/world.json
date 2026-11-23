@@ -1,0 +1,34 @@
+{
+  "case_id": "case_4526",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "WA-KING-2022-010765",
+      "state": "WA",
+      "county": "King",
+      "dba": "SABLEWOOD TEA HOUSE",
+      "registrant": "COLE OKAFOR; QUENTIN VALDIVIA",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2022-07-17",
+      "expires": "2032-07-17",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61414",
+      "state": "WA",
+      "business_name": "SABLEWOOD TEA HOUSE",
+      "address": "4679 Lake St, Seattle, WA 98199",
+      "first_seen": "2022-12-14",
+      "last_updated": "2026-09-16"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3390",
+    "irs_status": "issued",
+    "irs_name": "OKAFOR & VALDIVIA"
+  }
+}

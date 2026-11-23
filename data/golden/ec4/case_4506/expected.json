@@ -1,0 +1,25 @@
+{
+  "case_id": "case_4506",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "entity_status": "pending"
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "recommend_clear while the entity is pending",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The formation filing is still pending with the state; the entity is not active yet. The articles match the pending record. document_request should ask for a certificate of good standing once the filing is approved."
+}

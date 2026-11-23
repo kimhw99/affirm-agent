@@ -1,0 +1,75 @@
+{
+  "case_id": "case_5113",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_UNVERIFIED",
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Cresthaven Coffee Bar",
+    "address": "151 Chapel Way, Buffalo, NY 14277",
+    "tin_type": "EIN",
+    "tin_last4": "7044",
+    "state": "NY",
+    "state_entity_id": "NY-2174199",
+    "entity_type": "LLC",
+    "formation_date": "2024-05-18",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vera Nakamura",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": "CRESTHAVEN COFFEE ROASTERS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_147c",
+      "extracted": {
+        "name": "CRESTHAVEN COFFEE ROASTERS LLC",
+        "ein_last4": "7044",
+        "name_control": "CRES",
+        "date": "2026-11-04"
+      },
+      "confidence": 0.92
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "CRESTHAVEN COFFEE ROASTERS LLC DBA CRESTHAVEN COFFEE BAR",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://cresthavencoffeebar.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "legal_name": "Cresthaven Coffee Roasters LLC",
+        "address": "151 Chapel Way, Buffalo, NY 14277",
+        "dba": "Cresthaven Coffee Bar"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

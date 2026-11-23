@@ -1,0 +1,80 @@
+{
+  "case_id": "case_5108",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "DBA_UNVERIFIED",
+    "TIN_MISMATCH",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Nolan Szabo",
+    "dba": "Silverbirch Bridal Boutique",
+    "address": "2136 Foundry Dr, Fresno, CA 93779",
+    "tin_type": "SSN",
+    "tin_last4": "1138",
+    "state": "CA",
+    "state_entity_id": null,
+    "entity_type": "SOLE_PROPRIETORSHIP",
+    "formation_date": "2020-09-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Nolan Szabo",
+        "role": "Owner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "w9",
+      "extracted": {
+        "legal_name": "Nolan Ilunga",
+        "tin_type": "SSN",
+        "tin_last4": "1138",
+        "business_name": "Silverbirch Bridal Boutique"
+      },
+      "confidence": 0.97
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "NOLAN SZABO DBA SILVERBIRCH BRIDAL BOUTIQUE",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://silverbirchbridalboutique.example/about",
+      "captured_at": "2026-11-08",
+      "extracted": {
+        "address": "2136 Foundry Dr, Fresno, CA 93779",
+        "dba": "Silverbirch Bridal Boutique"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

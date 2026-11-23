@@ -1,0 +1,72 @@
+{
+  "case_id": "case_5111",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Orrery Audio Co.",
+    "address": "3567 Summit Dr, Buffalo, NY 14233",
+    "tin_type": "EIN",
+    "tin_last4": "1781",
+    "state": "NY",
+    "state_entity_id": "NY-2174194",
+    "entity_type": "CORPORATION",
+    "formation_date": "2022-11-23",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Mara Esposito",
+        "role": "President"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Kiran Abernathy",
+        "role": "Secretary"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "ORRERY AUDIO COMPANY"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "ORRERY AUDIO CO",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://orrery.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Orrery Audio Co.",
+        "address": "3567 Summit Dr, Buffalo, NY 14233"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

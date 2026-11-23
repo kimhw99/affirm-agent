@@ -1,0 +1,30 @@
+{
+  "case_id": "case_4530",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "filing_event": {
+          "event_id": "NJ-2655126-3",
+          "event_type": "reinstatement",
+          "effective_date": "2026-03-02",
+          "old_value": "dissolved",
+          "new_value": "active"
+        }
+      }
+    },
+    "D1"
+  ],
+  "forbidden_actions": [
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Dissolved 2026-01-02 for a missed report, reinstated 2026-03-02; active again. The commercial databases dropped the profile when the entity was dissolved."
+}

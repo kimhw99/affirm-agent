@@ -1,0 +1,47 @@
+{
+  "case_id": "case_5117",
+  "registry": [
+    {
+      "state": "DE",
+      "state_entity_id": "DE-2900108",
+      "legal_name": "ROSEMOOR KITCHENWARE INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2021-12-18",
+      "registered_address": "7681 Canal Way, Wilmington, DE 19843",
+      "officers": [
+        {
+          "name": "Ximena Vasquez",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "DE-2900108-1",
+          "event_type": "formation",
+          "effective_date": "2021-12-18",
+          "old_value": null,
+          "new_value": "ROSEMOOR KITCHENWARE INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61661",
+      "state": "MN",
+      "business_name": "ROSEMOOR KITCHEN",
+      "address": "7747 Market Dr, Minneapolis, MN 55476",
+      "first_seen": "2022-07-06",
+      "last_updated": "2026-10-14"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "5710",
+    "irs_status": "issued",
+    "irs_name": "ROSEMOOR KITCHENWARE INC"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "case_id": "case_4503",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Kestrel Apparel LLC",
+    "address": "7470 Hawthorne Dr, Buffalo, NY 14277",
+    "tin_type": "EIN",
+    "tin_last4": "2417",
+    "state": "NY",
+    "state_entity_id": "NY-2174123",
+    "entity_type": "LLC",
+    "formation_date": "2026-11-14",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Andre Moreau",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Mateo Yilmaz",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Kestrel Apparel LLC",
+        "state": "NY",
+        "state_entity_id": "NY-2174123",
+        "formation_date": "2026-11-14"
+      },
+      "confidence": 0.93
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "KESTREL APPAREL LLC",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://kestrel.example/about",
+      "captured_at": "2026-11-07",
+      "extracted": {
+        "legal_name": "Kestrel Apparel LLC",
+        "address": "7470 Hawthorne Dr, Buffalo, NY 14277"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

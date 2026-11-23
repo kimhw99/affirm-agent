@@ -1,0 +1,66 @@
+{
+  "case_id": "case_1115",
+  "status": "pending_review",
+  "flag_reasons": [
+    "DBA_UNVERIFIED"
+  ],
+  "application": {
+    "legal_name": "Duskwood Camera Supply Inc",
+    "dba": "Duskwood Cameras",
+    "address": "3699 Maple Way, Phoenix, AZ 85095",
+    "tin_type": "EIN",
+    "tin_last4": "2432",
+    "state": "AZ",
+    "state_entity_id": "AZ-2470029",
+    "entity_type": "CORPORATION",
+    "formation_date": "2020-02-02",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Paloma Tanaka",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "DUSKWOOD CAMERA SUPPLY INC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "dba": {
+      "result": "Unverified"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "DUSKWOOD CAMERA SUPPLY INC DBA DUSKWOOD CAMERAS",
+    "status": "verified",
+    "verified_at": "2026-11-10"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://duskwoodcameras.example/about",
+      "captured_at": "2026-11-07",
+      "extracted": {
+        "legal_name": "Duskwood Camera Supply Inc",
+        "address": "3699 Maple Way, Phoenix, AZ 85095",
+        "dba": "Duskwood Cameras"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

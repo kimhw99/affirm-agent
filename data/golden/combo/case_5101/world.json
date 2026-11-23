@@ -1,0 +1,69 @@
+{
+  "case_id": "case_5101",
+  "registry": [
+    {
+      "state": "CO",
+      "state_entity_id": "CO-2322073",
+      "legal_name": "LARCHMONT APPAREL LIMITED LIABILITY COMPANY",
+      "former_names": [
+        "BRIARWOOD APPAREL LLC"
+      ],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-07-20",
+      "registered_address": "3627 Granite Blvd, Boulder, CO 80368",
+      "officers": [
+        {
+          "name": "Nadia Castellano",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CO-2322073-1",
+          "event_type": "formation",
+          "effective_date": "2023-07-20",
+          "old_value": null,
+          "new_value": "BRIARWOOD APPAREL LLC"
+        },
+        {
+          "event_id": "CO-2322073-2",
+          "event_type": "name_change",
+          "effective_date": "2026-01-01",
+          "old_value": "BRIARWOOD APPAREL LLC",
+          "new_value": "LARCHMONT APPAREL LIMITED LIABILITY COMPANY"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "CO-BOULDER-2025-010807",
+      "state": "CO",
+      "county": "Boulder",
+      "dba": "LARCHMONT CLOTHING",
+      "registrant": "BRIARWOOD APPAREL LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "CO-2322073",
+      "filed": "2025-06-15",
+      "expires": "2030-06-15",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61462",
+      "state": "CO",
+      "business_name": "LARCHMONT CLOTHING",
+      "address": "3627 Granite Blvd, Boulder, CO 80368",
+      "first_seen": "2023-11-11",
+      "last_updated": "2026-10-17"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "4937",
+    "irs_status": "issued",
+    "irs_name": "BRIARWOOD APPAREL LLC"
+  }
+}

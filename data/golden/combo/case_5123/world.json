@@ -1,0 +1,47 @@
+{
+  "case_id": "case_5123",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692154",
+      "legal_name": "LAKESHORE OPTICAL INC",
+      "former_names": [
+        "RUSSET OPTICAL INC"
+      ],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2023-07-05",
+      "registered_address": "4680 Orchard Way, Memphis, TN 38170",
+      "officers": [
+        {
+          "name": "Mateo Fairclough",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692154-1",
+          "event_type": "formation",
+          "effective_date": "2023-07-05",
+          "old_value": null,
+          "new_value": "RUSSET OPTICAL INC"
+        },
+        {
+          "event_id": "TN-2692154-2",
+          "event_type": "name_change",
+          "effective_date": "2026-03-23",
+          "old_value": "RUSSET OPTICAL INC",
+          "new_value": "LAKESHORE OPTICAL INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3934",
+    "irs_status": "issued",
+    "irs_name": "RUSSET OPTICAL INC"
+  }
+}

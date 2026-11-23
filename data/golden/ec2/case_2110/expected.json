@@ -1,0 +1,31 @@
+{
+  "case_id": "case_2110",
+  "categories": [
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "escalate",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "TN-2692094"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "recommend_clear",
+    "explain the mismatch as a name-control formatting issue",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The EIN on file at the IRS belongs to 'HOLLYHOCK JEWELRY LLC', an unrelated active company in TN with different officers. No name change links the two."
+}

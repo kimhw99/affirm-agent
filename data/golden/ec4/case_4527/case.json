@@ -1,0 +1,88 @@
+{
+  "case_id": "case_4527",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND"
+  ],
+  "application": {
+    "legal_name": "Achebe & Okafor",
+    "dba": "Daisyfield Guitars",
+    "address": "2509 Sycamore Pkwy, Tucson, AZ 85729",
+    "tin_type": "EIN",
+    "tin_last4": "3388",
+    "state": "AZ",
+    "state_entity_id": null,
+    "entity_type": "PARTNERSHIP",
+    "formation_date": "2022-07-05",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Quentin Achebe",
+        "role": "General Partner"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Rafael Okafor",
+        "role": "General Partner"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "dba": {
+      "result": "Verified"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "ACHEBE & OKAFOR",
+        "ein_last4": "3388",
+        "name_control": "ACHE",
+        "date": "2022-07-10"
+      },
+      "confidence": 0.92
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "ACHEBE & OKAFOR DBA DAISYFIELD GUITARS",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://daisyfieldguitars.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Achebe & Okafor",
+        "address": "2509 Sycamore Pkwy, Tucson, AZ 85729",
+        "dba": "Daisyfield Guitars"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

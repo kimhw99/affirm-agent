@@ -72,6 +72,25 @@ def test_document_already_in_the_case_is_reported(case_1042):
     assert [f.rule for f in checked.lead_failures] == ["DOCUMENT_ALREADY_IN_CASE"]
 
 
+def test_a_renewal_the_playbook_allows_is_not_reported(case_1042):
+    """An expired DBA certificate is asked for again (followup.renewal_allowed); anything else isn't."""
+    from kyb_contracts.case_input import Document
+    from kyb_contracts.memo import DocumentRequest
+    from app.review import DocumentCheck
+    memo, report, case, facts, plan = _setup(case_1042)
+    case = case.model_copy(update={"documents": case.documents + [Document.model_validate(
+        {"id": "D9", "type": "dba_certificate", "confidence": 0.9, "extracted": {"dba": "Northline Cycles"}})]})
+    checks = [c.model_copy(update={"status": "CONFLICT", "explanation": None, "explanation_evidence": [],
+                                   "hard_fail_reason": None})
+              if c.check_id == "EC1.dba_owner" else c for c in report.checks]
+    asking = memo.model_copy(update={"document_request": [DocumentRequest(type="dba_certificate", reason="x")]})
+    renewal = report.model_copy(update={"checks": checks, "document_checks": [
+        DocumentCheck(type="dba_certificate", check_id="EC1.dba_owner")]})
+    assert "DOCUMENT_ALREADY_IN_CASE" not in {f.rule for f in run_checks(asking, renewal, case, facts, plan).lead_failures}
+    plain = report.model_copy(update={"checks": checks, "document_checks": []})
+    assert "DOCUMENT_ALREADY_IN_CASE" in {f.rule for f in run_checks(asking, plain, case, facts, plan).lead_failures}
+
+
 class LeakyLLM(NullLeadLLM):
     def memo_prose(self, payload, failures):
         return MemoProse(notes_for_analyst="Customer EIN is 12-3456789")
@@ -84,3 +103,27 @@ def test_memo_is_sent_back_once_then_goes_to_the_analyst_with_a_warning(case_104
     assert out.check_attempts == 2 and out.lead.version == 2         # one revision, no more
     assert {f.rule for f in out.checked_memo.check_result.failures} == {"NO_FULL_TAX_ID"}
     assert "human_review" in graph.get_state(cfg).next              # still reaches the analyst
+
+
+# ---------- PR 4: what the memo cites and how it words a missing record ----------
+
+def test_each_reviewed_flag_cites_the_supporting_records_its_checks_retrieved(case_1042):
+    from app.graph.reconcile import tin_results
+    memo, report, case, facts, plan = _setup(case_1042)
+    for f in memo.flags:
+        assert "K1" in f.evidence                       # owner KYC: retrieved, so the analyst sees it
+    tin = next(f for f in memo.flags if f.flag == "TIN_MISMATCH")
+    mismatch = next(r.fact.source_id for r in tin_results(facts, case) if r.result == "Mismatch")
+    assert mismatch in tin.evidence                     # the failed match on the applied name, too
+
+
+def test_claiming_the_business_does_not_exist_is_sent_back(case_1042):
+    memo, report, case, facts, plan = _setup(case_1042)
+    rules = lambda m: {f.rule for f in run_checks(m, report, case, facts, plan).lead_failures}
+    for bad in ("The business does not exist.", "The business is not currently registered in Minnesota.",
+                "The company appears unregistered.", "The entity does not appear to exist or operate."):
+        assert "UNSUPPORTED_EXISTENCE_CLAIM" in rules(memo.model_copy(update={"notes_for_analyst": bad}))
+    for fine in ("Northline Bicycle Works LLC is registered in IL; no registry record at IL-0000000.",
+                 "The business's DBA 'Rushmere Tile Studio' is not officially registered.",   # golden 1127: true
+                 "The EIN is not registered to the business name."):
+        assert "UNSUPPORTED_EXISTENCE_CLAIM" not in rules(memo.model_copy(update={"notes_for_analyst": fine}))

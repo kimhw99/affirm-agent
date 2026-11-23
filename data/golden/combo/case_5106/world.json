@@ -1,0 +1,42 @@
+{
+  "case_id": "case_5106",
+  "registry": [
+    {
+      "state": "IL",
+      "state_entity_id": "IL-2248049",
+      "legal_name": "JUBILEE TEA COMPANY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2026-11-18",
+      "registered_address": "1846 Chapel Pkwy, Peoria, IL 61687",
+      "officers": [
+        {
+          "name": "Keiko Haddad",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Keiko Underwood",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "IL-2248049-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-18",
+          "old_value": null,
+          "new_value": "JUBILEE TEA COMPANY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1523",
+    "irs_status": "not_issued",
+    "irs_name": null
+  }
+}

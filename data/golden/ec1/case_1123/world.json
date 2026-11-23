@@ -1,0 +1,85 @@
+{
+  "case_id": "case_1123",
+  "registry": [
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396017",
+      "legal_name": "DAYBREAK AUTO PARTS INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2024-04-26",
+      "registered_address": "1250 Union Ave, Portland, OR 97278",
+      "officers": [
+        {
+          "name": "Yara Kaminski",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396017-1",
+          "event_type": "formation",
+          "effective_date": "2024-04-26",
+          "old_value": null,
+          "new_value": "DAYBREAK AUTO PARTS INC"
+        }
+      ]
+    },
+    {
+      "state": "OR",
+      "state_entity_id": "OR-2396023",
+      "legal_name": "TIDEWATER HOLDINGS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2016-02-09",
+      "registered_address": "5893 Ridge Ln, Eugene, OR 97474",
+      "officers": [
+        {
+          "name": "Vikram Pellegrini",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "OR-2396023-1",
+          "event_type": "formation",
+          "effective_date": "2016-02-09",
+          "old_value": null,
+          "new_value": "TIDEWATER HOLDINGS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "OR-LANE-2024-010368",
+      "state": "OR",
+      "county": "Lane",
+      "dba": "DAYBREAK AUTO",
+      "registrant": "TIDEWATER HOLDINGS LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "OR-2396023",
+      "filed": "2024-08-04",
+      "expires": "2029-08-04",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60414",
+      "state": "OR",
+      "business_name": "DAYBREAK AUTO",
+      "address": "5893 Ridge Ln, Eugene, OR 97474",
+      "first_seen": "2024-10-03",
+      "last_updated": "2026-10-12"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2965",
+    "irs_status": "issued",
+    "irs_name": "DAYBREAK AUTO PARTS INC"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "case_id": "case_4505",
+  "registry": [
+    {
+      "state": "PA",
+      "state_entity_id": "PA-2581065",
+      "legal_name": "RAVENMOOR PET SUPPLY LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "pending",
+      "formation_date": "2026-11-16",
+      "registered_address": "1013 Willow Dr, Pittsburgh, PA 15262",
+      "officers": [
+        {
+          "name": "Farah Xu",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Helena Quintero",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "PA-2581065-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-16",
+          "old_value": null,
+          "new_value": "RAVENMOOR PET SUPPLY LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "2075",
+    "irs_status": "issued",
+    "irs_name": "RAVENMOOR PET SUPPLY LLC"
+  }
+}

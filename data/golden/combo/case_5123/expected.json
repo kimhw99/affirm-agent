@@ -1,0 +1,27 @@
+{
+  "case_id": "case_5123",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2",
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    "D1",
+    {
+      "source": "sos_filing_history",
+      "where": {
+        "former_name": "RUSSET OPTICAL INC"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "resolve or comment on OFAC_POTENTIAL_MATCH",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "IRS still has the pre-rename name 'Russet Optical Inc', and the commercial profile hasn't caught up with the new name. OFAC_POTENTIAL_MATCH is out of scope and goes to the analyst untouched. OFAC_POTENTIAL_MATCH must be listed as out_of_scope in the memo, not resolved."
+}

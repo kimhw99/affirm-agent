@@ -1,0 +1,32 @@
+{
+  "case_id": "case_1120",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "county_dba",
+      "where": {
+        "registrant_type": "individual"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "officer_name": "Vikram Rahimi"
+      }
+    },
+    "K1"
+  ],
+  "forbidden_actions": [
+    "say the DBA belongs to an unrelated party",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "'Ironbark Tile Studio' is registered to the owner Vikram Rahimi personally, filed before the company was formed. Vikram Rahimi is the only officer of 'IRONBARK TILE AND STONE LLC', but the DBA was never moved to the entity. The owner link is strong; a DBA filed in the entity's name (or an explanation) would close it."
+}

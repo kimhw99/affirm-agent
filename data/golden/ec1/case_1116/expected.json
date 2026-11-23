@@ -1,0 +1,21 @@
+{
+  "case_id": "case_1116",
+  "categories": [
+    "business_scenario"
+  ],
+  "edge_cases": [
+    "EC-1"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "state_dba"
+    }
+  ],
+  "forbidden_actions": [
+    "request a DBA certificate when the official filing already settles it",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The vendor could not tie 'Thornbury Coffee Bar' to 'THORNBURY COFFEE ROASTERS LLC', but an active state-level assumed-name filing registers it to this entity by entity ID."
+}

@@ -1,0 +1,74 @@
+{
+  "case_id": "case_4502",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Lodestar Fitness Equipment Inc",
+    "address": "7655 Linden Rd, Brooklyn, NY 11243",
+    "tin_type": "EIN",
+    "tin_last4": "8899",
+    "state": "NY",
+    "state_entity_id": "NY-2174111",
+    "entity_type": "CORPORATION",
+    "formation_date": "2026-11-12",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Vikram Vasquez",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Lodestar Fitness Equipment Inc",
+        "state": "NY",
+        "state_entity_id": "NY-2174111",
+        "formation_date": "2026-11-12"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "LODESTAR FITNESS EQUIPMENT INC",
+    "status": "verified",
+    "verified_at": "2026-11-15"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://lodestar.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Lodestar Fitness Equipment Inc",
+        "address": "7655 Linden Rd, Brooklyn, NY 11243"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

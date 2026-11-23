@@ -1,0 +1,38 @@
+{
+  "case_id": "case_5105",
+  "registry": [
+    {
+      "state": "NC",
+      "state_entity_id": "NC-2433071",
+      "legal_name": "JUNIPERWOOD SKINCARE INC",
+      "former_names": [],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2026-11-13",
+      "registered_address": "6305 Juniper Ln, Raleigh, NC 27647",
+      "officers": [
+        {
+          "name": "Farah Achebe",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NC-2433071-1",
+          "event_type": "formation",
+          "effective_date": "2026-11-13",
+          "old_value": null,
+          "new_value": "JUNIPERWOOD SKINCARE INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "7070",
+    "irs_status": "not_issued",
+    "irs_name": null
+  }
+}

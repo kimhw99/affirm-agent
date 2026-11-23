@@ -1,0 +1,34 @@
+{
+  "case_id": "case_4508",
+  "registry": [],
+  "dba_filings": [
+    {
+      "filing_id": "MN-HENNEPIN-2020-010651",
+      "state": "MN",
+      "county": "Hennepin",
+      "dba": "VALEMONT EYEWEAR",
+      "registrant": "VERA QUINTERO",
+      "registrant_type": "individual",
+      "registrant_state_entity_id": null,
+      "filed": "2020-06-11",
+      "expires": "2030-06-11",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-61125",
+      "state": "MN",
+      "business_name": "VALEMONT EYEWEAR",
+      "address": "8008 Beacon Blvd, Minneapolis, MN 55431",
+      "first_seen": "2020-12-28",
+      "last_updated": "2026-10-29"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "8640",
+    "irs_status": "issued",
+    "irs_name": "VERA QUINTERO"
+  }
+}

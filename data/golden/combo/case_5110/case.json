@@ -1,0 +1,62 @@
+{
+  "case_id": "case_5110",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH",
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Vireo Audio, LLC",
+    "address": "5365 Harbor Ln, Boulder, CO 80381",
+    "tin_type": "EIN",
+    "tin_last4": "1541",
+    "state": "CO",
+    "state_entity_id": "CO-2322098",
+    "entity_type": "LLC",
+    "formation_date": "2023-11-16",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Imani Tanaka",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "VIREO AUDIO L.L.C."
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "VIREO AUDIO LLC",
+    "status": "verified",
+    "verified_at": "2026-11-16"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://vireo.example/about",
+      "captured_at": "2026-11-15",
+      "extracted": {
+        "legal_name": "Vireo Audio, LLC",
+        "address": "5365 Harbor Ln, Boulder, CO 80381"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

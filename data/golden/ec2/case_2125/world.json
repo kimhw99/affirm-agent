@@ -1,0 +1,64 @@
+{
+  "case_id": "case_2125",
+  "registry": [
+    {
+      "state": "FL",
+      "state_entity_id": "FL-2211138",
+      "legal_name": "BLUEFEN OUTDOOR GEAR LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-04-12",
+      "registered_address": "466 Sycamore Blvd, Orlando, FL 32882",
+      "officers": [
+        {
+          "name": "Mateo Rasmussen",
+          "title": "Managing Member"
+        },
+        {
+          "name": "Camila Pellegrini",
+          "title": "Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "FL-2211138-1",
+          "event_type": "formation",
+          "effective_date": "2019-04-12",
+          "old_value": null,
+          "new_value": "BLUEFEN OUTDOOR GEAR LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [
+    {
+      "filing_id": "FL-ORANGE-2019-010570",
+      "state": "FL",
+      "county": "Orange",
+      "dba": "BLUEFEN OUTFITTERS",
+      "registrant": "BLUEFEN OUTDOOR GEAR LLC",
+      "registrant_type": "entity",
+      "registrant_state_entity_id": "FL-2211138",
+      "filed": "2019-07-01",
+      "expires": "2034-07-01",
+      "status": "active"
+    }
+  ],
+  "commercial": [
+    {
+      "profile_id": "CDB-60998",
+      "state": "FL",
+      "business_name": "BLUEFEN OUTFITTERS",
+      "address": "466 Sycamore Blvd, Orlando, FL 32882",
+      "first_seen": "2019-05-27",
+      "last_updated": "2026-09-20"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "1446",
+    "irs_status": "issued",
+    "irs_name": "BLUEFEN OUTFITTERS"
+  }
+}

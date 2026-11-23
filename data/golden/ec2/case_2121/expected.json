@@ -1,0 +1,26 @@
+{
+  "case_id": "case_2121",
+  "categories": [
+    "exception",
+    "invalid_input"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    "D1",
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Not Found"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "recommend_clear without a corrected TIN being matched",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "The application's EIN ends 5215; the merchant's own W-9 shows one ending 2515. Most likely a typo on the application. document_request should ask the merchant to confirm the EIN (147C)."
+}

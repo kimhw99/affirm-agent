@@ -1,0 +1,61 @@
+{
+  "case_id": "case_1106",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NAME_SIMILAR_MATCH"
+  ],
+  "application": {
+    "legal_name": "Upwell Audio Inc",
+    "address": "4865 Ridge Pkwy, Worcester, MA 01645",
+    "tin_type": "EIN",
+    "tin_last4": "5075",
+    "state": "MA",
+    "state_entity_id": "MA-2507022",
+    "entity_type": "CORPORATION",
+    "formation_date": "2020-01-19",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Oksana Valdivia",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Similar Match",
+      "matched_name": "THE UPWELL AUDIO INC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "THE UPWELL AUDIO INC",
+    "status": "verified",
+    "verified_at": "2026-11-12"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://upwell.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Upwell Audio Inc",
+        "address": "4865 Ridge Pkwy, Worcester, MA 01645"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

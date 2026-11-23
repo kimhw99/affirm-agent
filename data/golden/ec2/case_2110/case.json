@@ -1,0 +1,61 @@
+{
+  "case_id": "case_2110",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Tinderbox Coffee Roasters LLC",
+    "address": "1007 Maple Blvd, Portland, OR 97290",
+    "tin_type": "EIN",
+    "tin_last4": "9435",
+    "state": "OR",
+    "state_entity_id": "OR-2396072",
+    "entity_type": "LLC",
+    "formation_date": "2021-11-01",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Avery Okafor",
+        "role": "Managing Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "TINDERBOX COFFEE ROASTERS LLC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "TINDERBOX COFFEE ROASTERS LLC",
+    "status": "verified",
+    "verified_at": "2026-11-07"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://tinderbox.example/about",
+      "captured_at": "2026-11-16",
+      "extracted": {
+        "legal_name": "Tinderbox Coffee Roasters LLC",
+        "address": "1007 Maple Blvd, Portland, OR 97290"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

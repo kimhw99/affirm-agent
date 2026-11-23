@@ -1,0 +1,47 @@
+{
+  "case_id": "case_2109",
+  "registry": [
+    {
+      "state": "CO",
+      "state_entity_id": "CO-2322019",
+      "legal_name": "GOLDFINCH CERAMICS LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2023-12-02",
+      "registered_address": "559 Canal Rd, Boulder, CO 80312",
+      "officers": [
+        {
+          "name": "Rafael Yilmaz",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "CO-2322019-1",
+          "event_type": "formation",
+          "effective_date": "2023-12-02",
+          "old_value": null,
+          "new_value": "GOLDFINCH CERAMICS LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60700",
+      "state": "CO",
+      "business_name": "GOLDFINCH CERAMICS LLC",
+      "address": "559 Canal Rd, Boulder, CO 80312",
+      "first_seen": "2024-02-12",
+      "last_updated": "2026-10-24"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "6840",
+    "irs_status": "issued",
+    "irs_name": "RAFAEL YILMAZ"
+  }
+}

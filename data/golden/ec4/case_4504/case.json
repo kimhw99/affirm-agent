@@ -1,0 +1,83 @@
+{
+  "case_id": "case_4504",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Palisade Rugs LLC",
+    "address": "4611 Granite St, San Diego, CA 92192",
+    "tin_type": "EIN",
+    "tin_last4": "2620",
+    "state": "CA",
+    "state_entity_id": "CA-2137098",
+    "entity_type": "LLC",
+    "formation_date": "2026-11-18",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Grant Yamamoto",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Ivan Nakamura",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Palisade Rugs LLC",
+        "state": "CA",
+        "state_entity_id": "CA-2137098",
+        "formation_date": "2026-11-18"
+      },
+      "confidence": 0.96
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "PALISADE RUGS LLC",
+    "status": "pending"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://palisade.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Palisade Rugs LLC",
+        "address": "4611 Granite St, San Diego, CA 92192"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

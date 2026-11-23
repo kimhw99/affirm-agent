@@ -1,0 +1,47 @@
+{
+  "case_id": "case_2107",
+  "registry": [
+    {
+      "state": "NC",
+      "state_entity_id": "NC-2433042",
+      "legal_name": "MOONRISE MUSIC LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2019-03-01",
+      "registered_address": "4406 Canal Pkwy, Raleigh, NC 27627",
+      "officers": [
+        {
+          "name": "Blake Ilunga",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "NC-2433042-1",
+          "event_type": "formation",
+          "effective_date": "2019-03-01",
+          "old_value": null,
+          "new_value": "MOONRISE MUSIC LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60630",
+      "state": "NC",
+      "business_name": "MOONRISE MUSIC LLC",
+      "address": "4406 Canal Pkwy, Raleigh, NC 27627",
+      "first_seen": "2019-08-07",
+      "last_updated": "2026-09-30"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "3992",
+    "irs_status": "issued",
+    "irs_name": "BLAKE ILUNGA"
+  }
+}

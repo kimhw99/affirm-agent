@@ -1,0 +1,56 @@
+{
+  "case_id": "case_2102",
+  "registry": [
+    {
+      "state": "WA",
+      "state_entity_id": "WA-2285064",
+      "legal_name": "RIDGEWAY HOME GOODS INC",
+      "former_names": [
+        "KINGSBRIDGE HOME GOODS INC"
+      ],
+      "entity_type": "CORPORATION",
+      "entity_status": "active",
+      "formation_date": "2018-09-11",
+      "registered_address": "2986 Harbor Ave, Spokane, WA 99248",
+      "officers": [
+        {
+          "name": "Andre Valdivia",
+          "title": "President"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "WA-2285064-1",
+          "event_type": "formation",
+          "effective_date": "2018-09-11",
+          "old_value": null,
+          "new_value": "KINGSBRIDGE HOME GOODS INC"
+        },
+        {
+          "event_id": "WA-2285064-2",
+          "event_type": "name_change",
+          "effective_date": "2026-04-09",
+          "old_value": "KINGSBRIDGE HOME GOODS INC",
+          "new_value": "RIDGEWAY HOME GOODS INC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-60531",
+      "state": "WA",
+      "business_name": "RIDGEWAY HOME GOODS INC",
+      "address": "2986 Harbor Ave, Spokane, WA 99248",
+      "first_seen": "2018-11-18",
+      "last_updated": "2026-10-27"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "EIN",
+    "tin_last4": "8775",
+    "irs_status": "issued",
+    "irs_name": "KINGSBRIDGE HOME GOODS INC"
+  }
+}

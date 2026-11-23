@@ -1,0 +1,84 @@
+{
+  "case_id": "case_4505",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Ravenmoor Pet Supply LLC",
+    "address": "1013 Willow Dr, Pittsburgh, PA 15262",
+    "tin_type": "EIN",
+    "tin_last4": "2075",
+    "state": "PA",
+    "state_entity_id": "PA-2581065",
+    "entity_type": "LLC",
+    "formation_date": "2026-11-16",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Farah Xu",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Helena Quintero",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Ravenmoor Pet Supply LLC",
+        "state": "PA",
+        "state_entity_id": "PA-2581065",
+        "formation_date": "2026-11-16"
+      },
+      "confidence": 0.95
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "RAVENMOOR PET SUPPLY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-15"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://ravenmoor.example/about",
+      "captured_at": "2026-11-09",
+      "extracted": {
+        "legal_name": "Ravenmoor Pet Supply LLC",
+        "address": "1013 Willow Dr, Pittsburgh, PA 15262"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

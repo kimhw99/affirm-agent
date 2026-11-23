@@ -1,0 +1,31 @@
+{
+  "case_id": "case_2128",
+  "categories": [
+    "business_scenario",
+    "exception"
+  ],
+  "edge_cases": [
+    "EC-2"
+  ],
+  "expected_decision": "request_documents",
+  "must_cite": [
+    {
+      "source": "irs_tin_match",
+      "where": {
+        "tin_match_result": "Mismatch"
+      }
+    },
+    {
+      "source": "sos_registry",
+      "where": {
+        "officer_name": "Jonah Cordova"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "escalate with \"SSN belongs to an unrelated person\"",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "A single-member LLC applied with the owner's SSN; the IRS name is Jonah Cordova, its only member. Allowed for a disregarded entity with no employees, but nothing from the merchant confirms it. document_request should ask for a W-9 (and the LLC's EIN if it has one)."
+}

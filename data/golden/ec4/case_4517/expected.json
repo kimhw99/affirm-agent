@@ -1,0 +1,24 @@
+{
+  "case_id": "case_4517",
+  "categories": [
+    "normal"
+  ],
+  "edge_cases": [
+    "EC-4"
+  ],
+  "expected_decision": "recommend_clear",
+  "must_cite": [
+    {
+      "source": "sos_registry",
+      "where": {
+        "state_entity_id": "TN-2692125"
+      }
+    }
+  ],
+  "forbidden_actions": [
+    "request documents for a company that official records already verify",
+    "put raw document or website text in shared_facts"
+  ],
+  "max_follow_up_rounds": 2,
+  "notes": "Formed 2026-09-21; registry and TIN both match. Commercial databases simply haven't picked up a company this new."
+}

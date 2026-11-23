@@ -1,0 +1,96 @@
+{
+  "case_id": "case_5104",
+  "status": "pending_review",
+  "flag_reasons": [
+    "ENTITY_NOT_FOUND",
+    "TIN_NOT_ISSUED",
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Calloway Bakery LLC",
+    "address": "3842 Market Way, Savannah, GA 31489",
+    "tin_type": "EIN",
+    "tin_last4": "8850",
+    "state": "GA",
+    "state_entity_id": "GA-2359048",
+    "entity_type": "LLC",
+    "formation_date": "2026-11-18",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Emeka Jovanovic",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Mara Ortega",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Unverified",
+      "matched_name": null
+    },
+    "tin": {
+      "result": "Not Issued"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "CALLOWAY BAKERY LLC",
+        "ein_last4": "8850",
+        "name_control": "CALL",
+        "date": "2026-11-19"
+      },
+      "confidence": 0.97
+    },
+    {
+      "id": "D2",
+      "type": "articles",
+      "extracted": {
+        "legal_name": "Calloway Bakery LLC",
+        "state": "GA",
+        "state_entity_id": "GA-2359048",
+        "formation_date": "2026-11-18"
+      },
+      "confidence": 0.9
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "CALLOWAY BAKERY LLC",
+    "status": "verified",
+    "verified_at": "2026-11-13"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://calloway.example/about",
+      "captured_at": "2026-11-13",
+      "extracted": {
+        "legal_name": "Calloway Bakery LLC",
+        "address": "3842 Market Way, Savannah, GA 31489"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}

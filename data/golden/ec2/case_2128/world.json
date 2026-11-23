@@ -1,0 +1,47 @@
+{
+  "case_id": "case_2128",
+  "registry": [
+    {
+      "state": "TN",
+      "state_entity_id": "TN-2692116",
+      "legal_name": "BAYBERRY OPTICAL LLC",
+      "former_names": [],
+      "entity_type": "LLC",
+      "entity_status": "active",
+      "formation_date": "2021-02-08",
+      "registered_address": "7664 Willow Dr, Nashville, TN 37299",
+      "officers": [
+        {
+          "name": "Jonah Cordova",
+          "title": "Managing Member"
+        }
+      ],
+      "filings": [
+        {
+          "event_id": "TN-2692116-1",
+          "event_type": "formation",
+          "effective_date": "2021-02-08",
+          "old_value": null,
+          "new_value": "BAYBERRY OPTICAL LLC"
+        }
+      ]
+    }
+  ],
+  "dba_filings": [],
+  "commercial": [
+    {
+      "profile_id": "CDB-61092",
+      "state": "TN",
+      "business_name": "BAYBERRY OPTICAL LLC",
+      "address": "7664 Willow Dr, Nashville, TN 37299",
+      "first_seen": "2021-04-20",
+      "last_updated": "2026-09-27"
+    }
+  ],
+  "tin_record": {
+    "tin_type": "SSN",
+    "tin_last4": "9257",
+    "irs_status": "issued",
+    "irs_name": "JONAH CORDOVA"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "case_id": "case_2102",
+  "status": "pending_review",
+  "flag_reasons": [
+    "TIN_MISMATCH"
+  ],
+  "application": {
+    "legal_name": "Ridgeway Home Goods Inc",
+    "address": "2986 Harbor Ave, Spokane, WA 99248",
+    "tin_type": "EIN",
+    "tin_last4": "8775",
+    "state": "WA",
+    "state_entity_id": "WA-2285064",
+    "entity_type": "CORPORATION",
+    "formation_date": "2018-09-11",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Andre Valdivia",
+        "role": "President"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "RIDGEWAY HOME GOODS INC"
+    },
+    "tin": {
+      "result": "Mismatch"
+    },
+    "commercial_db": {
+      "result": "Found"
+    }
+  },
+  "documents": [
+    {
+      "id": "D1",
+      "type": "irs_cp575",
+      "extracted": {
+        "name": "KINGSBRIDGE HOME GOODS INC",
+        "ein_last4": "8775",
+        "name_control": "KING",
+        "date": "2018-09-21"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "D2",
+      "type": "articles_of_amendment",
+      "extracted": {
+        "old_name": "Kingsbridge Home Goods Inc",
+        "new_name": "Ridgeway Home Goods Inc",
+        "state_entity_id": "WA-2285064",
+        "date": "2026-04-09"
+      },
+      "confidence": 0.98
+    }
+  ],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "RIDGEWAY HOME GOODS INC",
+    "status": "verified",
+    "verified_at": "2026-11-14"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://ridgeway.example/about",
+      "captured_at": "2026-11-11",
+      "extracted": {
+        "legal_name": "Ridgeway Home Goods Inc",
+        "address": "2986 Harbor Ave, Spokane, WA 99248"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    }
+  ]
+}

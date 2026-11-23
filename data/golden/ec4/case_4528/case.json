@@ -1,0 +1,71 @@
+{
+  "case_id": "case_4528",
+  "status": "pending_review",
+  "flag_reasons": [
+    "NO_COMMERCIAL_RECORD"
+  ],
+  "application": {
+    "legal_name": "Firthwood Tile and Stone LLC",
+    "address": "4838 Ridge Blvd, Austin, TX 78752",
+    "tin_type": "EIN",
+    "tin_last4": "3047",
+    "state": "TX",
+    "state_entity_id": "TX-2100098",
+    "entity_type": "LLC",
+    "formation_date": "2018-11-09",
+    "owners": [
+      {
+        "ref": "owner:P1",
+        "name": "Bianca Sokolov",
+        "role": "Managing Member"
+      },
+      {
+        "ref": "owner:P2",
+        "name": "Wesley Yilmaz",
+        "role": "Member"
+      }
+    ]
+  },
+  "checks": {
+    "sos_name": {
+      "result": "Verified",
+      "matched_name": "FIRTHWOOD TILE AND STONE LLC"
+    },
+    "tin": {
+      "result": "Match"
+    },
+    "commercial_db": {
+      "result": "Not Found"
+    }
+  },
+  "documents": [],
+  "bank_verification": {
+    "id": "B1",
+    "account_holder": "FIRTHWOOD TILE AND STONE LLC",
+    "status": "verified",
+    "verified_at": "2026-11-08"
+  },
+  "web_snapshot": [
+    {
+      "id": "W1",
+      "url": "https://firthwood.example/about",
+      "captured_at": "2026-11-10",
+      "extracted": {
+        "legal_name": "Firthwood Tile and Stone LLC",
+        "address": "4838 Ridge Blvd, Austin, TX 78752"
+      }
+    }
+  ],
+  "owner_kyc": [
+    {
+      "id": "K1",
+      "owner_ref": "owner:P1",
+      "result": "pass"
+    },
+    {
+      "id": "K2",
+      "owner_ref": "owner:P2",
+      "result": "pass"
+    }
+  ]
+}
