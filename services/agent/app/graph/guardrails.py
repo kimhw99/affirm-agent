@@ -17,12 +17,16 @@
    - DOCUMENT_ALREADY_IN_CASE: never ask for a document type the case already has, except a
      renewal the playbook allows (followup.renewal_allowed: an expired DBA certificate)
    - WEBSITE_OVERRULES_RECORDS: an explanation can't rest on the merchant's website alone
+   - UNSUPPORTED_EXISTENCE_CLAIM: the notes and root causes don't say the business is
+     unregistered or doesn't exist (a lookup only shows there's no record where it searched),
+     unless the plan expected no registry entry (sole proprietor, partnership, new business)
 
 Any failure sends the memo back once (workflow.after_checks).
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Optional
@@ -58,6 +62,32 @@ _SOURCE_LABEL = {
     "commercial_db_search": "Commercial database search",
 }
 _MAX_EXCERPT_LINES = 4
+
+
+# A negative claim about the business itself: "the business is not registered", "the company
+# does not appear to exist", "an unregistered entity". "is registered in DE" is fine, and so is a
+# claim about a DBA, trade name or tax ID ("the DBA is not registered": no DBA filing was found).
+_EXISTENCE_CLAIM = re.compile(
+    r"\b(?:business|company|entity|merchant|applicant)\b[^.;:]{0,60}?"
+    r"\b(?:does not (?:appear to )?exist|doesn't (?:appear to )?exist|did not exist|is non-?existent|"
+    r"(?:is not|isn't|was not|wasn't|is never|has never been) (?:officially |properly |currently |legally )?"
+    r"registered|(?:is|appears|seems) (?:to be )?unregistered)\b"
+    r"|\bunregistered (?:business|company|entity)\b",
+    re.IGNORECASE)
+_OTHER_SUBJECT = re.compile(r"\b(?:dba|d/b/a|trade name|assumed name|fictitious|ein|tin|ssn)\b", re.IGNORECASE)
+
+
+def _existence_claim(memo: Optional[Memo], report: LeadReport) -> Optional[str]:
+    """The first claim in the notes or a root cause that the business is unregistered or doesn't
+    exist. Ruled-out causes are skipped (ruling that out is fine), and so is a case whose plan
+    expected no registry entry (a sole proprietor is, correctly, not registered)."""
+    if memo is None or any(c.expected_absence and c.status == "EXPLAINED" for c in report.checks):
+        return None
+    for t in [memo.notes_for_analyst or ""] + [f.root_cause or "" for f in memo.flags]:
+        for m in _EXISTENCE_CLAIM.finditer(t):
+            if not _OTHER_SUBJECT.search(m.group(0)):
+                return m.group(0)
+    return None
 
 
 def _as_date(v) -> Optional[date]:
@@ -214,6 +244,13 @@ def run_checks(memo: Optional[Memo], report: LeadReport, case: Optional[CaseInpu
             if req.type in have and req.type not in renewals:
                 lead.append(LeadCheckFailure(rule="DOCUMENT_ALREADY_IN_CASE",
                                              detail=f"The case already has a {req.type}"))
+
+    claim = _existence_claim(memo, report)
+    if claim:
+        lead.append(LeadCheckFailure(rule="UNSUPPORTED_EXISTENCE_CLAIM",
+                                     detail="The memo claims the business is unregistered or doesn't exist. Say what "
+                                            "the lookup found instead: no registry record at the entity number or "
+                                            "name searched, in that state"))
 
     for c in report.checks:
         if c.status == "EXPLAINED" and c.explanation_evidence and all(e.startswith("W") for e in c.explanation_evidence):

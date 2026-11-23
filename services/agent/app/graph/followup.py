@@ -256,7 +256,9 @@ def _fill(template: str, case: CaseInput, facts: FactIndex, outcome: CheckOutcom
     other = next((n for n in letter_names if n.upper() != app.legal_name.upper()), None)
     owner = app.owners[0]
     individual = app.entity_type == "SOLE_PROPRIETORSHIP" or app.tin_type == "SSN"
-    retry_name = owner.name if individual else (other or app.legal_name)
+    # A single-member LLC's EIN is often on file under its owner (a disregarded entity).
+    single_member = app.entity_type == "LLC" and len(app.owners) == 1
+    retry_name = owner.name if individual else (other or (owner.name if single_member else app.legal_name))
     values = {
         "state": app.state,
         "dba": app.dba or app.legal_name,

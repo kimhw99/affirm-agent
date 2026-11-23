@@ -65,7 +65,8 @@ Playbooks:
 - EC-2, TIN or name control:
   1. check_tin_match with the applied legal name.
   2. On Mismatch, test the other candidate names, one call each: former names from the filing
-     history, the DBA, and, when tin_type is SSN, the owner's name.
+     history, the DBA, and the owner's name when tin_type is SSN or the LLC has a single owner (a
+     single-member LLC's EIN is often on file under its owner, as a disregarded entity).
   3. The IRS compares only the name control (for a business, the first 4 characters of the name with
      spaces removed, after dropping a leading "The"). A name with the same name control as one already tested gives the
      same result, so don't test it: case, punctuation, a suffix (LLC, L.L.C., Inc) or a different

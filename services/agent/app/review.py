@@ -118,6 +118,7 @@ LeadRule = Literal[
     "REQUIRED_CHECK_MISSING",       # a required template check is missing from the report
     "DOCUMENT_ALREADY_IN_CASE",     # never ask the merchant for a document type the case has
     "WEBSITE_OVERRULES_RECORDS",    # an explanation can't rest on the merchant's website alone
+    "UNSUPPORTED_EXISTENCE_CLAIM",  # the memo says the business is unregistered or doesn't exist
 ]
 
 _CONFIDENCE_RANK: dict[str, int] = {

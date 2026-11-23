@@ -130,8 +130,12 @@ class OpenAILeadLLM:
             "causes you can rule out (each citing evidence IDs from the input), and short notes for the analyst. "
             "worker_reports holds each worker's own reading of its findings (answer, hypothesis signals with "
             "their evidence IDs) and what it could not find or settle: use the signals to word root causes and "
-            "ruled-out causes, and say why a GAP or CONFLICT check is still open. A worker's reading is one "
+            "ruled-out causes, and say why a required GAP or CONFLICT check is still open (lead-added ADD. "
+            "checks are optional and never keep a flag open). A worker's reading is one "
             "side only; where it disagrees with the check statuses, the statuses win. "
+            "Say only what a lookup found: 'no registry record at entity number X in state Y', never that "
+            "the business is unregistered, not registered or does not exist; a search can miss a business "
+            "registered in another state or under another number. "
             "Do not change any status or the recommendation; they are decided by code."
             + (f" The previous draft failed these checks; fix them: {failures}" if failures else "")),
             payload)

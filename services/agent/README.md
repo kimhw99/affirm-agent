@@ -152,6 +152,15 @@ every partner and every partner passed KYC. With no IRS letter in the case, an E
 account plus an active license, a website naming the business, or a DBA certificate.
 `document_tampered` stays in `HardFailReason` for the API's sake, but nothing sets it.
 
+**What a flag cites.** A flag's evidence is what its checks decided on plus what they
+retrieved to get there (`memo_writer.supporting_evidence`): the records and evidence in
+each check's focus fields, the records that link names (former names, amendments, DBAs
+the entity filed) and the registry officers who are applicant owners for name and TIN
+checks, the owners' KYC, and any merchant source with instruction-like text. The notes and
+root causes say what a lookup found ("no registry record at entity number X"), never that
+the business is unregistered or doesn't exist; step 9 sends such a memo back
+(`UNSUPPORTED_EXISTENCE_CLAIM`), except when the plan expected no registry entry.
+
 **Memo and checks.** Code fills the structured parts; the LLM writes prose, which is
 scrubbed for full TINs. Step 9 builds `evidence_index` from `CaseInput` and saved
 sources, then checks memo.py's rules (CITED_ID_MUST_EXIST, CLEAR_NEEDS_TWO_SOURCES,
