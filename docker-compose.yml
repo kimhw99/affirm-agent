@@ -130,7 +130,7 @@ services:
     build: ./frontend
     ports:
       # The review app, published on this machine only. nginx forwards /api to the gateway.
-      - "127.0.0.1:${APP_HOST_PORT:-3000}:80"
+      - "${APP_HOST_BIND:-127.0.0.1}:${APP_HOST_PORT:-3000}:80"
     depends_on:
       gateway:
         condition: service_healthy
