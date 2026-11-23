@@ -1,0 +1,15 @@
+{
+  "started": "2026-11-23T02:55:50",
+  "review_day": "2026-11-23",
+  "cases": 119,
+  "lead_llm": "OpenAILeadLLM",
+  "lead_llm_env": "on",
+  "model": "gpt-4o-mini",
+  "lead_model": "gpt-4o-mini",
+  "workers": [
+    "LangGraphWorker",
+    "LangGraphWorker"
+  ],
+  "langfuse": true,
+  "judge": true
+}
