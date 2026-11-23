@@ -1,0 +1,124 @@
+ Container affirm-agent-agent-run-046344e09ece Creating 
+ Container affirm-agent-agent-run-046344e09ece Created 
+{"started": "2026-11-23T05:00:32", "review_day": "2026-11-23", "cases": 119, "lead_llm": "OpenAILeadLLM", "lead_llm_env": "on", "model": "gpt-4o-mini", "lead_model": "gpt-4o-mini", "workers": ["LangGraphWorker", "LangGraphWorker"], "langfuse": true, "judge": true}
+[  1/119] BAD case_5104 expected=recommend_clear got=request_documents cite=1.00 37.0s
+[  2/119] BAD case_5105 expected=recommend_clear got=request_documents cite=1.00 44.8s
+[  3/119] ok  case_5103 expected=recommend_clear got=recommend_clear cite=1.00 48.9s
+[  4/119] ok  case_5102 expected=recommend_clear got=recommend_clear cite=1.00 51.7s
+[  5/119] ok  case_5101 expected=recommend_clear got=recommend_clear cite=1.00 56.5s
+[  6/119] ok  case_1042 expected=recommend_clear got=recommend_clear cite=1.00 56.5s
+[  7/119] BAD case_5106 expected=recommend_clear got=request_documents cite=1.00 39.5s
+[  8/119] BAD case_5111 expected=escalate got=request_documents cite=0.50 49.9s
+[  9/119] BAD case_5110 expected=escalate got=request_documents cite=0.50 51.3s
+[ 10/119] ok  case_5108 expected=request_documents got=request_documents cite=1.00 58.9s
+[ 11/119] ok  case_5109 expected=request_documents got=request_documents cite=1.00 61.8s
+[ 12/119] ok  case_5107 expected=request_documents got=request_documents cite=1.00 69.0s
+[ 13/119] BAD case_5112 expected=escalate got=request_documents cite=0.50 48.2s
+[ 14/119] ok  case_5115 expected=recommend_clear got=recommend_clear cite=1.00 35.3s
+[ 15/119] ok  case_5114 expected=recommend_clear got=recommend_clear cite=1.00 51.2s
+[ 16/119] ok  case_5116 expected=request_documents got=request_documents cite=0.50 53.3s
+[ 17/119] ok  case_5119 expected=recommend_clear got=recommend_clear cite=1.00 24.5s
+[ 18/119] ok  case_5117 expected=request_documents got=request_documents cite=0.50 55.3s
+[ 19/119] ok  case_5118 expected=request_documents got=request_documents cite=0.50 52.3s
+[ 20/119] ok  case_5113 expected=recommend_clear got=recommend_clear cite=1.00 76.7s
+[ 21/119] ok  case_5120 expected=recommend_clear got=recommend_clear cite=1.00 26.8s
+[ 22/119] ok  case_5121 expected=recommend_clear got=recommend_clear cite=1.00 21.0s
+[ 23/119] ok  case_5122 expected=recommend_clear got=recommend_clear cite=1.00 38.6s
+[ 24/119] ok  case_5123 expected=recommend_clear got=recommend_clear cite=1.00 38.2s
+[ 25/119] ok  case_5124 expected=recommend_clear got=recommend_clear cite=1.00 30.7s
+[ 26/119] ok  case_1102 expected=recommend_clear got=recommend_clear cite=0.00 2.5s
+[ 27/119] ok  case_1103 expected=recommend_clear got=recommend_clear cite=0.50 3.2s
+[ 28/119] ok  case_1104 expected=recommend_clear got=recommend_clear cite=0.00 3.3s
+[ 29/119] ok  case_1105 expected=recommend_clear got=recommend_clear cite=0.00 1.4s
+[ 30/119] ok  case_1106 expected=recommend_clear got=recommend_clear cite=0.00 2.5s
+[ 31/119] ok  case_5126 expected=escalate got=escalate cite=1.00 42.4s
+[ 32/119] ok  case_5125 expected=escalate got=escalate cite=1.00 49.3s
+[ 33/119] ok  case_1107 expected=recommend_clear got=recommend_clear cite=0.50 21.1s
+[ 34/119] BAD case_5129 expected=insufficient_evidence got=request_documents cite=1.00 34.5s
+[ 35/119] BAD case_5127 expected=escalate got=request_documents cite=1.00 56.1s
+[ 36/119] BAD case_5128 expected=recommend_clear got=request_documents cite=1.00 44.5s
+[ 37/119] ok  case_1109 expected=recommend_clear got=recommend_clear cite=1.00 22.5s
+[ 38/119] ok  case_1108 expected=recommend_clear got=recommend_clear cite=1.00 29.3s
+[ 39/119] ok  case_1110 expected=recommend_clear got=recommend_clear cite=0.00 21.6s
+[ 40/119] ok  case_1112 expected=recommend_clear got=recommend_clear cite=0.67 28.1s
+[ 41/119] ok  case_1114 expected=recommend_clear got=recommend_clear cite=1.00 19.1s
+[ 42/119] ok  case_1115 expected=recommend_clear got=recommend_clear cite=1.00 19.2s
+[ 43/119] ok  case_1116 expected=recommend_clear got=recommend_clear cite=1.00 19.1s
+[ 44/119] ok  case_1111 expected=recommend_clear got=recommend_clear cite=0.67 42.2s
+[ 45/119] ok  case_1113 expected=request_documents got=request_documents cite=1.00 54.9s
+[ 46/119] ok  case_1117 expected=request_documents got=request_documents cite=1.00 41.8s
+[ 47/119] ok  case_1118 expected=request_documents got=request_documents cite=1.00 40.9s
+[ 48/119] ok  case_1119 expected=request_documents got=request_documents cite=0.67 46.9s
+[ 49/119] ok  case_1121 expected=request_documents got=request_documents cite=1.00 46.1s
+[ 50/119] ok  case_1122 expected=escalate got=escalate cite=0.50 25.2s
+[ 51/119] ok  case_1120 expected=request_documents got=request_documents cite=0.67 51.1s
+[ 52/119] ok  case_1123 expected=escalate got=escalate cite=0.50 25.6s
+[ 53/119] ok  case_1124 expected=escalate got=escalate cite=1.00 26.9s
+[ 54/119] ok  case_1125 expected=escalate got=escalate cite=1.00 25.3s
+[ 55/119] ok  case_1126 expected=escalate got=escalate cite=1.00 24.8s
+[ 56/119] ok  case_1129 expected=recommend_clear got=recommend_clear cite=1.00 24.4s
+[ 57/119] ok  case_1130 expected=recommend_clear got=recommend_clear cite=1.00 22.6s
+[ 58/119] ok  case_2101 expected=recommend_clear got=recommend_clear cite=1.00 26.7s
+[ 59/119] ok  case_1127 expected=request_documents got=request_documents cite=1.00 45.1s
+[ 60/119] ok  case_1128 expected=request_documents got=request_documents cite=1.00 42.8s
+[ 61/119] ok  case_2103 expected=recommend_clear got=recommend_clear cite=1.00 24.8s
+[ 62/119] ok  case_2104 expected=recommend_clear got=recommend_clear cite=1.00 26.1s
+[ 63/119] ok  case_2102 expected=recommend_clear got=recommend_clear cite=1.00 40.7s
+[ 64/119] ok  case_2105 expected=recommend_clear got=recommend_clear cite=1.00 23.8s
+[ 65/119] ok  case_2106 expected=recommend_clear got=recommend_clear cite=1.00 24.2s
+[ 66/119] ok  case_2107 expected=recommend_clear got=recommend_clear cite=0.67 39.6s
+[ 67/119] ok  case_2108 expected=recommend_clear got=recommend_clear cite=0.67 31.3s
+[ 68/119] ok  case_2109 expected=recommend_clear got=recommend_clear cite=0.75 36.0s
+[ 69/119] BAD case_2110 expected=escalate got=request_documents cite=0.50 41.6s
+[ 70/119] BAD case_2111 expected=escalate got=request_documents cite=0.67 37.9s
+[ 71/119] BAD case_2112 expected=escalate got=request_documents cite=0.67 50.8s
+[ 72/119] ok  case_2113 expected=request_documents got=request_documents cite=0.50 41.0s
+[ 73/119] BAD case_2116 expected=recommend_clear got=request_documents cite=1.00 25.4s
+[ 74/119] BAD case_2117 expected=recommend_clear got=request_documents cite=1.00 26.4s
+[ 75/119] ok  case_2115 expected=request_documents got=request_documents cite=0.50 43.2s
+[ 76/119] ok  case_2114 expected=request_documents got=request_documents cite=0.50 55.5s
+[ 77/119] BAD case_2120 expected=request_documents got=escalate cite=1.00 21.6s
+[ 78/119] ok  case_2118 expected=request_documents got=request_documents cite=1.00 34.2s
+[ 79/119] ok  case_2121 expected=request_documents got=request_documents cite=1.00 44.5s
+[ 80/119] ok  case_2122 expected=request_documents got=request_documents cite=1.00 39.3s
+[ 81/119] ok  case_2119 expected=request_documents got=request_documents cite=1.00 54.2s
+[ 82/119] ok  case_2125 expected=recommend_clear got=recommend_clear cite=1.00 28.6s
+[ 83/119] ok  case_2123 expected=request_documents got=request_documents cite=1.00 53.8s
+[ 84/119] ok  case_2126 expected=recommend_clear got=recommend_clear cite=0.67 22.5s
+[ 85/119] ok  case_2124 expected=request_documents got=request_documents cite=1.00 52.6s
+[ 86/119] ok  case_2128 expected=request_documents got=request_documents cite=1.00 29.3s
+[ 87/119] ok  case_2129 expected=request_documents got=request_documents cite=1.00 28.0s
+[ 88/119] ok  case_2127 expected=recommend_clear got=recommend_clear cite=1.00 35.4s
+[ 89/119] ok  case_4501 expected=recommend_clear got=recommend_clear cite=1.00 18.9s
+[ 90/119] ok  case_4503 expected=recommend_clear got=recommend_clear cite=1.00 16.5s
+[ 91/119] ok  case_4502 expected=recommend_clear got=recommend_clear cite=1.00 22.2s
+[ 92/119] ok  case_2130 expected=request_documents got=request_documents cite=1.00 29.9s
+[ 93/119] ok  case_4504 expected=request_documents got=request_documents cite=1.00 30.7s
+[ 94/119] ok  case_4505 expected=request_documents got=request_documents cite=1.00 28.1s
+[ 95/119] ok  case_4506 expected=request_documents got=request_documents cite=1.00 34.1s
+[ 96/119] ok  case_4508 expected=recommend_clear got=recommend_clear cite=1.00 30.2s
+[ 97/119] ok  case_4509 expected=recommend_clear got=recommend_clear cite=1.00 30.9s
+[ 98/119] ok  case_4507 expected=recommend_clear got=recommend_clear cite=1.00 35.1s
+[ 99/119] ok  case_4511 expected=recommend_clear got=recommend_clear cite=1.00 29.0s
+[100/119] ok  case_4510 expected=recommend_clear got=recommend_clear cite=1.00 34.1s
+[101/119] ok  case_4512 expected=recommend_clear got=recommend_clear cite=1.00 31.4s
+[102/119] ok  case_4514 expected=request_documents got=request_documents cite=0.50 27.7s
+[103/119] ok  case_4513 expected=request_documents got=request_documents cite=0.50 32.0s
+[104/119] ok  case_4516 expected=recommend_clear got=recommend_clear cite=1.00 20.7s
+[105/119] ok  case_4515 expected=request_documents got=request_documents cite=0.50 31.3s
+[106/119] ok  case_4517 expected=recommend_clear got=recommend_clear cite=1.00 21.9s
+[107/119] ok  case_4518 expected=recommend_clear got=recommend_clear cite=1.00 23.6s
+[108/119] ok  case_4520 expected=recommend_clear got=recommend_clear cite=1.00 21.4s
+[109/119] ok  case_4521 expected=recommend_clear got=recommend_clear cite=1.00 24.5s
+[110/119] ok  case_4522 expected=escalate got=escalate cite=0.75 25.4s
+[111/119] ok  case_4519 expected=recommend_clear got=recommend_clear cite=1.00 31.2s
+[112/119] ok  case_4523 expected=escalate got=escalate cite=1.00 24.2s
+[113/119] ok  case_4525 expected=recommend_clear got=recommend_clear cite=1.00 23.0s
+[114/119] BAD case_4528 expected=request_documents got=escalate cite=0.00 18.9s
+[115/119] ok  case_4527 expected=recommend_clear got=recommend_clear cite=1.00 21.9s
+[116/119] ok  case_4526 expected=recommend_clear got=recommend_clear cite=1.00 24.4s
+[117/119] ok  case_4524 expected=escalate got=escalate cite=0.50 33.8s
+[118/119] ok  case_4529 expected=recommend_clear got=recommend_clear cite=0.50 22.2s
+[119/119] ok  case_4530 expected=recommend_clear got=recommend_clear cite=0.50 22.1s
+
+report: results/final-full/report.md
